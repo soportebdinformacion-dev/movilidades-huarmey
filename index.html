@@ -1,120 +1,111 @@
-<div class="card">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://i.ibb.co/Vvz4YyF/logo-agricola-huarmey.png" 
-             alt="Agrícola Huarmey" 
-             style="max-width: 140px; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));">
-        <h2 style="color: #1B5E20; margin: 10px 0 0; font-family: 'Segoe UI', sans-serif; font-size: 20px; letter-spacing: 1px;">
-            CONTROL DE MOVILIDAD
-        </h2>
-    </div>
-    
-    <form id="f">
-        ```
-
----
-
-### 2. Código Completo Corregido (index.html)
-Para evitar que se rompa la conexión o el diseño, aquí tienes el archivo completo con el logo ya integrado y la validación de envío. Solo recuerda **pegar tu URL de Google** al final.
-
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huarmey Movilidades</title>
+    <title>Agrícola Huarmey - Movilidades</title>
     <style>
-        :root { --verde: #1B5E20; --amarillo: #FBC02D; --gris: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: #e9ecef; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-top: 10px solid var(--verde); }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #555; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background: #f1f3f5; color: #495057; }
-        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); }
-        .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-        .on { background: #d4edda; color: #155724; }
-        .off { background: #f8d7da; color: #721c24; }
+        :root { --verde: #1B5E20; --amarillo: #FFB300; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-top: 8px solid var(--verde); }
+        .logo { display: block; margin: 0 auto 10px; max-width: 140px; }
+        label { display: block; margin-top: 10px; font-weight: bold; font-size: 12px; color: #444; }
+        select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background: #f8f9fa; }
+        .btn-guardar { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        
+        /* BANDEJA INFERIOR */
+        .pendientes-container { max-width: 450px; margin: 20px auto; background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .item-pendiente { border-left: 5px solid var(--amarillo); background: #fff9e6; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .badge-espera { background: var(--amarillo); color: #000; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://i.ibb.co/Vvz4YyF/logo-agricola-huarmey.png" alt="Logo" style="max-width: 140px; height: auto;">
-        <h2 style="color: var(--verde); margin-top: 10px; font-size: 18px;">AGRÍCOLA HUARMEY</h2>
-    </div>
+    <img src="https://i.ibb.co/Vvz4YyF/logo-agricola-huarmey.png" class="logo">
+    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Control de Movilidad</h3>
 
-    <form id="f">
-        <label>Unidad (Placa)</label>
-        <select id="placa" required onchange="v()"></select>
-
-        <label>Conductor</label>
+    <form id="formApp">
+        <label>PLACA:</label>
+        <select id="placa" required onchange="cargarDatos()"></select>
+        <label>CONDUCTOR:</label>
         <input type="text" id="conductor" readonly>
-
         <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>Tipo</label><input type="text" id="tipo" readonly></div>
-            <div style="flex:1"><label>Capacidad</label><input type="number" id="cap" readonly></div>
+            <div style="flex:1"><label>TIPO:</label><input type="text" id="tipo" readonly></div>
+            <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="capacidad" readonly></div>
         </div>
-
-        <label>Ruta</label>
+        <label>RUTA:</label>
         <input type="text" id="ruta" readonly>
-
-        <label>N° Pasajeros</label>
-        <input type="number" id="pax" required oninput="calc()">
-
-        <label>Asientos Libres</label>
-        <input type="number" id="lib" readonly>
-
-        <label>Observaciones</label>
-        <textarea id="obs" rows="2"></textarea>
-
-        <button type="submit" id="btn" class="btn">GUARDAR REGISTRO</button>
+        <label>N° PASAJEROS:</label>
+        <input type="number" id="pasajeros" required oninput="calcular()">
+        <label>ASIENTOS LIBRES:</label>
+        <input type="number" id="libres" readonly>
+        <label>OBSERVACIONES:</label>
+        <textarea id="observaciones" rows="2"></textarea>
+        <button type="submit" class="btn-guardar">GUARDAR REGISTRO</button>
     </form>
-    <div id="st" class="status on">● Conectado</div>
+</div>
+
+<div class="pendientes-container">
+    <p style="margin:0 0 10px; font-weight:bold; color:#666;">📋 REGISTROS PENDIENTES (<span id="contador">0</span>)</p>
+    <div id="listaPendientes"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <-- NO OLVIDES PEGAR TU URL AQUÍ
-    const db = new Dexie('Huarmey_V6');
-    db.version(1).stores({ m: 'placa', r: '++id, estado' });
+    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA AQUÍ LA NUEVA URL
+    const db = new Dexie('Huarmey_Final_V7');
+    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
-    let ms = [];
+    let datosMaestros = [];
 
-    async function init() {
+    async function cargarApp() {
         if (navigator.onLine) {
             try {
-                const res = await fetch(URL + '?t=' + Date.now());
+                const res = await fetch(URL_SCRIPT + '?t=' + Date.now());
                 const data = await res.json();
-                await db.m.clear();
-                await db.m.bulkAdd(data);
-            } catch (e) { console.log("Offline"); }
+                await db.maestros.clear();
+                await db.maestros.bulkAdd(data);
+            } catch (e) { console.log("Carga offline"); }
         }
-        ms = await db.m.toArray();
-        document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
-            ms.map(i => `<option value="${i.placa}">${i.placa}</option>`).join('');
+        datosMaestros = await db.maestros.toArray();
+        const sel = document.getElementById('placa');
+        sel.innerHTML = '<option value="">Seleccione placa...</option>' + 
+            datosMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+        actualizarBandeja();
     }
 
-    function v() {
-        const sel = ms.find(x => x.placa === document.getElementById('placa').value);
-        if (sel) {
-            document.getElementById('conductor').value = sel.conductor || '';
-            document.getElementById('tipo').value = sel.tipo || '';
-            document.getElementById('cap').value = sel.capacidad || 0;
-            document.getElementById('ruta').value = sel.ruta || '';
-            calc();
+    function cargarDatos() {
+        const m = datosMaestros.find(x => x.placa === document.getElementById('placa').value);
+        if (m) {
+            document.getElementById('conductor').value = m.conductor || '';
+            document.getElementById('tipo').value = m.tipo || '';
+            document.getElementById('capacidad').value = m.capacidad || 0;
+            document.getElementById('ruta').value = m.ruta || '';
+            calcular();
         }
     }
 
-    function calc() {
-        const c = parseInt(document.getElementById('cap').value) || 0;
-        const p = parseInt(document.getElementById('pax').value) || 0;
-        document.getElementById('lib').value = Math.max(0, c - p);
-        document.getElementById('btn').disabled = (p > c || p <= 0);
+    function calcular() {
+        const c = parseInt(document.getElementById('capacidad').value) || 0;
+        const p = parseInt(document.getElementById('pasajeros').value) || 0;
+        document.getElementById('libres').value = Math.max(0, c - p);
     }
 
-    document.getElementById('f').onsubmit = async (e) => {
+    async function actualizarBandeja() {
+        const pends = await db.registros.where('estado').equals('P').toArray();
+        document.getElementById('contador').innerText = pends.length;
+        const container = document.getElementById('listaPendientes');
+        container.innerHTML = pends.map(p => `
+            <div class="item-pendiente">
+                <div><b>${p.placa}</b><br><small>${p.fecha}</small></div>
+                <div class="badge-espera">PENDIENTE</div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('formApp').onsubmit = async (e) => {
         e.preventDefault();
         const reg = {
             fecha: new Date().toLocaleString(),
@@ -122,33 +113,37 @@ Para evitar que se rompa la conexión o el diseño, aquí tienes el archivo comp
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
-            capacidad: document.getElementById('cap').value,
-            pasajeros: document.getElementById('pax').value,
-            libres: document.getElementById('lib').value,
-            observaciones: document.getElementById('obs').value,
+            capacidad: document.getElementById('capacidad').value,
+            pasajeros: document.getElementById('pasajeros').value,
+            libres: document.getElementById('libres').value,
+            observaciones: document.getElementById('observaciones').value,
             estado: 'P'
         };
-        await db.r.add(reg);
-        document.getElementById('f').reset();
-        alert("✅ Registro guardado localmente.");
-        if (navigator.onLine) sync();
+        await db.registros.add(reg);
+        document.getElementById('formApp').reset();
+        alert("✅ Registro guardado localmente");
+        actualizarBandeja();
+        if (navigator.onLine) sincronizar();
     };
 
-    async function sync() {
+    async function sincronizar() {
         if (!navigator.onLine) return;
-        const pends = await db.r.where('estado').equals('P').toArray();
+        const pends = await db.registros.where('estado').equals('P').toArray();
         for (let r of pends) {
             try {
-                const form = new URLSearchParams();
-                const {id, estado, ...data} = r;
-                for (const key in data) form.append(key, data[key]);
-                await fetch(URL, { method: 'POST', mode: 'no-cors', body: form.toString() });
-                await db.r.update(r.id, { estado: 'E' });
+                const f = new URLSearchParams();
+                const {id, estado, ...clean} = r;
+                for (const k in clean) f.append(k, clean[k]);
+
+                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: f.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
+                await db.registros.update(r.id, { estado: 'E' });
             } catch (e) { break; }
         }
+        actualizarBandeja();
     }
 
-    init();
+    window.addEventListener('online', sincronizar);
+    cargarApp();
 </script>
 </body>
 </html>
