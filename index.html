@@ -63,42 +63,36 @@
     async function sincronizar() {
     if (!navigator.onLine) return;
     
-    // Buscamos registros con estado 'P' (Pendiente)
+    // Buscamos los registros pendientes (estado 'P')
     const pends = await db.registros.where('estado').equals('P').toArray();
     
     for (let r of pends) {
         try {
-            // Convertimos el registro en formato de formulario para Google
+            // Preparamos los datos como un formulario clásico (lo más estable para Google)
             const formData = new URLSearchParams();
-            const {id, estado, ...data} = r; // Quitamos el ID local antes de enviar
-            
-            for (const key in data) {
-                formData.append(key, data[key]);
-            }
+            const {id, estado, ...data} = r; 
+            for (const key in data) formData.append(key, data[key]);
 
-            // Enviamos a Google
-            await fetch(URL_SCRIPT, {
+            // Realizamos el envío
+            await fetch(URL_SCRIPT, { // Asegúrate que esta variable tenga la URL de arriba
                 method: 'POST',
-                mode: 'no-cors', // Evita errores de seguridad entre GitHub y Google
+                mode: 'no-cors', // ESTO ES VITAL para evitar bloqueos
                 body: formData.toString(),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
 
-            // Si no hay error de red, marcamos como Enviado ('E')
+            // Marcamos como enviado en la base de datos local
             await db.registros.update(r.id, { estado: 'E' });
-            console.log("Enviado con éxito: " + r.placa);
+            console.log("Registro enviado con éxito");
 
         } catch (e) {
-            console.error("Error enviando registro:", e);
-            break; // Si falla la red, detiene el bucle
+            console.error("Error al sincronizar:", e);
+            break; 
         }
     }
-    // Si tienes una función para dibujar la bandeja de pendientes, llámala aquí
-    if (typeof actualizarBandeja === "function") actualizarBandeja();
+    // Si tienes una función para limpiar o actualizar la lista de la pantalla, llámala aquí
+    actualizarBandeja(); 
 }
-
     function cargarDatos() {
         const m = datosMaestros.find(x => x.placa === document.getElementById('placa').value);
         if (m) {
