@@ -3,195 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrícola Huarmey - Movilidades 2026</title>
+    <title>Huarmey Movilidades Pro</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
-        header { background-color: #ffffff; text-align: center; padding: 15px; border-bottom: 4px solid #4CAF50; shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { max-width: 180px; height: auto; }
-        .container { max-width: 500px; margin: 20px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2e7d32; text-align: center; margin-top: 0; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #444; }
+        :root { --verde: #4CAF50; --rojo: #E53935; --gris: #f4f4f9; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--gris); margin: 0; padding: 10px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        header { text-align: center; margin-bottom: 20px; }
+        .logo { max-width: 120px; }
+        
+        label { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; color: #555; }
         select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #f9f9f9; cursor: not-allowed; }
-        .btn-guardar { width: 100%; background-color: #4CAF50; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.3s; }
-        .btn-guardar:disabled { background-color: #ccc; }
-        .status-bar { margin-top: 20px; padding: 10px; text-align: center; border-radius: 8px; font-size: 14px; font-weight: bold; }
-        .online { background-color: #e8f5e9; color: #2e7d32; }
-        .offline { background-color: #ffebee; color: #c62828; }
-        #error-msg { color: #d32f2f; font-size: 13px; margin-top: 5px; display: none; }
+        input[readonly] { background-color: #eee; }
+        
+        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .btn-enviar:disabled { background: #ccc; }
+
+        /* BANDEJA DE PENDIENTES INFERIOR */
+        .pendientes-container { max-width: 500px; margin: 20px auto; }
+        .pendientes-titulo { font-size: 16px; font-weight: bold; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .item-pendiente { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 5px solid #FF9800; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .item-info { font-size: 13px; }
+        .badge-offline { background: #fff3e0; color: #ef6c00; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+
+        .status-pill { text-align: center; padding: 8px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 10px; }
+        .online { background: #e8f5e9; color: #2e7d32; }
+        .offline { background: #ffebee; color: #c62828; }
     </style>
 </head>
 <body>
 
-<header>
-    <img src="https://i.imgur.com/REEMPLAZA_CON_TU_URL.png" alt="Agrícola Huarmey" class="logo">
-</header>
+<div class="card">
+    <header>
+        <img src="https://i.ibb.co/L6S8Y8X/ICO-FRUSAN.png" class="logo" alt="Logo">
+        <h3 style="margin:5px 0; color:var(--verde)">Agrícola Huarmey</h3>
+    </header>
 
-<div class="container">
-    <h2>Registro Movilidad</h2>
-    <form id="formMovilidad">
+    <form id="formApp">
         <label>Placa:</label>
-        <select id="placa" required onchange="actualizarVehiculo()">
-            <option value="">Cargando placas...</option>
-        </select>
+        <select id="placa" required onchange="llenarDatos()"></select>
 
         <label>Conductor:</label>
-        <select id="conductor" required>
-            <option value="">Seleccione conductor</option>
-        </select>
+        <input type="text" id="conductor" readonly>
 
-        <label>Capacidad:</label>
-        <input type="number" id="capacidad" readonly>
+        <div style="display:flex; gap:10px">
+            <div style="flex:1">
+                <label>Tipo:</label>
+                <input type="text" id="tipo" readonly>
+            </div>
+            <div style="flex:1">
+                <label>Capacidad:</label>
+                <input type="number" id="capacidad" readonly>
+            </div>
+        </div>
+
+        <label>Ruta:</label>
+        <input type="text" id="ruta" readonly>
 
         <label>N° Pasajeros:</label>
-        <input type="number" id="pasajeros" required oninput="calcularLibres()">
-        <div id="error-msg">⚠️ Supera la capacidad permitida</div>
+        <input type="number" id="pasajeros" required oninput="operar()">
 
         <label>Asientos Libres:</label>
         <input type="number" id="libres" readonly>
 
         <label>Observaciones:</label>
-        <textarea id="observaciones" rows="3"></textarea>
+        <textarea id="observaciones" rows="2"></textarea>
 
-        <button type="submit" id="btnGuardar" class="btn-guardar">GUARDAR REGISTRO</button>
+        <button type="submit" id="btn" class="btn-enviar">GUARDAR REGISTRO</button>
     </form>
 
-    <div id="status-bar" class="status-bar online">Comprobando conexión...</div>
+    <div id="status" class="status-pill online">● Conectado - Todo al día</div>
+</div>
+
+<div class="pendientes-container" id="pendientesSeccion">
+    <div class="pendientes-titulo">
+        <span>📦 REGISTROS POR ENVIAR</span>
+        <span id="contadorPendientes">0</span>
+    </div>
+    <div id="listaPendientes"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
-
 <script>
-    // --- CONFIGURACIÓN CRUCIAL ---
-    // Reemplaza esta URL con la que te dio Google al "Implementar"
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxdrbbImNkjyLbelW3CFnvCeq5SN_DbDvcdGz_FZd3hyKnkRbi4mMXFGXwwYSQqPr2z/exec'; 
-
-    // Base de datos local
+    const WEB_URL = 'https://script.google.com/macros/s/AKfycbxdrbbImNkjyLbelW3CFnvCeq5SN_DbDvcdGz_FZd3hyKnkRbi4mMXFGXwwYSQqPr2z/exec';
     const db = new Dexie('HuarmeyDB');
-    db.version(1).stores({
-        maestros: '++id, placa, conductor, capacidad',
-        registros: '++id, estado'
+    db.version(2).stores({ 
+        maestros: 'placa', 
+        registros: '++id, estado' 
     });
 
-    let listaMaestros = [];
+    let maestrosMap = [];
 
-    // 1. CARGAR DATOS AL INICIAR
-    async function iniciar() {
-        actualizarEstadoUI();
-        try {
-            if (navigator.onLine) {
-                const res = await fetch(WEB_APP_URL, { method: 'GET', redirect: 'follow' });
-                listaMaestros = await res.json();
+    async function init() {
+        if (navigator.onLine) {
+            try {
+                const res = await fetch(WEB_URL);
+                const data = await res.json();
                 await db.maestros.clear();
-                await db.maestros.bulkAdd(listaMaestros);
-            } else {
-                listaMaestros = await db.maestros.toArray();
-            }
-            llenarSelectores();
-        } catch (e) {
-            console.error("Error inicial:", e);
-            document.getElementById('status-bar').innerHTML = "⚠️ Error al cargar datos maestros";
+                await db.maestros.bulkAdd(data);
+            } catch (e) {}
+        }
+        maestrosMap = await db.maestros.toArray();
+        const sel = document.getElementById('placa');
+        sel.innerHTML = '<option value="">Seleccione placa...</option>' + 
+            maestrosMap.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+        
+        dibujarPendientes();
+    }
+
+    function llenarDatos() {
+        const p = document.getElementById('placa').value;
+        const m = maestrosMap.find(x => x.placa === p);
+        if (m) {
+            document.getElementById('conductor').value = m.conductor;
+            document.getElementById('tipo').value = m.tipo || 'N/A';
+            document.getElementById('capacidad').value = m.capacidad;
+            document.getElementById('ruta').value = m.ruta || 'General';
+            operar();
         }
     }
 
-    function llenarSelectores() {
-        const pSel = document.getElementById('placa');
-        const cSel = document.getElementById('conductor');
-        pSel.innerHTML = '<option value="">Seleccione placa</option>';
-        
-        // Evitar duplicados de conductores
-        const conductoresUnicos = [...new Set(listaMaestros.map(m => m.conductor))];
-        
-        listaMaestros.forEach(m => {
-            pSel.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
-        });
-        conductoresUnicos.forEach(c => {
-            cSel.innerHTML += `<option value="${c}">${c}</option>`;
-        });
-    }
-
-    function actualizarVehiculo() {
-        const placa = document.getElementById('placa').value;
-        const v = listaMaestros.find(m => m.placa === placa);
-        document.getElementById('capacidad').value = v ? v.capacidad : '';
-        calcularLibres();
-    }
-
-    function calcularLibres() {
+    function operar() {
         const cap = parseInt(document.getElementById('capacidad').value) || 0;
         const pas = parseInt(document.getElementById('pasajeros').value) || 0;
         const lib = cap - pas;
         document.getElementById('libres').value = lib < 0 ? 0 : lib;
+        document.getElementById('btn').disabled = (pas > cap);
+    }
+
+    async function dibujarPendientes() {
+        const lista = await db.registros.where('estado').equals('Pendiente').toArray();
+        const container = document.getElementById('listaPendientes');
+        document.getElementById('contadorPendientes').innerText = lista.length;
         
-        const error = document.getElementById('error-msg');
-        const btn = document.getElementById('btnGuardar');
-        if (pas > cap) {
-            error.style.display = 'block';
-            btn.disabled = true;
+        container.innerHTML = lista.map(r => `
+            <div class="item-pendiente">
+                <div class="item-info">
+                    <b>${r.placa}</b> | ${r.conductor}<br>
+                    <small>Pax: ${r.pasajeros} | Ruta: ${r.ruta}</small>
+                </div>
+                <div class="badge-offline">EN COLA</div>
+            </div>
+        `).join('');
+        
+        const st = document.getElementById('status');
+        if (!navigator.onLine) {
+            st.className = "status-pill offline";
+            st.innerText = `● Modo Offline - ${lista.length} pendientes`;
         } else {
-            error.style.display = 'none';
-            btn.disabled = false;
+            st.className = "status-pill online";
+            st.innerText = lista.length > 0 ? `● Sincronizando ${lista.length}...` : "● Conectado - Al día";
         }
     }
 
-    // 2. GUARDAR Y SINCRONIZAR
-    document.getElementById('formMovilidad').onsubmit = async (e) => {
+    document.getElementById('formApp').onsubmit = async (e) => {
         e.preventDefault();
         const registro = {
+            fecha: new Date().toLocaleString(),
             placa: document.getElementById('placa').value,
             conductor: document.getElementById('conductor').value,
+            tipo: document.getElementById('tipo').value,
+            ruta: document.getElementById('ruta').value,
+            capacidad: document.getElementById('capacidad').value,
             pasajeros: document.getElementById('pasajeros').value,
             libres: document.getElementById('libres').value,
             observaciones: document.getElementById('observaciones').value,
-            fecha: new Date().toISOString(),
             estado: 'Pendiente'
         };
 
-        const id = await db.registros.add(registro);
-        document.getElementById('formMovilidad').reset();
-        alert("✅ Registro guardado localmente");
-        
-        if (navigator.onLine) enviarAGoogle(id, registro);
-        actualizarEstadoUI();
+        await db.registros.add(registro);
+        document.getElementById('formApp').reset();
+        dibujarPendientes();
+        if (navigator.onLine) sincronizar();
     };
 
-    async function enviarAGoogle(id, datos) {
-        try {
-            await fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(datos)
-            });
-            await db.registros.update(id, { estado: 'Enviado' });
-            actualizarEstadoUI();
-        } catch (e) {
-            console.error("Error enviando:", e);
+    async function sincronizar() {
+        if (!navigator.onLine) return;
+        const pendientes = await db.registros.where('estado').equals('Pendiente').toArray();
+        for (let r of pendientes) {
+            try {
+                const {id, estado, ...datos} = r;
+                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
+                await db.registros.update(r.id, { estado: 'Enviado' });
+            } catch (e) {}
         }
+        dibujarPendientes();
     }
 
-    async function actualizarEstadoUI() {
-        const bar = document.getElementById('status-bar');
-        const pendientes = await db.registros.where('estado').equals('Pendiente').count();
-        
-        if (navigator.onLine) {
-            bar.className = "status-bar online";
-            bar.innerHTML = pendientes > 0 ? `🟢 Online - Sincronizando ${pendientes}...` : "🟢 Online - Todo al día";
-            if (pendientes > 0) {
-                const todos = await db.registros.where('estado').equals('Pendiente').toArray();
-                todos.forEach(r => enviarAGoogle(r.id, r));
-            }
-        } else {
-            bar.className = "status-bar offline";
-            bar.innerHTML = `🔴 Offline - ${pendientes} registros pendientes`;
-        }
-    }
-
-    window.addEventListener('online', actualizarEstadoUI);
-    window.addEventListener('offline', actualizarEstadoUI);
-    
-    iniciar();
+    window.addEventListener('online', sincronizar);
+    window.addEventListener('offline', dibujarPendientes);
+    init();
 </script>
-
 </body>
 </html>
