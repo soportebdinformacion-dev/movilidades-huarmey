@@ -5,42 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huarmey Movilidades Pro</title>
     <style>
-        :root { --verde: #4CAF50; --rojo: #E53935; --gris: #f4f4f9; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--gris); margin: 0; padding: 10px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        :root { --verde: #2E7D32; --verde-claro: #4CAF50; --gris: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e9ecef; margin: 0; padding: 15px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; margin: auto; border-top: 8px solid var(--verde); }
         header { text-align: center; margin-bottom: 20px; }
-        .logo { max-width: 120px; }
+        .logo { max-width: 140px; }
         
-        label { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; color: #555; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #eee; }
+        label { display: block; margin-top: 15px; font-weight: 700; font-size: 13px; color: #333; text-transform: uppercase; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        select:focus, input:focus { border-color: var(--verde-claro); outline: none; }
+        input[readonly] { background-color: #f1f3f5; border-color: #e9ecef; color: #495057; }
         
-        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        .btn-enviar:disabled { background: #ccc; }
+        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; box-shadow: 0 4px 15px rgba(46,125,50,0.3); }
+        .btn-enviar:active { transform: scale(0.98); }
 
-        /* BANDEJA DE PENDIENTES INFERIOR */
-        .pendientes-container { max-width: 500px; margin: 20px auto; }
-        .pendientes-titulo { font-size: 16px; font-weight: bold; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .item-pendiente { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 5px solid #FF9800; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .item-info { font-size: 13px; }
-        .badge-offline { background: #fff3e0; color: #ef6c00; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        /* BANDEJA DE VISUALIZACIÓN INFERIOR */
+        .pendientes-area { max-width: 500px; margin: 30px auto; }
+        .titulo-seccion { font-weight: bold; color: #495057; display: flex; justify-content: space-between; padding: 0 5px 10px; border-bottom: 2px solid #dee2e6; margin-bottom: 15px; }
+        .item-pendiente { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid #FFC107; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .item-info b { font-size: 16px; display: block; color: #212529; }
+        .item-info small { color: #6c757d; font-size: 12px; }
+        .badge { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
 
-        .status-pill { text-align: center; padding: 8px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-top: 10px; }
-        .online { background: #e8f5e9; color: #2e7d32; }
-        .offline { background: #ffebee; color: #c62828; }
+        .status-bar { text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: bold; margin-top: 15px; }
+        .online { background: #d4edda; color: #155724; }
+        .offline { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <header>
-        <img src="https://i.ibb.co/L6S8Y8X/ICO-FRUSAN.png" class="logo" alt="Logo">
-        <h3 style="margin:5px 0; color:var(--verde)">Agrícola Huarmey</h3>
+        <img src="https://i.ibb.co/L6S8Y8X/ICO-FRUSAN.png" class="logo">
+        <h2 style="margin:10px 0 0; color:var(--verde)">Control Movilidad</h2>
     </header>
 
-    <form id="formApp">
-        <label>Placa:</label>
-        <select id="placa" required onchange="llenarDatos()"></select>
+    <form id="formMovilidad">
+        <label>Unidad (Placa):</label>
+        <select id="placa" required onchange="cargarVehiculo()"></select>
 
         <label>Conductor:</label>
         <input type="text" id="conductor" readonly>
@@ -60,104 +62,107 @@
         <input type="text" id="ruta" readonly>
 
         <label>N° Pasajeros:</label>
-        <input type="number" id="pasajeros" required oninput="operar()">
+        <input type="number" id="pasajeros" required oninput="calcular()">
 
         <label>Asientos Libres:</label>
         <input type="number" id="libres" readonly>
 
         <label>Observaciones:</label>
-        <textarea id="observaciones" rows="2"></textarea>
+        <textarea id="observaciones" rows="2" placeholder="Opcional..."></textarea>
 
-        <button type="submit" id="btn" class="btn-enviar">GUARDAR REGISTRO</button>
+        <button type="submit" id="btnGuardar" class="btn-enviar">GUARDAR REGISTRO</button>
     </form>
 
-    <div id="status" class="status-pill online">● Conectado - Todo al día</div>
+    <div id="statusIndicator" class="status-bar online">● Sistema Listo</div>
 </div>
 
-<div class="pendientes-container" id="pendientesSeccion">
-    <div class="pendientes-titulo">
-        <span>📦 REGISTROS POR ENVIAR</span>
-        <span id="contadorPendientes">0</span>
+<div class="pendientes-area">
+    <div class="titulo-seccion">
+        <span>📋 REGISTROS POR SINCRONIZAR</span>
+        <span id="contador">0</span>
     </div>
-    <div id="listaPendientes"></div>
+    <div id="contenedorPendientes">
+        </div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const WEB_URL = 'https://script.google.com/macros/s/AKfycbxdrbbImNkjyLbelW3CFnvCeq5SN_DbDvcdGz_FZd3hyKnkRbi4mMXFGXwwYSQqPr2z/exec';
+    const WEB_URL = 'https://script.google.com/macros/s/AKfycbxdrbbImNkjyLbelW3CFnvCeq5SN_DbDvcdGz_FZd3hyKnkRbi4mMXFGXwwYSQqPr2z/exec'; // <--- CAMBIA ESTO
     const db = new Dexie('HuarmeyDB');
-    db.version(2).stores({ 
+    
+    db.version(3).stores({ 
         maestros: 'placa', 
         registros: '++id, estado' 
     });
 
-    let maestrosMap = [];
+    let maestrosLocal = [];
 
-    async function init() {
+    async function iniciar() {
         if (navigator.onLine) {
             try {
-                const res = await fetch(WEB_URL);
-                const data = await res.json();
+                const r = await fetch(WEB_URL + '?v=' + Date.now());
+                const data = await r.json();
                 await db.maestros.clear();
                 await db.maestros.bulkAdd(data);
-            } catch (e) {}
+            } catch (e) { console.log("Usando datos locales."); }
         }
-        maestrosMap = await db.maestros.toArray();
+        
+        maestrosLocal = await db.maestros.toArray();
         const sel = document.getElementById('placa');
         sel.innerHTML = '<option value="">Seleccione placa...</option>' + 
-            maestrosMap.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+            maestrosLocal.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
         
-        dibujarPendientes();
+        renderizarPendientes();
     }
 
-    function llenarDatos() {
+    function cargarVehiculo() {
         const p = document.getElementById('placa').value;
-        const m = maestrosMap.find(x => x.placa === p);
-        if (m) {
-            document.getElementById('conductor').value = m.conductor;
-            document.getElementById('tipo').value = m.tipo || 'N/A';
-            document.getElementById('capacidad').value = m.capacidad;
-            document.getElementById('ruta').value = m.ruta || 'General';
-            operar();
+        const v = maestrosLocal.find(x => x.placa === p);
+        if (v) {
+            document.getElementById('conductor').value = v.conductor || '';
+            document.getElementById('tipo').value = v.tipo || '';
+            document.getElementById('capacidad').value = v.capacidad || 0;
+            document.getElementById('ruta').value = v.ruta || '';
+            calcular();
         }
     }
 
-    function operar() {
+    function calcular() {
         const cap = parseInt(document.getElementById('capacidad').value) || 0;
         const pas = parseInt(document.getElementById('pasajeros').value) || 0;
         const lib = cap - pas;
         document.getElementById('libres').value = lib < 0 ? 0 : lib;
-        document.getElementById('btn').disabled = (pas > cap);
+        document.getElementById('btnGuardar').disabled = (pas > cap);
     }
 
-    async function dibujarPendientes() {
-        const lista = await db.registros.where('estado').equals('Pendiente').toArray();
-        const container = document.getElementById('listaPendientes');
-        document.getElementById('contadorPendientes').innerText = lista.length;
+    async function renderizarPendientes() {
+        const pends = await db.registros.where('estado').equals('Pendiente').toArray();
+        const box = document.getElementById('contenedorPendientes');
+        document.getElementById('contador').innerText = pends.length;
         
-        container.innerHTML = lista.map(r => `
+        box.innerHTML = pends.map(p => `
             <div class="item-pendiente">
                 <div class="item-info">
-                    <b>${r.placa}</b> | ${r.conductor}<br>
-                    <small>Pax: ${r.pasajeros} | Ruta: ${r.ruta}</small>
+                    <b>${p.placa}</b>
+                    <small>${p.conductor} | Pax: ${p.pasajeros}</small>
                 </div>
-                <div class="badge-offline">EN COLA</div>
+                <div class="badge">PENDIENTE</div>
             </div>
         `).join('');
         
-        const st = document.getElementById('status');
+        const indicator = document.getElementById('statusIndicator');
         if (!navigator.onLine) {
-            st.className = "status-pill offline";
-            st.innerText = `● Modo Offline - ${lista.length} pendientes`;
+            indicator.className = "status-bar offline";
+            indicator.innerText = "● Modo Offline - Datos en espera";
         } else {
-            st.className = "status-pill online";
-            st.innerText = lista.length > 0 ? `● Sincronizando ${lista.length}...` : "● Conectado - Al día";
+            indicator.className = "status-bar online";
+            indicator.innerText = pends.length > 0 ? "● Sincronizando..." : "● Sistema Conectado";
         }
     }
 
-    document.getElementById('formApp').onsubmit = async (e) => {
+    document.getElementById('formMovilidad').onsubmit = async (e) => {
         e.preventDefault();
-        const registro = {
+        const reg = {
             fecha: new Date().toLocaleString(),
             placa: document.getElementById('placa').value,
             conductor: document.getElementById('conductor').value,
@@ -170,28 +175,28 @@
             estado: 'Pendiente'
         };
 
-        await db.registros.add(registro);
-        document.getElementById('formApp').reset();
-        dibujarPendientes();
-        if (navigator.onLine) sincronizar();
+        await db.registros.add(reg);
+        document.getElementById('formMovilidad').reset();
+        renderizarPendientes();
+        if (navigator.onLine) enviarTodo();
     };
 
-    async function sincronizar() {
+    async function enviarTodo() {
         if (!navigator.onLine) return;
-        const pendientes = await db.registros.where('estado').equals('Pendiente').toArray();
-        for (let r of pendientes) {
+        const pends = await db.registros.where('estado').equals('Pendiente').toArray();
+        for (let r of pends) {
             try {
-                const {id, estado, ...datos} = r;
-                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
+                const {id, estado, ...data} = r;
+                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
                 await db.registros.update(r.id, { estado: 'Enviado' });
-            } catch (e) {}
+            } catch (e) { break; }
         }
-        dibujarPendientes();
+        renderizarPendientes();
     }
 
-    window.addEventListener('online', sincronizar);
-    window.addEventListener('offline', dibujarPendientes);
-    init();
+    window.addEventListener('online', enviarTodo);
+    window.addEventListener('offline', renderizarPendientes);
+    iniciar();
 </script>
 </body>
 </html>
