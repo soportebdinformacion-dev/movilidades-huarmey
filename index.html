@@ -5,28 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huarmey Movilidades Pro</title>
     <style>
-        :root { --verde: #2E7D32; --verde-claro: #4CAF50; --gris: #f8f9fa; }
+        :root { --verde: #2E7D32; --amarillo: #FFC107; --gris: #f8f9fa; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #e9ecef; margin: 0; padding: 15px; }
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; margin: auto; border-top: 8px solid var(--verde); }
         header { text-align: center; margin-bottom: 20px; }
-        .logo { max-width: 140px; }
+        .logo { max-width: 130px; }
         
         label { display: block; margin-top: 15px; font-weight: 700; font-size: 13px; color: #333; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        select:focus, input:focus { border-color: var(--verde-claro); outline: none; }
-        input[readonly] { background-color: #f1f3f5; border-color: #e9ecef; color: #495057; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background-color: #f1f3f5; color: #495057; }
         
-        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; box-shadow: 0 4px 15px rgba(46,125,50,0.3); }
-        .btn-enviar:active { transform: scale(0.98); }
-
-        /* BANDEJA DE VISUALIZACIÓN INFERIOR */
+        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; }
+        
         .pendientes-area { max-width: 500px; margin: 30px auto; }
-        .titulo-seccion { font-weight: bold; color: #495057; display: flex; justify-content: space-between; padding: 0 5px 10px; border-bottom: 2px solid #dee2e6; margin-bottom: 15px; }
-        .item-pendiente { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid #FFC107; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .item-info b { font-size: 16px; display: block; color: #212529; }
-        .item-info small { color: #6c757d; font-size: 12px; }
+        .titulo-seccion { font-weight: bold; color: #495057; display: flex; justify-content: space-between; padding: 10px; border-bottom: 2px solid #dee2e6; }
+        .item-pendiente { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--amarillo); box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
         .badge { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-
         .status-bar { text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: bold; margin-top: 15px; }
         .online { background: #d4edda; color: #155724; }
         .offline { background: #f8d7da; color: #721c24; }
@@ -37,38 +31,32 @@
 <div class="card">
     <header>
         <img src="https://i.ibb.co/L6S8Y8X/ICO-FRUSAN.png" class="logo">
-        <h2 style="margin:10px 0 0; color:var(--verde)">Control Movilidad</h2>
+        <h3 style="margin:10px 0; color:var(--verde)">Agrícola Huarmey</h3>
     </header>
 
     <form id="formMovilidad">
-        <label>Unidad (Placa):</label>
-        <select id="placa" required onchange="cargarVehiculo()"></select>
+        <label>Placa:</label>
+        <select id="placa" onchange="cargarVehiculo()"></select>
 
         <label>Conductor:</label>
         <input type="text" id="conductor" readonly>
 
         <div style="display:flex; gap:10px">
-            <div style="flex:1">
-                <label>Tipo:</label>
-                <input type="text" id="tipo" readonly>
-            </div>
-            <div style="flex:1">
-                <label>Capacidad:</label>
-                <input type="number" id="capacidad" readonly>
-            </div>
+            <div style="flex:1"><label>Tipo:</label><input type="text" id="tipo" readonly></div>
+            <div style="flex:1"><label>Capacidad:</label><input type="number" id="capacidad" readonly></div>
         </div>
 
         <label>Ruta:</label>
         <input type="text" id="ruta" readonly>
 
         <label>N° Pasajeros:</label>
-        <input type="number" id="pasajeros" required oninput="calcular()">
+        <input type="number" id="pasajeros" oninput="calcular()">
 
         <label>Asientos Libres:</label>
         <input type="number" id="libres" readonly>
 
         <label>Observaciones:</label>
-        <textarea id="observaciones" rows="2" placeholder="Opcional..."></textarea>
+        <textarea id="observaciones" rows="2"></textarea>
 
         <button type="submit" id="btnGuardar" class="btn-enviar">GUARDAR REGISTRO</button>
     </form>
@@ -77,23 +65,15 @@
 </div>
 
 <div class="pendientes-area">
-    <div class="titulo-seccion">
-        <span>📋 REGISTROS POR SINCRONIZAR</span>
-        <span id="contador">0</span>
-    </div>
-    <div id="contenedorPendientes">
-        </div>
+    <div class="titulo-seccion"><span>📋 BANDEJA DE SALIDA</span> <span id="contador">0</span></div>
+    <div id="contenedorPendientes"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const WEB_URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- CAMBIA ESTO
+    const WEB_URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA AQUÍ TU URL DE GOOGLE
     const db = new Dexie('HuarmeyDB');
-    
-    db.version(3).stores({ 
-        maestros: 'placa', 
-        registros: '++id, estado' 
-    });
+    db.version(4).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let maestrosLocal = [];
 
@@ -104,20 +84,16 @@
                 const data = await r.json();
                 await db.maestros.clear();
                 await db.maestros.bulkAdd(data);
-            } catch (e) { console.log("Usando datos locales."); }
+            } catch (e) { console.log("Carga offline"); }
         }
-        
         maestrosLocal = await db.maestros.toArray();
-        const sel = document.getElementById('placa');
-        sel.innerHTML = '<option value="">Seleccione placa...</option>' + 
+        document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
             maestrosLocal.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
-        
         renderizarPendientes();
     }
 
     function cargarVehiculo() {
-        const p = document.getElementById('placa').value;
-        const v = maestrosLocal.find(x => x.placa === p);
+        const v = maestrosLocal.find(x => x.placa === document.getElementById('placa').value);
         if (v) {
             document.getElementById('conductor').value = v.conductor || '';
             document.getElementById('tipo').value = v.tipo || '';
@@ -130,46 +106,43 @@
     function calcular() {
         const cap = parseInt(document.getElementById('capacidad').value) || 0;
         const pas = parseInt(document.getElementById('pasajeros').value) || 0;
-        const lib = cap - pas;
-        document.getElementById('libres').value = lib < 0 ? 0 : lib;
+        document.getElementById('libres').value = Math.max(0, cap - pas);
         document.getElementById('btnGuardar').disabled = (pas > cap);
     }
 
     async function renderizarPendientes() {
         const pends = await db.registros.where('estado').equals('Pendiente').toArray();
-        const box = document.getElementById('contenedorPendientes');
         document.getElementById('contador').innerText = pends.length;
-        
-        box.innerHTML = pends.map(p => `
+        document.getElementById('contenedorPendientes').innerHTML = pends.map(p => `
             <div class="item-pendiente">
-                <div class="item-info">
-                    <b>${p.placa}</b>
-                    <small>${p.conductor} | Pax: ${p.pasajeros}</small>
-                </div>
-                <div class="badge">PENDIENTE</div>
+                <div><b>${p.placa}</b><small>${p.conductor} | Pax: ${p.pasajeros}</small></div>
+                <div class="badge">EN ESPERA</div>
             </div>
         `).join('');
         
-        const indicator = document.getElementById('statusIndicator');
-        if (!navigator.onLine) {
-            indicator.className = "status-bar offline";
-            indicator.innerText = "● Modo Offline - Datos en espera";
-        } else {
-            indicator.className = "status-bar online";
-            indicator.innerText = pends.length > 0 ? "● Sincronizando..." : "● Sistema Conectado";
-        }
+        const ind = document.getElementById('statusIndicator');
+        ind.className = navigator.onLine ? "status-bar online" : "status-bar offline";
+        ind.innerText = navigator.onLine ? (pends.length > 0 ? "● Sincronizando..." : "● Conectado") : "● Sin Conexión";
     }
 
     document.getElementById('formMovilidad').onsubmit = async (e) => {
         e.preventDefault();
+        const placa = document.getElementById('placa').value;
+        const pas = document.getElementById('pasajeros').value;
+
+        if (!placa || !pas) {
+            alert("⚠️ ERROR: Debe seleccionar una PLACA y el N° DE PASAJEROS.");
+            return;
+        }
+
         const reg = {
             fecha: new Date().toLocaleString(),
-            placa: document.getElementById('placa').value,
+            placa,
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
             capacidad: document.getElementById('capacidad').value,
-            pasajeros: document.getElementById('pasajeros').value,
+            pasajeros: pas,
             libres: document.getElementById('libres').value,
             observaciones: document.getElementById('observaciones').value,
             estado: 'Pendiente'
@@ -177,6 +150,7 @@
 
         await db.registros.add(reg);
         document.getElementById('formMovilidad').reset();
+        alert("✅ Registro guardado localmente.");
         renderizarPendientes();
         if (navigator.onLine) enviarTodo();
     };
@@ -186,8 +160,11 @@
         const pends = await db.registros.where('estado').equals('Pendiente').toArray();
         for (let r of pends) {
             try {
-                const {id, estado, ...data} = r;
-                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+                const formData = new URLSearchParams();
+                const {id, estado, ...cleanData} = r;
+                for (const key in cleanData) formData.append(key, cleanData[key]);
+
+                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: formData.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
                 await db.registros.update(r.id, { estado: 'Enviado' });
             } catch (e) { break; }
         }
