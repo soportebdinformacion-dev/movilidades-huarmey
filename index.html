@@ -1,179 +1,161 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huarmey Movilidades Pro</title>
+    <title>Control Movilidad - Huarmey</title>
     <style>
-        :root { --verde: #2E7D32; --amarillo: #FFC107; --gris: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #e9ecef; margin: 0; padding: 15px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; margin: auto; border-top: 8px solid var(--verde); }
-        header { text-align: center; margin-bottom: 20px; }
-        .logo { max-width: 130px; }
+        :root { --verde: #1B5E20; --amarillo: #FBC02D; --gris: #f1f3f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: #dee2e6; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 10px solid var(--verde); }
+        h2 { color: var(--verde); text-align: center; margin: 0 0 20px; font-size: 22px; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #555; text-transform: uppercase; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #ced4da; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background: #e9ecef; }
+        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; }
+        .btn:disabled { background: #adb5bd; }
         
-        label { display: block; margin-top: 15px; font-weight: 700; font-size: 13px; color: #333; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background-color: #f1f3f5; color: #495057; }
-        
-        .btn-enviar { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; }
-        
-        .pendientes-area { max-width: 500px; margin: 30px auto; }
-        .titulo-seccion { font-weight: bold; color: #495057; display: flex; justify-content: space-between; padding: 10px; border-bottom: 2px solid #dee2e6; }
-        .item-pendiente { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--amarillo); box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .badge { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .status-bar { text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: bold; margin-top: 15px; }
-        .online { background: #d4edda; color: #155724; }
-        .offline { background: #f8d7da; color: #721c24; }
+        .pendientes { max-width: 480px; margin: 25px auto; }
+        .item-p { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--amarillo); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
+        .on { background: #d4edda; color: #155724; }
+        .off { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <header>
-        <img src="https://i.ibb.co/L6S8Y8X/ICO-FRUSAN.png" class="logo">
-        <h3 style="margin:10px 0; color:var(--verde)">Agrícola Huarmey</h3>
-    </header>
+    <h2>Agrícola Huarmey</h2>
+    <form id="f">
+        <label>Unidad (Placa)</label>
+        <select id="placa" required onchange="v()"></select>
 
-    <form id="formMovilidad">
-        <label>Placa:</label>
-        <select id="placa" onchange="cargarVehiculo()"></select>
-
-        <label>Conductor:</label>
+        <label>Conductor</label>
         <input type="text" id="conductor" readonly>
 
         <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>Tipo:</label><input type="text" id="tipo" readonly></div>
-            <div style="flex:1"><label>Capacidad:</label><input type="number" id="capacidad" readonly></div>
+            <div style="flex:1"><label>Tipo</label><input type="text" id="tipo" readonly></div>
+            <div style="flex:1"><label>Capacidad</label><input type="number" id="cap" readonly></div>
         </div>
 
-        <label>Ruta:</label>
+        <label>Ruta</label>
         <input type="text" id="ruta" readonly>
 
-        <label>N° Pasajeros:</label>
-        <input type="number" id="pasajeros" oninput="calcular()">
+        <label>N° Pasajeros</label>
+        <input type="number" id="pax" required oninput="calc()">
 
-        <label>Asientos Libres:</label>
-        <input type="number" id="libres" readonly>
+        <label>Asientos Libres</label>
+        <input type="number" id="lib" readonly>
 
-        <label>Observaciones:</label>
-        <textarea id="observaciones" rows="2"></textarea>
+        <label>Observaciones</label>
+        <textarea id="obs" rows="2"></textarea>
 
-        <button type="submit" id="btnGuardar" class="btn-enviar">GUARDAR REGISTRO</button>
+        <button type="submit" id="btn" class="btn">GUARDAR REGISTRO</button>
     </form>
-
-    <div id="statusIndicator" class="status-bar online">● Sistema Listo</div>
+    <div id="st" class="status on">● Conectado</div>
 </div>
 
-<div class="pendientes-area">
-    <div class="titulo-seccion"><span>📋 BANDEJA DE SALIDA</span> <span id="contador">0</span></div>
-    <div id="contenedorPendientes"></div>
+<div class="pendientes">
+    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px; color:#495057">
+        <span>📦 COLA DE ENVÍO</span> <span id="cont">0</span>
+    </div>
+    <div id="list"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const WEB_URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA AQUÍ TU URL DE GOOGLE
-    const db = new Dexie('HuarmeyDB');
-    db.version(4).stores({ maestros: 'placa', registros: '++id, estado' });
+    const URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA TU URL AQUÍ
+    const db = new Dexie('Huarmey_V5');
+    db.version(1).stores({ m: 'placa', r: '++id, estado' });
 
-    let maestrosLocal = [];
+    let ms = [];
 
-    async function iniciar() {
+    async function init() {
         if (navigator.onLine) {
             try {
-                const r = await fetch(WEB_URL + '?v=' + Date.now());
-                const data = await r.json();
-                await db.maestros.clear();
-                await db.maestros.bulkAdd(data);
-            } catch (e) { console.log("Carga offline"); }
+                const res = await fetch(URL + '?t=' + Date.now());
+                const data = await res.json();
+                await db.m.clear();
+                await db.m.bulkAdd(data);
+            } catch (e) { console.log("Offline"); }
         }
-        maestrosLocal = await db.maestros.toArray();
+        ms = await db.m.toArray();
         document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
-            maestrosLocal.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
-        renderizarPendientes();
+            ms.map(i => `<option value="${i.placa}">${i.placa}</option>`).join('');
+        dibujar();
     }
 
-    function cargarVehiculo() {
-        const v = maestrosLocal.find(x => x.placa === document.getElementById('placa').value);
-        if (v) {
-            document.getElementById('conductor').value = v.conductor || '';
-            document.getElementById('tipo').value = v.tipo || '';
-            document.getElementById('capacidad').value = v.capacidad || 0;
-            document.getElementById('ruta').value = v.ruta || '';
-            calcular();
+    function v() {
+        const sel = ms.find(x => x.placa === document.getElementById('placa').value);
+        if (sel) {
+            document.getElementById('conductor').value = sel.conductor || '';
+            document.getElementById('tipo').value = sel.tipo || '';
+            document.getElementById('cap').value = sel.capacidad || 0;
+            document.getElementById('ruta').value = sel.ruta || '';
+            calc();
         }
     }
 
-    function calcular() {
-        const cap = parseInt(document.getElementById('capacidad').value) || 0;
-        const pas = parseInt(document.getElementById('pasajeros').value) || 0;
-        document.getElementById('libres').value = Math.max(0, cap - pas);
-        document.getElementById('btnGuardar').disabled = (pas > cap);
+    function calc() {
+        const c = parseInt(document.getElementById('cap').value) || 0;
+        const p = parseInt(document.getElementById('pax').value) || 0;
+        document.getElementById('lib').value = Math.max(0, c - p);
+        document.getElementById('btn').disabled = (p > c || p <= 0);
     }
 
-    async function renderizarPendientes() {
-        const pends = await db.registros.where('estado').equals('Pendiente').toArray();
-        document.getElementById('contador').innerText = pends.length;
-        document.getElementById('contenedorPendientes').innerHTML = pends.map(p => `
-            <div class="item-pendiente">
-                <div><b>${p.placa}</b><small>${p.conductor} | Pax: ${p.pasajeros}</small></div>
-                <div class="badge">EN ESPERA</div>
+    async function dibujar() {
+        const pends = await db.r.where('estado').equals('P').toArray();
+        document.getElementById('cont').innerText = pends.length;
+        document.getElementById('list').innerHTML = pends.map(p => `
+            <div class="item-p">
+                <span><b>${p.placa}</b> | Pax: ${p.pasajeros}</span>
+                <span style="font-size:11px; color:#856404; font-weight:bold">PENDIENTE</span>
             </div>
         `).join('');
-        
-        const ind = document.getElementById('statusIndicator');
-        ind.className = navigator.onLine ? "status-bar online" : "status-bar offline";
-        ind.innerText = navigator.onLine ? (pends.length > 0 ? "● Sincronizando..." : "● Conectado") : "● Sin Conexión";
+        const s = document.getElementById('st');
+        s.className = navigator.onLine ? "status on" : "status off";
+        s.innerText = navigator.onLine ? "● Conectado" : "● Modo Offline";
     }
 
-    document.getElementById('formMovilidad').onsubmit = async (e) => {
+    document.getElementById('f').onsubmit = async (e) => {
         e.preventDefault();
-        const placa = document.getElementById('placa').value;
-        const pas = document.getElementById('pasajeros').value;
-
-        if (!placa || !pas) {
-            alert("⚠️ ERROR: Debe seleccionar una PLACA y el N° DE PASAJEROS.");
-            return;
-        }
-
         const reg = {
             fecha: new Date().toLocaleString(),
-            placa,
+            placa: document.getElementById('placa').value,
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
-            capacidad: document.getElementById('capacidad').value,
-            pasajeros: pas,
-            libres: document.getElementById('libres').value,
-            observaciones: document.getElementById('observaciones').value,
-            estado: 'Pendiente'
+            capacidad: document.getElementById('cap').value,
+            pasajeros: document.getElementById('pax').value,
+            libres: document.getElementById('lib').value,
+            observaciones: document.getElementById('obs').value,
+            estado: 'P'
         };
-
-        await db.registros.add(reg);
-        document.getElementById('formMovilidad').reset();
-        alert("✅ Registro guardado localmente.");
-        renderizarPendientes();
-        if (navigator.onLine) enviarTodo();
+        await db.r.add(reg);
+        document.getElementById('f').reset();
+        alert("✅ Guardado localmente");
+        dibujar();
+        if (navigator.onLine) sync();
     };
 
-    async function enviarTodo() {
+    async function sync() {
         if (!navigator.onLine) return;
-        const pends = await db.registros.where('estado').equals('Pendiente').toArray();
+        const pends = await db.r.where('estado').equals('P').toArray();
         for (let r of pends) {
             try {
-                const formData = new URLSearchParams();
-                const {id, estado, ...cleanData} = r;
-                for (const key in cleanData) formData.append(key, cleanData[key]);
-
-                await fetch(WEB_URL, { method: 'POST', mode: 'no-cors', body: formData.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
-                await db.registros.update(r.id, { estado: 'Enviado' });
+                const form = new URLSearchParams();
+                const {id, estado, ...data} = r;
+                for (const key in data) form.append(key, data[key]);
+                await fetch(URL, { method: 'POST', mode: 'no-cors', body: form.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
+                await db.r.update(r.id, { estado: 'E' });
             } catch (e) { break; }
         }
-        renderizarPendientes();
+        dibujar();
     }
 
-    window.addEventListener('online', enviarTodo);
-    window.addEventListener('offline', renderizarPendientes);
-    iniciar();
+    window.addEventListener('online', sync);
+    window.addEventListener('offline', dibujar);
+    init();
 </script>
 </body>
 </html>
