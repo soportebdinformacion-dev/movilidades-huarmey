@@ -1,22 +1,18 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Movilidad - Huarmey</title>
+    <title>Huarmey Movilidades</title>
     <style>
-        :root { --verde: #1B5E20; --amarillo: #FBC02D; --gris: #f1f3f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: #dee2e6; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 480px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 10px solid var(--verde); }
-        h2 { color: var(--verde); text-align: center; margin: 0 0 20px; font-size: 22px; }
+        :root { --verde: #1B5E20; --amarillo: #FBC02D; --gris: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: #e9ecef; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 480px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-top: 10px solid var(--verde); }
         label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #555; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #ced4da; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        input[readonly] { background: #e9ecef; }
-        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; }
-        .btn:disabled { background: #adb5bd; }
-        
-        .pendientes { max-width: 480px; margin: 25px auto; }
-        .item-p { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--amarillo); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dee2e6; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        input[readonly] { background: #f1f3f5; color: #495057; }
+        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
         .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
         .on { background: #d4edda; color: #155724; }
         .off { background: #f8d7da; color: #721c24; }
@@ -25,7 +21,11 @@
 <body>
 
 <div class="card">
-    <h2>Agrícola Huarmey</h2>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://i.ibb.co/Vvz4YyF/logo-agricola-huarmey.png" alt="Logo" style="max-width: 140px; height: auto;">
+        <h2 style="color: var(--verde); margin-top: 10px; font-size: 18px;">AGRÍCOLA HUARMEY</h2>
+    </div>
+
     <form id="f">
         <label>Unidad (Placa)</label>
         <select id="placa" required onchange="v()"></select>
@@ -55,17 +55,10 @@
     <div id="st" class="status on">● Conectado</div>
 </div>
 
-<div class="pendientes">
-    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px; color:#495057">
-        <span>📦 COLA DE ENVÍO</span> <span id="cont">0</span>
-    </div>
-    <div id="list"></div>
-</div>
-
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA TU URL AQUÍ
-    const db = new Dexie('Huarmey_V5');
+    const URL = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <-- NO OLVIDES PEGAR TU URL AQUÍ
+    const db = new Dexie('Huarmey_V6');
     db.version(1).stores({ m: 'placa', r: '++id, estado' });
 
     let ms = [];
@@ -82,7 +75,6 @@
         ms = await db.m.toArray();
         document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
             ms.map(i => `<option value="${i.placa}">${i.placa}</option>`).join('');
-        dibujar();
     }
 
     function v() {
@@ -103,20 +95,6 @@
         document.getElementById('btn').disabled = (p > c || p <= 0);
     }
 
-    async function dibujar() {
-        const pends = await db.r.where('estado').equals('P').toArray();
-        document.getElementById('cont').innerText = pends.length;
-        document.getElementById('list').innerHTML = pends.map(p => `
-            <div class="item-p">
-                <span><b>${p.placa}</b> | Pax: ${p.pasajeros}</span>
-                <span style="font-size:11px; color:#856404; font-weight:bold">PENDIENTE</span>
-            </div>
-        `).join('');
-        const s = document.getElementById('st');
-        s.className = navigator.onLine ? "status on" : "status off";
-        s.innerText = navigator.onLine ? "● Conectado" : "● Modo Offline";
-    }
-
     document.getElementById('f').onsubmit = async (e) => {
         e.preventDefault();
         const reg = {
@@ -133,8 +111,7 @@
         };
         await db.r.add(reg);
         document.getElementById('f').reset();
-        alert("✅ Guardado localmente");
-        dibujar();
+        alert("✅ Registro guardado localmente.");
         if (navigator.onLine) sync();
     };
 
@@ -146,15 +123,12 @@
                 const form = new URLSearchParams();
                 const {id, estado, ...data} = r;
                 for (const key in data) form.append(key, data[key]);
-                await fetch(URL, { method: 'POST', mode: 'no-cors', body: form.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
+                await fetch(URL, { method: 'POST', mode: 'no-cors', body: form.toString() });
                 await db.r.update(r.id, { estado: 'E' });
             } catch (e) { break; }
         }
-        dibujar();
     }
 
-    window.addEventListener('online', sync);
-    window.addEventListener('offline', dibujar);
     init();
 </script>
 </body>
