@@ -60,21 +60,44 @@
 
     let datosMaestros = [];
 
-    async function cargarApp() {
-        if (navigator.onLine) {
-            try {
-                const res = await fetch(URL_SCRIPT + '?t=' + Date.now());
-                const data = await res.json();
-                await db.maestros.clear();
-                await db.maestros.bulkAdd(data);
-            } catch (e) { console.log("Carga offline"); }
+    async function sincronizar() {
+    if (!navigator.onLine) return;
+    
+    // Buscamos registros con estado 'P' (Pendiente)
+    const pends = await db.registros.where('estado').equals('P').toArray();
+    
+    for (let r of pends) {
+        try {
+            // Convertimos el registro en formato de formulario para Google
+            const formData = new URLSearchParams();
+            const {id, estado, ...data} = r; // Quitamos el ID local antes de enviar
+            
+            for (const key in data) {
+                formData.append(key, data[key]);
+            }
+
+            // Enviamos a Google
+            await fetch(URL_SCRIPT, {
+                method: 'POST',
+                mode: 'no-cors', // Evita errores de seguridad entre GitHub y Google
+                body: formData.toString(),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            // Si no hay error de red, marcamos como Enviado ('E')
+            await db.registros.update(r.id, { estado: 'E' });
+            console.log("Enviado con éxito: " + r.placa);
+
+        } catch (e) {
+            console.error("Error enviando registro:", e);
+            break; // Si falla la red, detiene el bucle
         }
-        datosMaestros = await db.maestros.toArray();
-        const sel = document.getElementById('placa');
-        sel.innerHTML = '<option value="">Seleccione placa...</option>' + 
-            datosMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
-        actualizarBandeja();
     }
+    // Si tienes una función para dibujar la bandeja de pendientes, llámala aquí
+    if (typeof actualizarBandeja === "function") actualizarBandeja();
+}
 
     function cargarDatos() {
         const m = datosMaestros.find(x => x.placa === document.getElementById('placa').value);
