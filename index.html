@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrícola Huarmey - Movilidades</title>
+    <title>Agrícola Huarmey - Control</title>
     <style>
         :root { --verde: #1B5E20; --amarillo: #FFB300; }
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
@@ -12,117 +12,94 @@
         label { display: block; margin-top: 10px; font-weight: bold; font-size: 12px; color: #444; }
         select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         input[readonly] { background: #f8f9fa; }
-        .btn-guardar { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        
-        /* BANDEJA INFERIOR */
-        .pendientes-container { max-width: 450px; margin: 20px auto; background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .item-pendiente { border-left: 5px solid var(--amarillo); background: #fff9e6; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .badge-espera { background: var(--amarillo); color: #000; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .pendientes-container { max-width: 450px; margin: 20px auto; background: #fff; border-radius: 10px; padding: 15px; }
+        .item-p { border-left: 5px solid var(--amarillo); background: #fff9e6; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="https://i.ibb.co/Vvz4YyF/logo-agricola-huarmey.png" class="logo">
+    <img src="https://i.postimg.cc/85M0fPGr/ICONO-HUARMEY.png" class="logo">
     <h3 style="text-align:center; color:var(--verde); margin-top:0;">Control de Movilidad</h3>
-
-    <form id="formApp">
+    <form id="f">
         <label>PLACA:</label>
-        <select id="placa" required onchange="cargarDatos()"></select>
+        <select id="placa" required onchange="cargar()"></select>
         <label>CONDUCTOR:</label>
         <input type="text" id="conductor" readonly>
         <div style="display:flex; gap:10px">
             <div style="flex:1"><label>TIPO:</label><input type="text" id="tipo" readonly></div>
-            <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="capacidad" readonly></div>
+            <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="cap" readonly></div>
         </div>
         <label>RUTA:</label>
         <input type="text" id="ruta" readonly>
         <label>N° PASAJEROS:</label>
-        <input type="number" id="pasajeros" required oninput="calcular()">
+        <input type="number" id="pax" required oninput="calc()">
         <label>ASIENTOS LIBRES:</label>
-        <input type="number" id="libres" readonly>
+        <input type="number" id="lib" readonly>
         <label>OBSERVACIONES:</label>
-        <textarea id="observaciones" rows="2"></textarea>
-        <button type="submit" class="btn-guardar">GUARDAR REGISTRO</button>
+        <textarea id="obs" rows="2"></textarea>
+        <button type="submit" class="btn">GUARDAR REGISTRO</button>
     </form>
 </div>
 
 <div class="pendientes-container">
-    <p style="margin:0 0 10px; font-weight:bold; color:#666;">📋 REGISTROS PENDIENTES (<span id="contador">0</span>)</p>
-    <div id="listaPendientes"></div>
+    <p style="font-weight:bold; color:#666;">📋 COLA DE ENVÍO (<span id="cont">0</span>)</p>
+    <div id="lista"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbyjCGQW11p2-WXoAnKKQdyykU4sWC8y6TNq96SLClbHmeojHnPr-QvFEY8gNZx_Rr2f/exec'; // <--- PEGA AQUÍ LA NUEVA URL
-    const db = new Dexie('Huarmey_Final_V7');
-    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
+    const URL_S = 'TU_NUEVA_URL_EXEC_AQUÍ'; // <--- PEGA AQUÍ LA URL NUEVA
+    const db = new Dexie('Huarmey_Fix');
+    db.version(1).stores({ m: 'placa', r: '++id, estado' });
 
-    let datosMaestros = [];
+    let ms = [];
 
-    async function sincronizar() {
-    if (!navigator.onLine) return;
-    
-    // Buscamos los registros pendientes (estado 'P')
-    const pends = await db.registros.where('estado').equals('P').toArray();
-    
-    for (let r of pends) {
-        try {
-            // Preparamos los datos como un formulario clásico (lo más estable para Google)
-            const formData = new URLSearchParams();
-            const {id, estado, ...data} = r; 
-            for (const key in data) formData.append(key, data[key]);
-
-            // Realizamos el envío
-            await fetch(URL_SCRIPT, { // Asegúrate que esta variable tenga la URL de arriba
-                method: 'POST',
-                mode: 'no-cors', // ESTO ES VITAL para evitar bloqueos
-                body: formData.toString(),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
-
-            // Marcamos como enviado en la base de datos local
-            await db.registros.update(r.id, { estado: 'E' });
-            console.log("Registro enviado con éxito");
-
-        } catch (e) {
-            console.error("Error al sincronizar:", e);
-            break; 
+    async function init() {
+        if (navigator.onLine) {
+            try {
+                const res = await fetch(URL_S + '?t=' + Date.now());
+                const data = await res.json();
+                await db.m.clear();
+                await db.m.bulkAdd(data);
+            } catch (e) {}
         }
+        ms = await db.m.toArray();
+        document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
+            ms.map(i => `<option value="${i.placa}">${i.placa}</option>`).join('');
+        dibujar();
     }
-    // Si tienes una función para limpiar o actualizar la lista de la pantalla, llámala aquí
-    actualizarBandeja(); 
-}
-    function cargarDatos() {
-        const m = datosMaestros.find(x => x.placa === document.getElementById('placa').value);
-        if (m) {
-            document.getElementById('conductor').value = m.conductor || '';
-            document.getElementById('tipo').value = m.tipo || '';
-            document.getElementById('capacidad').value = m.capacidad || 0;
-            document.getElementById('ruta').value = m.ruta || '';
-            calcular();
+
+    function cargar() {
+        const i = ms.find(x => x.placa === document.getElementById('placa').value);
+        if (i) {
+            document.getElementById('conductor').value = i.conductor || '';
+            document.getElementById('tipo').value = i.tipo || '';
+            document.getElementById('cap').value = i.capacidad || 0;
+            document.getElementById('ruta').value = i.ruta || '';
+            calc();
         }
     }
 
-    function calcular() {
-        const c = parseInt(document.getElementById('capacidad').value) || 0;
-        const p = parseInt(document.getElementById('pasajeros').value) || 0;
-        document.getElementById('libres').value = Math.max(0, c - p);
+    function calc() {
+        const c = parseInt(document.getElementById('cap').value) || 0;
+        const p = parseInt(document.getElementById('pax').value) || 0;
+        document.getElementById('lib').value = Math.max(0, c - p);
     }
 
-    async function actualizarBandeja() {
-        const pends = await db.registros.where('estado').equals('P').toArray();
-        document.getElementById('contador').innerText = pends.length;
-        const container = document.getElementById('listaPendientes');
-        container.innerHTML = pends.map(p => `
-            <div class="item-pendiente">
+    async function dibujar() {
+        const pends = await db.r.where('estado').equals('P').toArray();
+        document.getElementById('cont').innerText = pends.length;
+        document.getElementById('lista').innerHTML = pends.map(p => `
+            <div class="item-p">
                 <div><b>${p.placa}</b><br><small>${p.fecha}</small></div>
-                <div class="badge-espera">PENDIENTE</div>
+                <div style="font-size:10px; font-weight:bold;">PENDIENTE</div>
             </div>
         `).join('');
     }
 
-    document.getElementById('formApp').onsubmit = async (e) => {
+    document.getElementById('f').onsubmit = async (e) => {
         e.preventDefault();
         const reg = {
             fecha: new Date().toLocaleString(),
@@ -130,37 +107,36 @@
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
-            capacidad: document.getElementById('capacidad').value,
-            pasajeros: document.getElementById('pasajeros').value,
-            libres: document.getElementById('libres').value,
-            observaciones: document.getElementById('observaciones').value,
+            capacidad: document.getElementById('cap').value,
+            pasajeros: document.getElementById('pax').value,
+            libres: document.getElementById('lib').value,
+            observaciones: document.getElementById('obs').value,
             estado: 'P'
         };
-        await db.registros.add(reg);
-        document.getElementById('formApp').reset();
-        alert("✅ Registro guardado localmente");
-        actualizarBandeja();
-        if (navigator.onLine) sincronizar();
+        await db.r.add(reg);
+        document.getElementById('f').reset();
+        alert("✅ Registrado localmente");
+        dibujar();
+        if (navigator.onLine) sync();
     };
 
-    async function sincronizar() {
+    async function sync() {
         if (!navigator.onLine) return;
-        const pends = await db.registros.where('estado').equals('P').toArray();
+        const pends = await db.r.where('estado').equals('P').toArray();
         for (let r of pends) {
             try {
                 const f = new URLSearchParams();
-                const {id, estado, ...clean} = r;
-                for (const k in clean) f.append(k, clean[k]);
-
-                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: f.toString(), headers: {'Content-Type': 'application/x-www-form-urlencoded'} });
-                await db.registros.update(r.id, { estado: 'E' });
+                const {id, estado, ...data} = r;
+                for (const k in data) f.append(k, data[k]);
+                await fetch(URL_S, { method: 'POST', mode: 'no-cors', body: f.toString() });
+                await db.r.update(r.id, { estado: 'E' });
             } catch (e) { break; }
         }
-        actualizarBandeja();
+        dibujar();
     }
 
-    window.addEventListener('online', sincronizar);
-    cargarApp();
+    window.addEventListener('online', sync);
+    init();
 </script>
 </body>
 </html>
