@@ -16,6 +16,9 @@
         .btn:active { transform: scale(0.98); background: #0d3d14; }
         .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
+        .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
+.on { background: #d4edda; color: #155724; } /* Verde para conectado */
+.off { background: #f8d7da; color: #721c24; } /* Rojo para offline */
     </style>
 </head>
 <body>
@@ -55,6 +58,7 @@
 <div class="pends">
     <p style="font-weight:bold; color:#666; margin:0 0 10px;">📋 PENDIENTES DE ENVÍO (<span id="count">0</span>)</p>
     <div id="list"></div>
+    <div id="st" class="status on">● Verificando red...</div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
@@ -170,6 +174,22 @@
 
     window.addEventListener('online', sincronizar);
     iniciar();
+    // --- INDICADOR DE RED ---
+function actualizarEstadoRed() {
+    const st = document.getElementById('st');
+    if (navigator.onLine) {
+        st.innerText = '● Conectado (Sincronizando)';
+        st.className = 'status on';
+        sincronizar(); // Intenta enviar pendientes al volver la red
+    } else {
+        st.innerText = '○ Modo Offline (Guardando local)';
+        st.className = 'status off';
+    }
+}
+window.addEventListener('online', actualizarEstadoRed);
+window.addEventListener('offline', actualizarEstadoRed);
+// Llama a la función al cargar para verificar el estado inicial
+actualizarEstadoRed();
 </script>
 </body>
 </html>
