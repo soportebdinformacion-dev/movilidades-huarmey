@@ -101,15 +101,18 @@
     }
 
     function llenarCampos() {
+    // Buscamos la placa en la memoria local
     const m = listaMaestros.find(x => x.placa === document.getElementById('placa').value);
+    
     if (m) {
         document.getElementById('conductor').value = m.conductor || '';
         document.getElementById('tipo').value = m.tipo || '';
         document.getElementById('cap').value = m.capacidad || 0;
         document.getElementById('ruta').value = m.ruta || '';
         
-        // AGREGA ESTA LÍNEA PARA EL CULTIVO
-        document.getElementById('cultivo').value = m.cultivo || 'No asignado';
+        // --- ESTA ES LA LÍNEA QUE DEBES REVISAR ---
+        // 'm.cultivo' debe coincidir con el nombre de la columna en tu Excel
+        document.getElementById('cultivo').value = m.cultivo || 'Sin cultivo en Excel';
         
         calcularLibres();
     }
