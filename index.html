@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrícola Huarmey</title>
+    <title>Agrícola Huarmey - Control</title>
     <style>
         :root { --verde: #1B5E20; --amarillo: #FFB300; }
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
@@ -20,33 +20,26 @@
 <body>
 
 <div class="card">
-    <img src="ICONO HUARMEY.png" class="logo">
+    <img src="https://i.postimg.cc/85M0fPGr/ICONO-HUARMEY.png" class="logo">
     <h3 style="text-align:center; color:var(--verde); margin-top:0;">Control de Movilidad</h3>
 
     <form id="appForm">
         <label>PLACA:</label>
         <select id="placa" required onchange="v()"></select>
-        
         <label>CONDUCTOR:</label>
         <input type="text" id="conductor" readonly>
-        
         <div style="display:flex; gap:10px">
             <div style="flex:1"><label>TIPO:</label><input type="text" id="tipo" readonly></div>
             <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="cap" readonly></div>
         </div>
-
         <label>RUTA:</label>
         <input type="text" id="ruta" readonly>
-
         <label>N° PASAJEROS:</label>
         <input type="number" id="pax" required oninput="c()">
-
         <label>ASIENTOS LIBRES:</label>
         <input type="number" id="lib" readonly>
-
         <label>OBSERVACIONES:</label>
         <textarea id="obs" rows="2"></textarea>
-
         <button type="submit" class="btn">GUARDAR REGISTRO</button>
     </form>
 </div>
@@ -58,8 +51,10 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API = 'https://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; // <-- PEGA AQUÍ LA URL DE GOOGLE
-    const db = new Dexie('HuarmeyDB_VFINAL');
+    // 1. REEMPLAZA ESTA URL CON TU NUEVA URL DE GOOGLE (LA QUE TERMINA EN /exec)
+    const API = 'TU_URL_AQUIhttps://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; 
+
+    const db = new Dexie('Huarmey_V7_Final');
     db.version(1).stores({ m: 'placa', r: '++id, estado' });
 
     let ms = [];
@@ -71,7 +66,7 @@
                 const data = await res.json();
                 await db.m.clear();
                 await db.m.bulkAdd(data);
-            } catch (e) { console.log("Modo Offline"); }
+            } catch (e) { console.log("Offline"); }
         }
         ms = await db.m.toArray();
         document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
@@ -123,7 +118,7 @@
         };
         await db.r.add(reg);
         document.getElementById('appForm').reset();
-        alert("✅ Registro guardado en el dispositivo");
+        alert("✅ Guardado localmente");
         dibujar();
         if (navigator.onLine) sync();
     };
@@ -136,8 +131,15 @@
                 const f = new URLSearchParams();
                 const {id, estado, ...data} = r;
                 for (const k in data) f.append(k, data[k]);
-                // Usamos no-cors para evitar el bloqueo del navegador
-                await fetch(API, { method: 'POST', mode: 'no-cors', body: f.toString() });
+
+                // ENVÍO BLINDADO: Usa mode 'no-cors' para saltar el bloqueo
+                await fetch(API, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: f.toString(),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
                 await db.r.update(r.id, { estado: 'E' });
             } catch (e) { break; }
         }
