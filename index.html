@@ -101,9 +101,8 @@
     }
 
 function llenarCampos() {
-    const placaSel = document.getElementById('placa').value;
-    // Buscamos ignorando mayúsculas/minúsculas para mayor seguridad
-    const m = listaMaestros.find(x => x.placa.toString().trim() === placaSel.trim());
+    const placaValor = document.getElementById('placa').value;
+    const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor.trim());
     
     if (m) {
         document.getElementById('conductor').value = m.conductor || '';
@@ -111,15 +110,17 @@ function llenarCampos() {
         document.getElementById('cap').value = m.capacidad || 0;
         document.getElementById('ruta').value = m.ruta || '';
         
-        // --- SOLUCIÓN AL CULTIVO ---
-        // Buscamos el campo en cualquier formato (cultivo, CULTIVO, Cultivo)
-        const valorCultivo = m.cultivo || m.CULTIVO || m.Cultivo || m['cultivo '] || "";
+        // --- PRUEBA DE FUEGO PARA EL CULTIVO ---
+        console.log("Datos de la placa:", m); // Esto ayuda a ver si el cultivo existe en el objeto
         
-        if (valorCultivo !== "") {
-            document.getElementById('cultivo').value = valorCultivo;
-        } else {
-            document.getElementById('cultivo').value = "No asignado en Excel";
-        }
+        // Intenta leer 'cultivo' o 'cultivo ' (con espacio)
+        const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
+        
+        document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
+        
+        calcularLibres();
+    }
+}
         
         calcularLibres();
     }
