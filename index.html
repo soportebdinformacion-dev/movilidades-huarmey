@@ -134,28 +134,32 @@
     }
 
     // --- 5. GUARDADO Y SINCRONIZACIÓN ---
-    document.getElementById('formHuarmey').onsubmit = async (e) => {
-        e.preventDefault();
-        const registro = {
-            fecha: new Date().toLocaleString('es-PE'),
-            placa: document.getElementById('placa').value,
-            conductor: document.getElementById('conductor').value,
-            tipo: document.getElementById('tipo').value,
-            ruta: document.getElementById('ruta').value,
-            capacidad: document.getElementById('cap').value,
-            pasajeros: document.getElementById('pax').value,
-            libres: document.getElementById('lib').value,
-            observaciones: document.getElementById('obs').value,
-            estado: 'P'
-        };
+    document.getElementById('appForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const reg = {
+        fecha: new Date().toLocaleString('es-PE'),
+        placa: document.getElementById('placa').value,
+        conductor: document.getElementById('conductor').value,
+        tipo: document.getElementById('tipo').value,
+        ruta: document.getElementById('ruta').value,
         
-        await db.registros.add(registro);
-        document.getElementById('formHuarmey').reset();
-        alert("✅ Guardado localmente. Se enviará automáticamente.");
-        dibujarPendientes();
-        if (navigator.onLine) sincronizar();
+        // ESTA LÍNEA ES VITAL: Envía el valor del campo cultivo
+        cultivo: document.getElementById('cultivo').value, 
+        
+        capacidad: document.getElementById('cap').value,
+        pasajeros: document.getElementById('pax').value,
+        libres: document.getElementById('lib').value,
+        observaciones: document.getElementById('obs').value,
+        estado: 'P'
     };
-
+    
+    await db.r.add(reg); // Guarda en el celular (Dexie)
+    document.getElementById('appForm').reset();
+    alert("✅ Registro guardado");
+    dibujar();
+    if (navigator.onLine) sync(); // Intenta enviar a Google
+};
+    
     async function dibujarPendientes() {
         const pends = await db.registros.where('estado').equals('P').toArray();
         document.getElementById('count').innerText = pends.length;
