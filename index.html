@@ -130,6 +130,23 @@
         }
     }
 
+    const registro = {
+    fecha: new Date().toLocaleString('es-PE'),
+    placa: document.getElementById('placa').value,
+    conductor: document.getElementById('conductor').value,
+    tipo: document.getElementById('tipo').value,
+    ruta: document.getElementById('ruta').value,
+    
+    // AGREGA ESTA LÍNEA AQUÍ
+    cultivo: document.getElementById('cultivo').value,
+    
+    capacidad: document.getElementById('cap').value,
+    pasajeros: document.getElementById('pax').value,
+    libres: document.getElementById('lib').value,
+    observaciones: document.getElementById('obs').value,
+    estado: 'P'
+};
+
     function calcularLibres() {
         const cap = parseInt(document.getElementById('cap').value) || 0;
         const pax = parseInt(document.getElementById('pax').value) || 0;
