@@ -6,106 +6,116 @@
     <title>Agrícola Huarmey - Control</title>
     <style>
         :root { --verde: #1B5E20; --amarillo: #FFB300; }
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; border-top: 8px solid var(--verde); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .logo { display: block; margin: 0 auto 15px; max-width: 160px; }
-        label { display: block; margin-top: 10px; font-weight: bold; font-size: 12px; color: #333; }
-        select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        input[readonly] { background: #f1f3f5; }
-        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; }
-        .item { border-left: 5px solid var(--amarillo); background: #fff9e6; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; border-top: 8px solid var(--verde); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .logo { display: block; margin: 0 auto 15px; max-width: 150px; height: auto; }
+        label { display: block; margin-top: 12px; font-weight: bold; font-size: 13px; color: #444; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        input[readonly] { background: #f8f9fa; color: #666; }
+        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); background: #0d3d14; }
+        .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="https://i.postimg.cc/85M0fPGr/ICONO-HUARMEY.png" class="logo">
+    <img src="https://i.postimg.cc/85M0fPGr/ICONO-HUARMEY.png" class="logo" alt="Logo Agrícola Huarmey">
     <h3 style="text-align:center; color:var(--verde); margin-top:0;">Control de Movilidad</h3>
 
-    <form id="appForm">
-        <label>PLACA:</label>
-        <select id="placa" required onchange="v()"></select>
+    <form id="formHuarmey">
+        <label>PLACA DE UNIDAD:</label>
+        <select id="placa" required onchange="llenarCampos()"></select>
+        
         <label>CONDUCTOR:</label>
-        <input type="text" id="conductor" readonly>
+        <input type="text" id="conductor" readonly placeholder="Cargando...">
+        
         <div style="display:flex; gap:10px">
             <div style="flex:1"><label>TIPO:</label><input type="text" id="tipo" readonly></div>
             <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="cap" readonly></div>
         </div>
+
         <label>RUTA:</label>
         <input type="text" id="ruta" readonly>
+
         <label>N° PASAJEROS:</label>
-        <input type="number" id="pax" required oninput="c()">
+        <input type="number" id="pax" required oninput="calcularLibres()" placeholder="Ej. 15">
+
         <label>ASIENTOS LIBRES:</label>
         <input type="number" id="lib" readonly>
+
         <label>OBSERVACIONES:</label>
-        <textarea id="obs" rows="2"></textarea>
-        <button type="submit" class="btn">GUARDAR REGISTRO</button>
+        <textarea id="obs" rows="2" placeholder="Opcional..."></textarea>
+
+        <button type="submit" class="btn">ENVIAR REGISTRO</button>
     </form>
 </div>
 
 <div class="pends">
-    <p style="font-weight:bold; color:#555;">📋 REGISTROS PENDIENTES (<span id="count">0</span>)</p>
+    <p style="font-weight:bold; color:#666; margin:0 0 10px;">📋 PENDIENTES DE ENVÍO (<span id="count">0</span>)</p>
     <div id="list"></div>
 </div>
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    // 1. REEMPLAZA ESTA URL CON TU NUEVA URL DE GOOGLE (LA QUE TERMINA EN /exec)
-    const API = 'TU_URL_AQUIhttps://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; 
+    // --- 1. CONFIGURACIÓN ---
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; // <-- PEGA AQUÍ TU URL /exec
 
-    const db = new Dexie('Huarmey_V7_Final');
-    db.version(1).stores({ m: 'placa', r: '++id, estado' });
+    // --- 2. BASE DE DATOS LOCAL ---
+    const db = new Dexie('Huarmey_V8_Final');
+    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
-    let ms = [];
+    let listaMaestros = [];
 
-    async function init() {
+    // --- 3. INICIO Y CARGA DE PLACAS ---
+    async function iniciar() {
         if (navigator.onLine) {
             try {
-                const res = await fetch(API + '?t=' + Date.now());
+                const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
-                await db.m.clear();
-                await db.m.bulkAdd(data);
-            } catch (e) { console.log("Offline"); }
+                if (data.length > 0) {
+                    await db.maestros.clear();
+                    await db.maestros.bulkAdd(data);
+                }
+            } catch (e) { console.log("Modo offline o error de red"); }
         }
-        ms = await db.m.toArray();
-        document.getElementById('placa').innerHTML = '<option value="">Seleccione placa...</option>' + 
-            ms.map(i => `<option value="${i.placa}">${i.placa}</option>`).join('');
-        dibujar();
+        
+        listaMaestros = await db.maestros.toArray();
+        const selectPlaca = document.getElementById('placa');
+        
+        if (listaMaestros.length === 0) {
+            selectPlaca.innerHTML = '<option>Error al cargar placas</option>';
+        } else {
+            selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
+                listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+        }
+        dibujarPendientes();
     }
 
-    function v() {
-        const sel = ms.find(x => x.placa === document.getElementById('placa').value);
-        if (sel) {
-            document.getElementById('conductor').value = sel.conductor || '';
-            document.getElementById('tipo').value = sel.tipo || '';
-            document.getElementById('cap').value = sel.capacidad || 0;
-            document.getElementById('ruta').value = sel.ruta || '';
-            c();
+    // --- 4. LÓGICA DE FORMULARIO ---
+    function llenarCampos() {
+        const m = listaMaestros.find(x => x.placa === document.getElementById('placa').value);
+        if (m) {
+            document.getElementById('conductor').value = m.conductor || '';
+            document.getElementById('tipo').value = m.tipo || '';
+            document.getElementById('cap').value = m.capacidad || 0;
+            document.getElementById('ruta').value = m.ruta || '';
+            calcularLibres();
         }
     }
 
-    function c() {
+    function calcularLibres() {
         const cap = parseInt(document.getElementById('cap').value) || 0;
         const pax = parseInt(document.getElementById('pax').value) || 0;
         document.getElementById('lib').value = Math.max(0, cap - pax);
     }
 
-    async function dibujar() {
-        const pends = await db.r.where('estado').equals('P').toArray();
-        document.getElementById('count').innerText = pends.length;
-        document.getElementById('list').innerHTML = pends.map(p => `
-            <div class="item">
-                <div><b>${p.placa}</b><br><small>${p.fecha}</small></div>
-                <div style="font-size:10px; font-weight:bold; color:#856404;">EN COLA</div>
-            </div>
-        `).join('');
-    }
-
-    document.getElementById('appForm').onsubmit = async (e) => {
+    // --- 5. GUARDADO Y SINCRONIZACIÓN ---
+    document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
-        const reg = {
-            fecha: new Date().toLocaleString(),
+        const registro = {
+            fecha: new Date().toLocaleString('es-PE'),
             placa: document.getElementById('placa').value,
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
@@ -116,38 +126,50 @@
             observaciones: document.getElementById('obs').value,
             estado: 'P'
         };
-        await db.r.add(reg);
-        document.getElementById('appForm').reset();
-        alert("✅ Guardado localmente");
-        dibujar();
-        if (navigator.onLine) sync();
+        
+        await db.registros.add(registro);
+        document.getElementById('formHuarmey').reset();
+        alert("✅ Guardado localmente. Se enviará automáticamente.");
+        dibujarPendientes();
+        if (navigator.onLine) sincronizar();
     };
 
-    async function sync() {
+    async function dibujarPendientes() {
+        const pends = await db.registros.where('estado').equals('P').toArray();
+        document.getElementById('count').innerText = pends.length;
+        document.getElementById('list').innerHTML = pends.map(p => `
+            <div class="item">
+                <div><b>${p.placa}</b><br><small>${p.fecha}</small></div>
+                <div style="font-size:11px; color:#856404; font-weight:bold;">ESPERANDO RED...</div>
+            </div>
+        `).join('');
+    }
+
+    async function sincronizar() {
         if (!navigator.onLine) return;
-        const pends = await db.r.where('estado').equals('P').toArray();
+        const pends = await db.registros.where('estado').equals('P').toArray();
+        
         for (let r of pends) {
             try {
                 const f = new URLSearchParams();
-                const {id, estado, ...data} = r;
-                for (const k in data) f.append(k, data[k]);
+                const {id, estado, ...datos} = r;
+                for (const k in datos) f.append(k, datos[k]);
 
-                // ENVÍO BLINDADO: Usa mode 'no-cors' para saltar el bloqueo
-                await fetch(API, { 
+                await fetch(API_URL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
                     body: f.toString(),
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                 });
 
-                await db.r.update(r.id, { estado: 'E' });
-            } catch (e) { break; }
+                await db.registros.update(r.id, { estado: 'E' });
+            } catch (e) { console.error("Fallo envío:", e); break; }
         }
-        dibujar();
+        dibujarPendientes();
     }
 
-    window.addEventListener('online', sync);
-    init();
+    window.addEventListener('online', sincronizar);
+    iniciar();
 </script>
 </body>
 </html>
