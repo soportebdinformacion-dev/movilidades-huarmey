@@ -101,23 +101,26 @@
     }
 
 function llenarCampos() {
-    const placaSeleccionada = document.getElementById('placa').value;
-    const m = listaMaestros.find(x => x.placa === placaSeleccionada);
+    const placaSel = document.getElementById('placa').value;
+    // Buscamos ignorando mayúsculas/minúsculas para mayor seguridad
+    const m = listaMaestros.find(x => x.placa.toString().trim() === placaSel.trim());
     
     if (m) {
-        // Datos básicos
         document.getElementById('conductor').value = m.conductor || '';
         document.getElementById('tipo').value = m.tipo || '';
         document.getElementById('cap').value = m.capacidad || 0;
         document.getElementById('ruta').value = m.ruta || '';
         
-        // --- BÚSQUEDA INTELIGENTE DE CULTIVO ---
-        // Intentamos buscar de todas las formas posibles por si el Excel varía
-        const datoCultivo = m.cultivo || m.CULTIVO || m.Cultivo || m['cultivo '] || "No definido";
+        // --- SOLUCIÓN AL CULTIVO ---
+        // Buscamos el campo en cualquier formato (cultivo, CULTIVO, Cultivo)
+        const valorCultivo = m.cultivo || m.CULTIVO || m.Cultivo || m['cultivo '] || "";
         
-        document.getElementById('cultivo').value = datoCultivo;
+        if (valorCultivo !== "") {
+            document.getElementById('cultivo').value = valorCultivo;
+        } else {
+            document.getElementById('cultivo').value = "No asignado en Excel";
+        }
         
-        console.log("Datos cargados para placa:", placaSeleccionada, "Cultivo encontrado:", datoCultivo);
         calcularLibres();
     }
 }
