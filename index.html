@@ -176,8 +176,8 @@
             try {
                 const f = new URLSearchParams();
                 // Esto envía TODOS los campos del registro (incluyendo cultivo) a Google
-                for (const k in r) {
-            if (k !== 'id' && k !== 'estado') f.append(k, r[k]);
+               const {id, estado, ...datos} = r;
+                for (const k in datos) f.append(k, datos[k]);
 
                 await fetch(API_URL, { 
                     method: 'POST', 
