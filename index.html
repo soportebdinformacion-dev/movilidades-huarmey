@@ -74,7 +74,7 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; // <-- PEGA AQUÍ TU URL /exec
 
     // --- 2. BASE DE DATOS LOCAL ---
-    const db = new Dexie('huarmey_placas');
+    const db = new Dexie('BDX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let listaMaestros = [];
