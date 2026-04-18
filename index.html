@@ -74,7 +74,7 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbwspEnpq8AuE9yrStUJM5NUzgE2aMOcgbVoVhZOz4JiWu0Z2zWUspfGh4SR7iYjSS2d/exec'; // <-- PEGA AQUÍ TU URL /exec
 
     // --- 2. BASE DE DATOS LOCAL ---
-    const db = new Dexie('BDX_HUARMEY');
+    const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let listaMaestros = [];
@@ -168,30 +168,37 @@
         `).join('');
     }
 
-    async function sincronizar() {
-        if (!navigator.onLine) return;
-        const pends = await db.registros.where('estado').equals('P').toArray();
-        
-        for (let r of pends) {
-    try {
-        const f = new URLSearchParams();
-        // Esto envía TODOS los campos del registro (incluyendo cultivo) a Google
-        for (const k in r) {
-            if (k !== 'id' && k !== 'estado') f.append(k, r[k]);
-        }
+   async function sincronizar() {
+    if (!navigator.onLine) return;
+    const pends = await db.registros.where('estado').equals('P').toArray();
+    
+    for (let r of pends) {
+        try {
+            const f = new URLSearchParams();
+            // Enviamos cada campo manualmente para asegurar el CULTIVO
+            f.append('fecha', r.fecha);
+            f.append('placa', r.placa);
+            f.append('conductor', r.conductor);
+            f.append('tipo', r.tipo);
+            f.append('ruta', r.ruta);
+            f.append('cultivo', r.cultivo); // <--- LÍNEA VITAL
+            f.append('capacidad', r.capacidad);
+            f.append('pasajeros', r.pasajeros);
+            f.append('libres', r.libres);
+            f.append('observaciones', r.observaciones);
 
-        await fetch(API_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: f.toString(),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
+            await fetch(API_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: f.toString(),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
 
-        await db.registros.update(r.id, { estado: 'E' });
-            } catch (e) { console.error("Fallo envío:", e); break; }
-        }
-        dibujarPendientes();
+            await db.registros.update(r.id, { estado: 'E' });
+        } catch (e) { console.error(e); break; }
     }
+    dibujarPendientes();
+}
 
     window.addEventListener('online', sincronizar);
     iniciar();
