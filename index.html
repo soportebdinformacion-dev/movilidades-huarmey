@@ -68,17 +68,18 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwfhn0H4jKduw9uHpEJHKOODeT5ZsLZNizYAlCsHTgoAZ3n3SX09OMcpBZJFaPLMLYa/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx0-2Pqk4UFbbA_zxeRsQCc5MQliZcVlv-8JP1HT279QfdmRLWiH6cnnXB-Fl8DOx4r/exec'; 
 
     const db = new Dexie('BDXX_HUARMEY');
-    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
+    // CORRECCIÓN: Se agrega ++id a maestros para que soporte duplicados sin bloquearse
+    db.version(1).stores({ maestros: '++id, placa', registros: '++id, estado' });
 
     let listaMaestros = [];
 
     async function iniciar() {
         if (navigator.onLine) {
             try {
-                const res = await fetch(API_URL + '?nocache=' + new Date().getTime());
+                const res = await fetch(API_URL + '?nocache=' + Date.now());
                 const data = await res.json();
                 if (data && data.length > 0 && !data.error) {
                     await db.maestros.clear();
@@ -93,23 +94,25 @@
         if (listaMaestros.length === 0) {
             selectPlaca.innerHTML = '<option>Error al cargar placas</option>';
         } else {
+            // Quitamos duplicados visuales en el select usando un Set
+            const placasUnicas = [...new Set(listaMaestros.map(m => m.placa.toString().trim().toUpperCase()))].filter(p => p !== "");
+            
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
-                listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+                placasUnicas.map(p => `<option value="${p}">${p}</option>`).join('');
         }
         dibujarPendientes();
     }
 
     function llenarCampos() {
         const placaValor = document.getElementById('placa').value;
-        const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor.trim());
+        // Buscamos el último registro que coincida con la placa para asegurar datos actualizados
+        const m = listaMaestros.filter(x => x.placa.toString().trim().toUpperCase() === placaValor.trim().toUpperCase()).pop();
         
         if (m) {
             document.getElementById('conductor').value = m.conductor || '';
             document.getElementById('tipo').value = m.tipo || '';
             document.getElementById('cap').value = m.capacidad || 0;
             document.getElementById('ruta').value = m.ruta || '';
-            
-            console.log("Datos de la placa:", m); 
             
             const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
             document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
