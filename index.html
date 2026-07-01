@@ -18,8 +18,9 @@
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
 
         .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-        .on { background: #d4edda; color: #155724; }
-        .off { background: #f8d7da; color: #721c24; }
+.on { background: #d4edda; color: #155724; } /* Verde para conectado */
+.off { background: #f8d7da; color: #721c24; } /* Rojo para offline */
+    
     </style>
 </head>
 <body>
@@ -59,6 +60,7 @@
     </form>
 
     <div id="st" class="status on">● Verificando red...</div>
+    
 </div>
 
 <div class="pends">
@@ -68,63 +70,62 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxuzyuZSyR65Ya3L2SaINiKkHEfx4FiQThMx70mJglnNwAKrqs-9-XEqk0-gqyzFm39/exec'; 
+    // --- 1. CONFIGURACIÓN ---
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxuzyuZSyR65Ya3L2SaINiKkHEfx4FiQThMx70mJglnNwAKrqs-9-XEqk0-gqyzFm39/exec'; // <-- PEGA AQUÍ TU URL /exec
 
+    // --- 2. BASE DE DATOS LOCAL ---
     const db = new Dexie('BDXX_HUARMEY');
-    
-    // SOLUCIÓN AL BLOQUEO: Incrementamos a versión 2 para obligar a actualizar la estructura interna
-    db.version(2).stores({ 
-        maestros: '++id, placa', 
-        registros: '++id, estado' 
-    });
+    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let listaMaestros = [];
 
+    // --- 3. INICIO Y CARGA DE PLACAS ---
     async function iniciar() {
         if (navigator.onLine) {
             try {
-                const res = await fetch(API_URL + '?nocache=' + Date.now());
+                const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
-                if (data && data.length > 0 && !data.error) {
+                if (data.length > 0) {
                     await db.maestros.clear();
                     await db.maestros.bulkAdd(data);
                 }
-            } catch (e) { 
-                console.error("Error al sincronizar datos iniciales:", e); 
-            }
+            } catch (e) { console.log("Modo offline o error de red"); }
         }
         
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Error o lista vacía en el celular</option>';
+            selectPlaca.innerHTML = '<option>Error al cargar placas</option>';
         } else {
-            // Extrae las placas de forma única, limpiando espacios vacíos
-            const placasUnicas = [...new Set(listaMaestros.map(m => m.placa ? m.placa.toString().trim().toUpperCase() : ""))].filter(p => p !== "");
-            
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
-                placasUnicas.map(p => `<option value="${p}">${p}</option>`).join('');
+                listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
         }
         dibujarPendientes();
     }
 
+    // --- 4. LÓGICA DE FORMULARIO ---
     function llenarCampos() {
-        const placaValor = document.getElementById('placa').value;
-        const m = listaMaestros.filter(x => x.placa && x.placa.toString().trim().toUpperCase() === placaValor.trim().toUpperCase()).pop();
+    const placaValor = document.getElementById('placa').value;
+    const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor.trim());
+    
+    if (m) {
+        document.getElementById('conductor').value = m.conductor || '';
+        document.getElementById('tipo').value = m.tipo || '';
+        document.getElementById('cap').value = m.capacidad || 0;
+        document.getElementById('ruta').value = m.ruta || '';
         
-        if (m) {
-            document.getElementById('conductor').value = m.conductor || '';
-            document.getElementById('tipo').value = m.tipo || '';
-            document.getElementById('cap').value = m.capacidad || 0;
-            document.getElementById('ruta').value = m.ruta || '';
-            
-            const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
-            document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
-            
-            calcularLibres();
-        }
+        // --- PRUEBA DE FUEGO PARA EL CULTIVO ---
+        console.log("Datos de la placa:", m); // Esto ayuda a ver si el cultivo existe en el objeto
+        
+        // Intenta leer 'cultivo' o 'cultivo ' (con espacio)
+        const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
+        
+        document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
+        
+        calcularLibres();
     }
+}
 
     function calcularLibres() {
         const cap = parseInt(document.getElementById('cap').value) || 0;
@@ -132,6 +133,7 @@
         document.getElementById('lib').value = Math.max(0, cap - pax);
     }
 
+    // --- 5. GUARDADO Y SINCRONIZACIÓN ---
     document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
         const registro = {
@@ -166,54 +168,58 @@
         `).join('');
     }
 
-    async function sincronizar() {
-        if (!navigator.onLine) return;
-        const pends = await db.registros.where('estado').equals('P').toArray();
-        
-        for (let r of pends) {
-            try {
-                const f = new URLSearchParams();
-                f.append('fecha', r.fecha);
-                f.append('placa', r.placa);
-                f.append('conductor', r.conductor);
-                f.append('tipo', r.tipo);
-                f.append('ruta', r.ruta);
-                f.append('cultivo', r.cultivo); 
-                f.append('capacidad', r.capacidad);
-                f.append('pasajeros', r.pasajeros);
-                f.append('libres', r.libres);
-                f.append('observaciones', r.observaciones);
+   async function sincronizar() {
+    if (!navigator.onLine) return;
+    const pends = await db.registros.where('estado').equals('P').toArray();
+    
+    for (let r of pends) {
+        try {
+            const f = new URLSearchParams();
+            // Enviamos cada campo manualmente para asegurar el CULTIVO
+            f.append('fecha', r.fecha);
+            f.append('placa', r.placa);
+            f.append('conductor', r.conductor);
+            f.append('tipo', r.tipo);
+            f.append('ruta', r.ruta);
+            f.append('cultivo', r.cultivo); // <--- LÍNEA VITAL
+            f.append('capacidad', r.capacidad);
+            f.append('pasajeros', r.pasajeros);
+            f.append('libres', r.libres);
+            f.append('observaciones', r.observaciones);
 
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: f.toString(),
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                });
+            await fetch(API_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: f.toString(),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
 
-                await db.registros.update(r.id, { estado: 'E' });
-            } catch (e) { console.error(e); break; }
-        }
-        dibujarPendientes();
+            await db.registros.update(r.id, { estado: 'E' });
+        } catch (e) { console.error(e); break; }
     }
+    dibujarPendientes();
+}
 
     window.addEventListener('online', sincronizar);
     iniciar();
 
-    function actualizarEstadoRed() {
-        const st = document.getElementById('st');
-        if (navigator.onLine) {
-            st.innerText = '● Conectado (Sincronizando)';
-            st.className = 'status on';
-            sincronizar(); 
-        } else {
-            st.innerText = '○ Modo Offline (Guardando local)';
-            st.className = 'status off';
-        }
+    // --- INDICADOR DE RED ---
+function actualizarEstadoRed() {
+    const st = document.getElementById('st');
+    if (navigator.onLine) {
+        st.innerText = '● Conectado (Sincronizando)';
+        st.className = 'status on';
+        sincronizar(); // Intenta enviar pendientes al volver la red
+    } else {
+        st.innerText = '○ Modo Offline (Guardando local)';
+        st.className = 'status off';
     }
-    window.addEventListener('online', actualizarEstadoRed);
-    window.addEventListener('offline', actualizarEstadoRed);
-    actualizarEstadoRed();
+}
+window.addEventListener('online', actualizarEstadoRed);
+window.addEventListener('offline', actualizarEstadoRed);
+// Llama a la función al cargar para verificar el estado inicial
+actualizarEstadoRed();
+    
 </script>
 </body>
 </html>
