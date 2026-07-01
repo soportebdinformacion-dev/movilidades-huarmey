@@ -16,11 +16,9 @@
         .btn:active { transform: scale(0.98); background: #0d3d14; }
         .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
-
         .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-.on { background: #d4edda; color: #155724; } /* Verde para conectado */
-.off { background: #f8d7da; color: #721c24; } /* Rojo para offline */
-    
+        .on { background: #d4edda; color: #155724; }
+        .off { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -60,7 +58,6 @@
     </form>
 
     <div id="st" class="status on">● Verificando red...</div>
-    
 </div>
 
 <div class="pends">
@@ -71,7 +68,7 @@
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
     // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxuzyuZSyR65Ya3L2SaINiKkHEfx4FiQThMx70mJglnNwAKrqs-9-XEqk0-gqyzFm39/exec'; // <-- PEGA AQUÍ TU URL /exec
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyX9p7L4GP1FEZZlBMg8eKvP4Gkrqk1iBwc9kOfGZxsL_YNSJDTiFXJc7yaVZkJeq0T/exec';
 
     // --- 2. BASE DE DATOS LOCAL ---
     const db = new Dexie('BDXX_HUARMEY');
@@ -85,47 +82,54 @@
             try {
                 const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
-                if (data.length > 0) {
+                
+                if (data && data.length > 0 && !data.error) {
                     await db.maestros.clear();
                     await db.maestros.bulkAdd(data);
+                } else if (data.error) {
+                    console.error("Error desde el servidor:", data.error);
                 }
-            } catch (e) { console.log("Modo offline o error de red"); }
+            } catch (e) { 
+                console.error("Modo offline o error de red al sincronizar maestros:", e); 
+            }
         }
         
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option>Error al cargar placas</option>';
+            selectPlaca.innerHTML = '<option value="">Error al cargar placas o BD vacía</option>';
         } else {
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
-                listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+                listaMaestros.map(m => `<option value="${m.placa.toString().trim()}">${m.placa.toString().trim()}</option>`).join('');
         }
         dibujarPendientes();
     }
 
     // --- 4. LÓGICA DE FORMULARIO ---
     function llenarCampos() {
-    const placaValor = document.getElementById('placa').value;
-    const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor.trim());
-    
-    if (m) {
-        document.getElementById('conductor').value = m.conductor || '';
-        document.getElementById('tipo').value = m.tipo || '';
-        document.getElementById('cap').value = m.capacidad || 0;
-        document.getElementById('ruta').value = m.ruta || '';
+        const placaValor = document.getElementById('placa').value.trim();
+        const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor);
         
-        // --- PRUEBA DE FUEGO PARA EL CULTIVO ---
-        console.log("Datos de la placa:", m); // Esto ayuda a ver si el cultivo existe en el objeto
-        
-        // Intenta leer 'cultivo' o 'cultivo ' (con espacio)
-        const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
-        
-        document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
-        
-        calcularLibres();
+        if (m) {
+            document.getElementById('conductor').value = m.conductor || '';
+            document.getElementById('tipo').value = m.tipo || '';
+            document.getElementById('cap').value = m.capacidad || 0;
+            document.getElementById('ruta').value = m.ruta || '';
+            
+            const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
+            document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
+            
+            calcularLibres();
+        } else {
+            document.getElementById('conductor').value = '';
+            document.getElementById('tipo').value = '';
+            document.getElementById('cap').value = '';
+            document.getElementById('ruta').value = '';
+            document.getElementById('cultivo').value = '';
+            document.getElementById('lib').value = '';
+        }
     }
-}
 
     function calcularLibres() {
         const cap = parseInt(document.getElementById('cap').value) || 0;
@@ -136,9 +140,15 @@
     // --- 5. GUARDADO Y SINCRONIZACIÓN ---
     document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
+        const placaSel = document.getElementById('placa').value;
+        if(!placaSel) {
+            alert("Por favor, seleccione una placa válida.");
+            return;
+        }
+
         const registro = {
             fecha: new Date().toLocaleString('es-PE'),
-            placa: document.getElementById('placa').value,
+            placa: placaSel,
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
@@ -168,58 +178,57 @@
         `).join('');
     }
 
-   async function sincronizar() {
-    if (!navigator.onLine) return;
-    const pends = await db.registros.where('estado').equals('P').toArray();
-    
-    for (let r of pends) {
-        try {
-            const f = new URLSearchParams();
-            // Enviamos cada campo manualmente para asegurar el CULTIVO
-            f.append('fecha', r.fecha);
-            f.append('placa', r.placa);
-            f.append('conductor', r.conductor);
-            f.append('tipo', r.tipo);
-            f.append('ruta', r.ruta);
-            f.append('cultivo', r.cultivo); // <--- LÍNEA VITAL
-            f.append('capacidad', r.capacidad);
-            f.append('pasajeros', r.pasajeros);
-            f.append('libres', r.libres);
-            f.append('observaciones', r.observaciones);
+    async function sincronizar() {
+        if (!navigator.onLine) return;
+        const pends = await db.registros.where('estado').equals('P').toArray();
+        
+        for (let r of pends) {
+            try {
+                const f = new URLSearchParams();
+                f.append('fecha', r.fecha);
+                f.append('placa', r.placa);
+                f.append('conductor', r.conductor);
+                f.append('tipo', r.tipo);
+                f.append('ruta', r.ruta);
+                f.append('cultivo', r.cultivo);
+                f.append('capacidad', r.capacidad);
+                f.append('pasajeros', r.pasajeros);
+                f.append('libres', r.libres);
+                f.append('observaciones', r.observaciones);
 
-            await fetch(API_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: f.toString(),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: f.toString(),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
 
-            await db.registros.update(r.id, { estado: 'E' });
-        } catch (e) { console.error(e); break; }
+                await db.registros.update(r.id, { estado: 'E' });
+            } catch (e) { 
+                console.error("Error al subir registro:", e); 
+                break; 
+            }
+        }
+        dibujarPendientes();
     }
-    dibujarPendientes();
-}
 
     window.addEventListener('online', sincronizar);
     iniciar();
 
-    // --- INDICADOR DE RED ---
-function actualizarEstadoRed() {
-    const st = document.getElementById('st');
-    if (navigator.onLine) {
-        st.innerText = '● Conectado (Sincronizando)';
-        st.className = 'status on';
-        sincronizar(); // Intenta enviar pendientes al volver la red
-    } else {
-        st.innerText = '○ Modo Offline (Guardando local)';
-        st.className = 'status off';
+    function actualizarEstadoRed() {
+        const st = document.getElementById('st');
+        if (navigator.onLine) {
+            st.innerText = '● Conectado (Sincronizando)';
+            st.className = 'status on';
+            sincronizar();
+        } else {
+            st.innerText = '○ Modo Offline (Guardando local)';
+            st.className = 'status off';
+        }
     }
-}
-window.addEventListener('online', actualizarEstadoRed);
-window.addEventListener('offline', actualizarEstadoRed);
-// Llama a la función al cargar para verificar el estado inicial
-actualizarEstadoRed();
-    
+    window.addEventListener('online', actualizarEstadoRed);
+    window.addEventListener('offline', actualizarEstadoRed);
+    actualizarEstadoRed();
 </script>
 </body>
 </html>
