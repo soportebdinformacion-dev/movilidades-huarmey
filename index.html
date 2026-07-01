@@ -25,7 +25,7 @@
 
 <div class="card">
     <img src="ICONO HUARMEY.png" class="logo" alt="Logo Agrícola Huarmey">
-    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agrícola Huarmey</h3>
+    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agricola Huarmey</h3>
 
     <form id="formHuarmey">
         <label>🚎 PLACA DE UNIDAD:</label>
@@ -67,49 +67,52 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwmqgTvS65eB_QgV498QtGU2QBRbeuQ_hAWBFnCXd5F8E4DFuwTamzo9S3oFAOLkkcV/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwY8nvobN4Fg_rHzPD0loDZYCoc5w2a6UQ5AcfXjjjNeq_9BGT3Ol3JcF8lE6ewkO3N/exec';
 
-    // --- 2. BASE DE DATOS LOCAL ---
+    // Declaramos la Base de Datos Local
     const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let listaMaestros = [];
 
-    // --- 3. INICIO Y CARGA DE PLACAS ---
     async function iniciar() {
         if (navigator.onLine) {
             try {
+                // El parámetro '?t=' previene que el navegador use datos desactualizados en caché
                 const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
                 
                 if (data && data.length > 0 && !data.error) {
                     await db.maestros.clear();
                     await db.maestros.bulkAdd(data);
-                } else if (data.error) {
-                    console.error("Error desde el servidor:", data.error);
                 }
             } catch (e) { 
-                console.error("Modo offline o error de red al sincronizar maestros:", e); 
+                console.error("Error cargando los datos del servidor, usando locales:", e); 
             }
         }
         
         listaMaestros = await db.maestros.toArray();
+        
+        // Ordenamos las placas alfabéticamente para facilitar la búsqueda
+        listaMaestros.sort((a, b) => a.placa.toString().localeCompare(b.placa.toString()));
+        
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Error al cargar placas o BD vacía</option>';
+            selectPlaca.innerHTML = '<option value="">Sin datos guardados. Requiere internet.</option>';
         } else {
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
-                listaMaestros.map(m => `<option value="${m.placa.toString().trim()}">${m.placa.toString().trim()}</option>`).join('');
+                listaMaestros.map(m => {
+                    const txt = m.placa.toString().toUpperCase().trim();
+                    return `<option value="${txt}">${txt}</option>`;
+                }).join('');
         }
         dibujarPendientes();
     }
 
-    // --- 4. LÓGICA DE FORMULARIO ---
     function llenarCampos() {
-        const placaValor = document.getElementById('placa').value.trim();
-        const m = listaMaestros.find(x => x.placa.toString().trim() === placaValor);
+        const placaValor = document.getElementById('placa').value.toUpperCase().trim();
+        const m = listaMaestros.find(x => x.placa.toString().toUpperCase().trim() === placaValor);
         
         if (m) {
             document.getElementById('conductor').value = m.conductor || '';
@@ -117,18 +120,23 @@
             document.getElementById('cap').value = m.capacidad || 0;
             document.getElementById('ruta').value = m.ruta || '';
             
+            // Verificación flexible para la columna Cultivo
             const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
-            document.getElementById('cultivo').value = c !== "" ? c : "No hay dato en Excel";
+            document.getElementById('cultivo').value = c !== "" ? c : "No asignado";
             
             calcularLibres();
         } else {
-            document.getElementById('conductor').value = '';
-            document.getElementById('tipo').value = '';
-            document.getElementById('cap').value = '';
-            document.getElementById('ruta').value = '';
-            document.getElementById('cultivo').value = '';
-            document.getElementById('lib').value = '';
+            limpiarFormulario();
         }
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('conductor').value = '';
+        document.getElementById('tipo').value = '';
+        document.getElementById('cap').value = '';
+        document.getElementById('ruta').value = '';
+        document.getElementById('cultivo').value = '';
+        document.getElementById('lib').value = '';
     }
 
     function calcularLibres() {
@@ -137,12 +145,11 @@
         document.getElementById('lib').value = Math.max(0, cap - pax);
     }
 
-    // --- 5. GUARDADO Y SINCRONIZACIÓN ---
     document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
         const placaSel = document.getElementById('placa').value;
         if(!placaSel) {
-            alert("Por favor, seleccione una placa válida.");
+            alert("Por favor, seleccione una placa de la lista.");
             return;
         }
 
@@ -162,7 +169,7 @@
         
         await db.registros.add(registro);
         document.getElementById('formHuarmey').reset();
-        alert("✅ Guardado localmente. Se enviará automáticamente.");
+        alert("✅ Guardado localmente con éxito. Sincronizando...");
         dibujarPendientes();
         if (navigator.onLine) sincronizar();
     };
@@ -205,7 +212,7 @@
 
                 await db.registros.update(r.id, { estado: 'E' });
             } catch (e) { 
-                console.error("Error al subir registro:", e); 
+                console.error("Error enviando datos:", e); 
                 break; 
             }
         }
