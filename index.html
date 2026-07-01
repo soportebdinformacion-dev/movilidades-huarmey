@@ -68,11 +68,15 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx0-2Pqk4UFbbA_zxeRsQCc5MQliZcVlv-8JP1HT279QfdmRLWiH6cnnXB-Fl8DOx4r/exec'; 
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxuzyuZSyR65Ya3L2SaINiKkHEfx4FiQThMx70mJglnNwAKrqs-9-XEqk0-gqyzFm39/exec'; 
 
     const db = new Dexie('BDXX_HUARMEY');
-    // CORRECCIÓN: Se agrega ++id a maestros para que soporte duplicados sin bloquearse
-    db.version(1).stores({ maestros: '++id, placa', registros: '++id, estado' });
+    
+    // SOLUCIÓN AL BLOQUEO: Incrementamos a versión 2 para obligar a actualizar la estructura interna
+    db.version(2).stores({ 
+        maestros: '++id, placa', 
+        registros: '++id, estado' 
+    });
 
     let listaMaestros = [];
 
@@ -85,17 +89,19 @@
                     await db.maestros.clear();
                     await db.maestros.bulkAdd(data);
                 }
-            } catch (e) { console.log("Modo offline o error de red", e); }
+            } catch (e) { 
+                console.error("Error al sincronizar datos iniciales:", e); 
+            }
         }
         
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option>Error al cargar placas</option>';
+            selectPlaca.innerHTML = '<option value="">Error o lista vacía en el celular</option>';
         } else {
-            // Quitamos duplicados visuales en el select usando un Set
-            const placasUnicas = [...new Set(listaMaestros.map(m => m.placa.toString().trim().toUpperCase()))].filter(p => p !== "");
+            // Extrae las placas de forma única, limpiando espacios vacíos
+            const placasUnicas = [...new Set(listaMaestros.map(m => m.placa ? m.placa.toString().trim().toUpperCase() : ""))].filter(p => p !== "");
             
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
                 placasUnicas.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -105,8 +111,7 @@
 
     function llenarCampos() {
         const placaValor = document.getElementById('placa').value;
-        // Buscamos el último registro que coincida con la placa para asegurar datos actualizados
-        const m = listaMaestros.filter(x => x.placa.toString().trim().toUpperCase() === placaValor.trim().toUpperCase()).pop();
+        const m = listaMaestros.filter(x => x.placa && x.placa.toString().trim().toUpperCase() === placaValor.trim().toUpperCase()).pop();
         
         if (m) {
             document.getElementById('conductor').value = m.conductor || '';
