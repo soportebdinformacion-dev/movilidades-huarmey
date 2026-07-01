@@ -25,7 +25,7 @@
 
 <div class="card">
     <img src="ICONO HUARMEY.png" class="logo" alt="Logo Agrícola Huarmey">
-    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agricola Huarmey</h3>
+    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agrícola Huarmey</h3>
 
     <form id="formHuarmey">
         <label>🚎 PLACA DE UNIDAD:</label>
@@ -67,7 +67,7 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxp3LBZuF35GPO-7yz_bNpE_NiBm9BY_z3UD9c94aVwlxzF4w7zfS1JVug-FNGDotoD/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwMCrokn68bKiBaQUyVyLtaCOoGWMfyyiIdcmtsyNw2jhE5jwEeXu9h108XLgUTNws5/exec';
 
     const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
@@ -77,28 +77,31 @@
     async function iniciar() {
         if (navigator.onLine) {
             try {
-                // '?t=' previene que el teléfono use datos obsoletos en caché
+                // Parámetro dinámico anti-caché de red
                 const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
                 
                 if (data && data.length > 0 && !data.error) {
                     await db.maestros.clear();
-                    await db.maestros.bulkAdd(data);
+                    // Usamos put secuencial para evitar bloqueos masivos por datos residuales
+                    for(let item of data) {
+                        await db.maestros.put(item);
+                    }
                 }
             } catch (e) { 
-                console.error("Error sincronizando catálogo:", e); 
+                console.log("Trabajando con datos locales."); 
             }
         }
         
         listaMaestros = await db.maestros.toArray();
         
-        // Ordenamiento Alfabético estricto
+        // Ordenamos alfabéticamente para que las placas nuevas no queden colgadas abajo
         listaMaestros.sort((a, b) => a.placa.toString().localeCompare(b.placa.toString()));
         
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Sin datos locales. Requiere red.</option>';
+            selectPlaca.innerHTML = '<option value="">Error: Sin conexión inicial</option>';
         } else {
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
                 listaMaestros.map(m => {
@@ -119,7 +122,6 @@
             document.getElementById('cap').value = m.capacidad || 0;
             document.getElementById('ruta').value = m.ruta || '';
             
-            // Tolerancia de campos para la columna cultivo
             const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
             document.getElementById('cultivo').value = c !== "" ? c : "No asignado";
             
@@ -148,7 +150,7 @@
         e.preventDefault();
         const placaSel = document.getElementById('placa').value;
         if(!placaSel) {
-            alert("Por favor, elija una placa de la lista desplegable.");
+            alert("Seleccione una placa válida.");
             return;
         }
 
@@ -168,7 +170,7 @@
         
         await db.registros.add(registro);
         document.getElementById('formHuarmey').reset();
-        alert("✅ Guardado localmente. Sincronizando en segundo plano...");
+        alert("✅ Guardado localmente. Sincronizando...");
         dibujarPendientes();
         if (navigator.onLine) sincronizar();
     };
@@ -211,7 +213,7 @@
 
                 await db.registros.update(r.id, { estado: 'E' });
             } catch (e) { 
-                console.error("Fallo de envío:", e); 
+                console.error(e); 
                 break; 
             }
         }
