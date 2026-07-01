@@ -67,9 +67,8 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwY8nvobN4Fg_rHzPD0loDZYCoc5w2a6UQ5AcfXjjjNeq_9BGT3Ol3JcF8lE6ewkO3N/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxp3LBZuF35GPO-7yz_bNpE_NiBm9BY_z3UD9c94aVwlxzF4w7zfS1JVug-FNGDotoD/exec';
 
-    // Declaramos la Base de Datos Local
     const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
@@ -78,7 +77,7 @@
     async function iniciar() {
         if (navigator.onLine) {
             try {
-                // El parámetro '?t=' previene que el navegador use datos desactualizados en caché
+                // '?t=' previene que el teléfono use datos obsoletos en caché
                 const res = await fetch(API_URL + '?t=' + Date.now());
                 const data = await res.json();
                 
@@ -87,24 +86,24 @@
                     await db.maestros.bulkAdd(data);
                 }
             } catch (e) { 
-                console.error("Error cargando los datos del servidor, usando locales:", e); 
+                console.error("Error sincronizando catálogo:", e); 
             }
         }
         
         listaMaestros = await db.maestros.toArray();
         
-        // Ordenamos las placas alfabéticamente para facilitar la búsqueda
+        // Ordenamiento Alfabético estricto
         listaMaestros.sort((a, b) => a.placa.toString().localeCompare(b.placa.toString()));
         
         const selectPlaca = document.getElementById('placa');
         
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Sin datos guardados. Requiere internet.</option>';
+            selectPlaca.innerHTML = '<option value="">Sin datos locales. Requiere red.</option>';
         } else {
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
                 listaMaestros.map(m => {
-                    const txt = m.placa.toString().toUpperCase().trim();
-                    return `<option value="${txt}">${txt}</option>`;
+                    const limpia = m.placa.toString().toUpperCase().trim();
+                    return `<option value="${limpia}">${limpia}</option>`;
                 }).join('');
         }
         dibujarPendientes();
@@ -120,7 +119,7 @@
             document.getElementById('cap').value = m.capacidad || 0;
             document.getElementById('ruta').value = m.ruta || '';
             
-            // Verificación flexible para la columna Cultivo
+            // Tolerancia de campos para la columna cultivo
             const c = m.cultivo || m['cultivo '] || m.CULTIVO || "";
             document.getElementById('cultivo').value = c !== "" ? c : "No asignado";
             
@@ -149,7 +148,7 @@
         e.preventDefault();
         const placaSel = document.getElementById('placa').value;
         if(!placaSel) {
-            alert("Por favor, seleccione una placa de la lista.");
+            alert("Por favor, elija una placa de la lista desplegable.");
             return;
         }
 
@@ -169,7 +168,7 @@
         
         await db.registros.add(registro);
         document.getElementById('formHuarmey').reset();
-        alert("✅ Guardado localmente con éxito. Sincronizando...");
+        alert("✅ Guardado localmente. Sincronizando en segundo plano...");
         dibujarPendientes();
         if (navigator.onLine) sincronizar();
     };
@@ -212,7 +211,7 @@
 
                 await db.registros.update(r.id, { estado: 'E' });
             } catch (e) { 
-                console.error("Error enviando datos:", e); 
+                console.error("Fallo de envío:", e); 
                 break; 
             }
         }
