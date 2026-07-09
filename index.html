@@ -25,7 +25,7 @@
 
 <div class="card">
     <img src="ICONO HUARMEY.png" class="logo" alt="Logo Agrícola Huarmey">
-    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agrícola Huarmey</h3>
+    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agrícola Huarmey 🚎</h3>
 
     <form id="formHuarmey">
         <label>🚎 PLACA DE UNIDAD:</label>
@@ -67,8 +67,22 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwbT2UqSsviYbU1jIfcFy3jvkPOhRM0uIRUBlUb-v-kfn4FoyZXWWkZXHFnv6g20H0/exec';
+    
+   // CÓDIGO CORREGIDO (Evita la caché por completo)
+const url = "https://script.google.com/macros/s/AKfycbwbT2UqSsviYbU1jIfcFy3jvkPOhRM0uIRUBlUb-v-kfn4FoyZXWWkZXHFnv6g20H0/exec";
 
+// Añadimos un parámetro de tiempo único a la URL para romper la caché
+const urlConCacheBuster = url + "?t=" + new Date().getTime();
+
+fetch(urlConCacheBuster)
+  .then(response => response.json())
+  .then(data => {
+    // Aquí va tu lógica actual para llenar el select de PLACA DE UNIDAD
+    console.log("Placas frescas cargadas:", data);
+  })
+  .catch(error => console.error("Error al cargar placas:", error));
+
+    
     const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
