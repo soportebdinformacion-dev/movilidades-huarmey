@@ -73,7 +73,7 @@
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
     // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx2lplF2Iek_MRonX7lw_5oI2n7BZVz2I0rBIg8UHNyBRmyGuweTTqPTuVEU1OCu32s/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwF8UsvJLrVdr52ZrJNqVwT6_bgCVQpbnF-8VYRUsgCUcWxbTK8YvfAY_fnJNcLbJjd/exec';
 
     // --- 2. REGISTRO DE SERVICE WORKER (OFFLINE EN EL CAMPO) ---
     if ('serviceWorker' in navigator) {
@@ -122,7 +122,7 @@
         return '';
     }
 
-    // --- 5. INICIO RÁPIDO (OFFLINE FIRST) ---
+    // --- 5. INICIO RÁPIDO Y CARGA DE MAESTROS ---
     async function cargarDesdedbLocal() {
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
@@ -131,8 +131,12 @@
             selectPlaca.innerHTML = '<option value="">Sin datos locales (Conéctese a internet)</option>';
         } else {
             const seleccionActual = selectPlaca.value;
+            // Ordenamiento alfabético para encontrar fácilmente cualquier placa
+            listaMaestros.sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
+            
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
                 listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
+            
             if (seleccionActual) selectPlaca.value = seleccionActual;
         }
     }
@@ -145,16 +149,19 @@
             if (Array.isArray(data) && data.length > 0) {
                 const mapeados = data.map(item => ({
                     placa: String(obtenerPropiedad(item, ['placa', 'PLACA DE UNIDAD', 'PLACA'])).trim(),
-                    conductor: obtenerPropiedad(item, ['conductor', 'CONDUCTOR']),
-                    tipo: obtenerPropiedad(item, ['tipo', 'TIPO']),
+                    conductor: String(obtenerPropiedad(item, ['conductor', 'CONDUCTOR'])).trim(),
+                    tipo: String(obtenerPropiedad(item, ['tipo', 'TIPO'])).trim(),
                     capacidad: obtenerPropiedad(item, ['capacidad', 'CAPACIDAD', 'cap']),
-                    ruta: obtenerPropiedad(item, ['ruta', 'RUTA']),
-                    cultivo: obtenerPropiedad(item, ['cultivo', 'CULTIVO'])
+                    ruta: String(obtenerPropiedad(item, ['ruta', 'RUTA'])).trim(),
+                    cultivo: String(obtenerPropiedad(item, ['cultivo', 'CULTIVO'])).trim()
                 })).filter(x => x.placa !== '');
 
                 if (mapeados.length > 0) {
+                    // Limpia la base local e inserta los datos actualizados de la nube
                     await db.maestros.clear();
                     await db.maestros.bulkPut(mapeados);
+                    
+                    // Vuelve a consultar la base local e imprime las opciones actualizadas
                     await cargarDesdedbLocal();
                 }
             }
@@ -164,13 +171,10 @@
     }
 
     async function iniciar() {
-        // Carga inmediata desde IndexedDB sin esperar respuesta de red
         await cargarDesdedbLocal();
         dibujarPendientes();
         actualizarEstadoRed();
-
-        // Actualización asíncrona en segundo plano cuando hay red
-        actualizarMaestrosDesdeNube();
+        await actualizarMaestrosDesdeNube();
     }
 
     // --- 6. LÓGICA DE FORMULARIO ---
