@@ -21,8 +21,8 @@
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
 
         .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-        .on { background: #d4edda; color: #155724; } /* Verde para conectado */
-        .off { background: #f8d7da; color: #721c24; } /* Rojo para offline */
+        .on { background: #d4edda; color: #155724; }
+        .off { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -73,9 +73,9 @@
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
     // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzKkTTpkOJ3EN4tg_t73YpaA58r2LCIIf9ouv5FkwuZUAgupf4Y-oI29CfSEbzquyla/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxiJWo5qhY55GWDl6JgwhbNq6XXWM2X-dFB1eJfotpz5bk_h5-QO6kYAil7-HuOqMp7/exec';
 
-    // --- 2. REGISTRO DE SERVICE WORKER (OFFLINE EN EL CAMPO) ---
+    // --- 2. REGISTRO DE SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
@@ -111,7 +111,6 @@
 
     let listaMaestros = [];
 
-    // Normaliza llaves de los objetos devueltos por Google Sheets
     function obtenerPropiedad(obj, nombres) {
         if (!obj) return '';
         const keys = Object.keys(obj);
@@ -122,7 +121,7 @@
         return '';
     }
 
-    // --- 5. INICIO RÁPIDO Y CARGA DE MAESTROS ---
+    // --- 5. LECTURA Y RENDERIZADO DE PLACAS ---
     async function cargarDesdedbLocal() {
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
@@ -131,7 +130,8 @@
             selectPlaca.innerHTML = '<option value="">Sin datos locales (Conéctese a internet)</option>';
         } else {
             const seleccionActual = selectPlaca.value;
-            // Ordenamiento alfabético para encontrar fácilmente cualquier placa
+            
+            // Ordenar alfabéticamente
             listaMaestros.sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
             
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
@@ -144,8 +144,13 @@
     async function actualizarMaestrosDesdeNube() {
         if (!navigator.onLine) return;
         try {
-            const res = await fetch(API_URL + '?t=' + Date.now());
-            const data = await res.json();
+            // Se agrega timestamp dinámico y nocache para saltar la caché del navegador
+            const response = await fetch(API_URL + '?nocache=' + new Date().getTime(), {
+                cache: 'no-store'
+            });
+            
+            const data = await response.json();
+            
             if (Array.isArray(data) && data.length > 0) {
                 const mapeados = data.map(item => ({
                     placa: String(obtenerPropiedad(item, ['placa', 'PLACA DE UNIDAD', 'PLACA'])).trim(),
@@ -157,16 +162,16 @@
                 })).filter(x => x.placa !== '');
 
                 if (mapeados.length > 0) {
-                    // Limpia la base local e inserta los datos actualizados de la nube
+                    // Reemplazar completamente la tabla de maestros en el dispositivo
                     await db.maestros.clear();
                     await db.maestros.bulkPut(mapeados);
                     
-                    // Vuelve a consultar la base local e imprime las opciones actualizadas
+                    // Volver a cargar el HTML desplegable con los nuevos datos
                     await cargarDesdedbLocal();
                 }
             }
         } catch (e) {
-            console.log("No se pudo actualizar la lista en segundo plano:", e);
+            console.log("Error actualizando maestros:", e);
         }
     }
 
