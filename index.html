@@ -16,14 +16,13 @@
         input[readonly] { background: #f8f9fa; color: #666; }
         .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.2s; }
         .btn:active { transform: scale(0.98); background: #0d3d14; }
-        .btn:disabled { background: #888888; cursor: not-allowed; }
         .btn-install { background: #0277BD; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: none; }
         .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
 
         .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-        .on { background: #d4edda; color: #155724; }
-        .off { background: #f8d7da; color: #721c24; }
+        .on { background: #d4edda; color: #155724; } /* Verde para conectado */
+        .off { background: #f8d7da; color: #721c24; } /* Rojo para offline */
     </style>
 </head>
 <body>
@@ -60,7 +59,7 @@
         <label>OBSERVACIONES:</label>
         <textarea id="obs" rows="2" placeholder="Opcional..."></textarea>
 
-        <button type="submit" id="btnGuardar" class="btn">GUARDAR REGISTROS</button>
+        <button type="submit" class="btn">GUARDAR REGISTROS</button>
     </form>
 
     <div id="st" class="status on">● Verificando red...</div>
@@ -74,9 +73,9 @@
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
     // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycby6tz7CBA6W53CohlHbu8U9QugILY_09n9EpTdIh0JXMzuakoNZnblcIKXa6Lq9zel4/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwF8UsvJLrVdr52ZrJNqVwT6_bgCVQpbnF-8VYRUsgCUcWxbTK8YvfAY_fnJNcLbJjd/exec';
 
-    // --- 2. REGISTRO DE SERVICE WORKER ---
+    // --- 2. REGISTRO DE SERVICE WORKER (OFFLINE EN EL CAMPO) ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
@@ -111,8 +110,8 @@
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
     let listaMaestros = [];
-    let enviando = false;
 
+    // Normaliza llaves de los objetos devueltos por Google Sheets
     function obtenerPropiedad(obj, nombres) {
         if (!obj) return '';
         const keys = Object.keys(obj);
@@ -123,7 +122,7 @@
         return '';
     }
 
-    // --- 5. LECTURA DE MAESTROS DESDE GOOGLE SHEETS ---
+    // --- 5. INICIO RÁPIDO (OFFLINE FIRST) ---
     async function cargarDesdedbLocal() {
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
@@ -155,19 +154,22 @@
 
                 if (mapeados.length > 0) {
                     await db.maestros.clear();
-                    await db.maestros.bulkAdd(mapeados);
+                    await db.maestros.bulkPut(mapeados);
                     await cargarDesdedbLocal();
                 }
             }
         } catch (e) {
-            console.warn("Error al actualizar maestros desde Google Sheets:", e);
+            console.log("No se pudo actualizar la lista en segundo plano:", e);
         }
     }
 
     async function iniciar() {
+        // Carga inmediata desde IndexedDB sin esperar respuesta de red
         await cargarDesdedbLocal();
         dibujarPendientes();
         actualizarEstadoRed();
+
+        // Actualización asíncrona en segundo plano cuando hay red
         actualizarMaestrosDesdeNube();
     }
 
@@ -199,59 +201,28 @@
         document.getElementById('lib').value = Math.max(0, cap - pax);
     }
 
-    // --- 7. GUARDADO Y ESCRITURA EN HOJA REGISTROS ---
+    // --- 7. GUARDADO Y SINCRONIZACIÓN ---
     document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
-
-        if (enviando) return;
-
-        const placaVal = document.getElementById('placa').value;
-        const paxVal = document.getElementById('pax').value;
-
-        // Validaciones previas
-        if (!placaVal) {
-            alert("⚠️ Seleccione una placa válida.");
-            return;
-        }
-        if (paxVal === "" || parseInt(paxVal) < 0) {
-            alert("⚠️ Ingrese una cantidad válida de pasajeros.");
-            return;
-        }
-
-        enviando = true;
-        const btn = document.getElementById('btnGuardar');
-        btn.disabled = true;
-
         const registro = {
             fecha: new Date().toLocaleString('es-PE'),
-            placa: placaVal,
+            placa: document.getElementById('placa').value,
             conductor: document.getElementById('conductor').value,
             tipo: document.getElementById('tipo').value,
             ruta: document.getElementById('ruta').value,
             cultivo: document.getElementById('cultivo').value,
             capacidad: document.getElementById('cap').value,
-            pasajeros: paxVal,
+            pasajeros: document.getElementById('pax').value,
             libres: document.getElementById('lib').value,
             observaciones: document.getElementById('obs').value,
             estado: 'P'
         };
         
-        try {
-            await db.registros.add(registro);
-            document.getElementById('formHuarmey').reset();
-            dibujarPendientes();
-            
-            if (navigator.onLine) {
-                await sincronizar();
-            } else {
-                alert("✅ Guardado localmente en el dispositivo (Offline).");
-            }
-        } catch (err) {
-            alert("❌ Error al procesar el registro local: " + err.message);
-        } finally {
-            enviando = false;
-            btn.disabled = false;
-        }
+        await db.registros.add(registro);
+        document.getElementById('formHuarmey').reset();
+        alert("✅ Guardado localmente en el dispositivo.");
+        dibujarPendientes();
+        if (navigator.onLine) sincronizar();
     };
 
     async function dibujarPendientes() {
@@ -291,10 +262,7 @@
                 });
 
                 await db.registros.update(r.id, { estado: 'E' });
-            } catch (e) {
-                console.error("Error al sincronizar fila:", e);
-                break;
-            }
+            } catch (e) { console.error(e); break; }
         }
         dibujarPendientes();
     }
