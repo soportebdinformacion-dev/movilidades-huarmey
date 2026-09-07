@@ -16,6 +16,7 @@
         input[readonly] { background: #f8f9fa; color: #666; }
         .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.2s; }
         .btn:active { transform: scale(0.98); background: #0d3d14; }
+        .btn-reload { background: #4a5568; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px; cursor: pointer; }
         .btn-install { background: #0277BD; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: none; }
         .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
@@ -35,6 +36,7 @@
     <form id="formHuarmey">
         <label>🚎 PLACA DE UNIDAD:</label>
         <select id="placa" required onchange="llenarCampos()"></select>
+        <button type="button" class="btn-reload" onclick="actualizarMaestrosDesdeNube(true)">🔄 Actualizar Lista de Placas</button>
         
         <label>CONDUCTOR:</label>
         <input type="text" id="conductor" readonly placeholder="Seleccione el conductor...">
@@ -72,19 +74,16 @@
 
 <script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    // --- 1. CONFIGURACIÓN ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxiJWo5qhY55GWDl6JgwhbNq6XXWM2X-dFB1eJfotpz5bk_h5-QO6kYAil7-HuOqMp7/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx7tSb6Iz3o7CghAdGOUyI8F4dHjETJybyZM0Gte1XOII3cNOQXVvLWqbfFkAzeXPqw/exec';
 
-    // --- 2. REGISTRO DE SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
-                .then(() => console.log("Service Worker Registrado Exitosamente"))
-                .catch(err => console.log("Error registrando SW: ", err));
+                .then(reg => reg.update())
+                .catch(err => console.log("Error SW: ", err));
         });
     }
 
-    // --- 3. INSTALACIÓN PWA ---
     let deferredPrompt;
     const btnInstalar = document.getElementById('btnInstalar');
 
@@ -105,7 +104,6 @@
         }
     });
 
-    // --- 4. BASE DE DATOS LOCAL ---
     const db = new Dexie('BDXX_HUARMEY');
     db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
 
@@ -121,17 +119,14 @@
         return '';
     }
 
-    // --- 5. LECTURA Y RENDERIZADO DE PLACAS ---
     async function cargarDesdedbLocal() {
         listaMaestros = await db.maestros.toArray();
         const selectPlaca = document.getElementById('placa');
 
         if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Sin datos locales (Conéctese a internet)</option>';
+            selectPlaca.innerHTML = '<option value="">Sin datos. Presione "Actualizar Lista"</option>';
         } else {
             const seleccionActual = selectPlaca.value;
-            
-            // Ordenar alfabéticamente
             listaMaestros.sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
             
             selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
@@ -141,37 +136,40 @@
         }
     }
 
-    async function actualizarMaestrosDesdeNube() {
-        if (!navigator.onLine) return;
+    async function actualizarMaestrosDesdeNube(manual = false) {
+        if (!navigator.onLine) {
+            if (manual) alert("Requiere conexión a internet para actualizar placas.");
+            return;
+        }
         try {
-            // Se agrega timestamp dinámico y nocache para saltar la caché del navegador
-            const response = await fetch(API_URL + '?nocache=' + new Date().getTime(), {
-                cache: 'no-store'
-            });
-            
+            // Se genera una URL única por cada petición para romper cualquier caché
+            const urlUnica = API_URL + '?v=' + Math.random().toString(36).substring(2) + '&t=' + Date.now();
+            const response = await fetch(urlUnica);
             const data = await response.json();
             
             if (Array.isArray(data) && data.length > 0) {
-                const mapeados = data.map(item => ({
-                    placa: String(obtenerPropiedad(item, ['placa', 'PLACA DE UNIDAD', 'PLACA'])).trim(),
-                    conductor: String(obtenerPropiedad(item, ['conductor', 'CONDUCTOR'])).trim(),
-                    tipo: String(obtenerPropiedad(item, ['tipo', 'TIPO'])).trim(),
-                    capacidad: obtenerPropiedad(item, ['capacidad', 'CAPACIDAD', 'cap']),
-                    ruta: String(obtenerPropiedad(item, ['ruta', 'RUTA'])).trim(),
-                    cultivo: String(obtenerPropiedad(item, ['cultivo', 'CULTIVO'])).trim()
-                })).filter(x => x.placa !== '');
+                const mapeados = data.map(item => {
+                    const plc = String(obtenerPropiedad(item, ['placa', 'PLACA DE UNIDAD', 'PLACA'])).trim().toUpperCase();
+                    return {
+                        placa: plc,
+                        conductor: String(obtenerPropiedad(item, ['conductor', 'CONDUCTOR'])).trim(),
+                        tipo: String(obtenerPropiedad(item, ['tipo', 'TIPO'])).trim(),
+                        capacidad: obtenerPropiedad(item, ['capacidad', 'CAPACIDAD', 'cap']),
+                        ruta: String(obtenerPropiedad(item, ['ruta', 'RUTA'])).trim(),
+                        cultivo: String(obtenerPropiedad(item, ['cultivo', 'CULTIVO'])).trim()
+                    };
+                }).filter(x => x.placa !== '');
 
                 if (mapeados.length > 0) {
-                    // Reemplazar completamente la tabla de maestros en el dispositivo
                     await db.maestros.clear();
                     await db.maestros.bulkPut(mapeados);
-                    
-                    // Volver a cargar el HTML desplegable con los nuevos datos
                     await cargarDesdedbLocal();
+                    if (manual) alert("✅ Lista de placas actualizada con éxito (" + mapeados.length + " placas).");
                 }
             }
         } catch (e) {
-            console.log("Error actualizando maestros:", e);
+            console.error("Error al actualizar maestros:", e);
+            if (manual) alert("❌ Error al conectar con Google Sheets.");
         }
     }
 
@@ -179,13 +177,12 @@
         await cargarDesdedbLocal();
         dibujarPendientes();
         actualizarEstadoRed();
-        await actualizarMaestrosDesdeNube();
+        await actualizarMaestrosDesdeNube(false);
     }
 
-    // --- 6. LÓGICA DE FORMULARIO ---
     function llenarCampos() {
-        const placaValor = document.getElementById('placa').value.trim();
-        const m = listaMaestros.find(x => String(x.placa).trim() === placaValor);
+        const placaValor = document.getElementById('placa').value.trim().toUpperCase();
+        const m = listaMaestros.find(x => String(x.placa).trim().toUpperCase() === placaValor);
         
         if (m) {
             document.getElementById('conductor').value = m.conductor || '';
@@ -210,7 +207,6 @@
         document.getElementById('lib').value = Math.max(0, cap - pax);
     }
 
-    // --- 7. GUARDADO Y SINCRONIZACIÓN ---
     document.getElementById('formHuarmey').onsubmit = async (e) => {
         e.preventDefault();
         const registro = {
@@ -276,14 +272,13 @@
         dibujarPendientes();
     }
 
-    // --- 8. INDICADOR DE RED Y EVENTOS ---
     function actualizarEstadoRed() {
         const st = document.getElementById('st');
         if (navigator.onLine) {
             st.innerText = '● Conectado (Sincronizando)';
             st.className = 'status on';
             sincronizar();
-            actualizarMaestrosDesdeNube();
+            actualizarMaestrosDesdeNube(false);
         } else {
             st.innerText = '○ Modo Offline (Campo sin internet)';
             st.className = 'status off';
