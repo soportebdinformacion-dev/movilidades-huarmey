@@ -1,5 +1,5 @@
 // Reemplaza esta URL con la URL del Web App de tu Google Apps Script
-const SCRIPT_URL = 'https://script.google.com/macros/s/TU_SCRIPT_ID/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIhEmM1peeyi4OW71WJ2gdtgXjEWp4evr1a2qbyVSqlOiW95O3ALp16sIW9mX2zLnY/exec';
 
 let currentPlacasData = [];
 
