@@ -2,535 +2,151 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Agrícola Huarmey - Control de Movilidades</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agrícola Huarmey - Control de Campo</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1b5e20">
-  <style>
-    :root {
-      --primary-color: #1e5e27;
-      --primary-hover: #14431b;
-      --secondary-color: #d93829;
-      --bg-color: #f4f6f4;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --border-color: #cccccc;
-      --disabled-bg: #e9ecef;
-      --status-online: #d4edda;
-      --status-online-text: #155724;
-      --status-offline: #f8d7da;
-      --status-offline-text: #721c24;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; padding: 10px; }
-    .app-container { width: 100%; max-width: 480px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; padding: 16px; }
-
-    header { text-align: center; margin-bottom: 15px; }
-    header img { max-width: 110px; height: auto; }
-    header h1 { font-size: 1.1rem; color: var(--primary-color); margin-top: 5px; font-weight: bold; }
-
-    .nav-tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: none; font-size: 0.9rem; font-weight: bold; color: #666; cursor: pointer; }
-    .tab-btn.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
-
-    .form-page { display: none; }
-    .form-page.active { display: block; }
-
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; color: #444; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background-color: #fff;
-    }
-    .form-group input[readonly], .form-group textarea[readonly] { background-color: var(--disabled-bg); color: #555; }
-    .form-group textarea { resize: vertical; min-height: 60px; }
-
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; text-align: center; }
-    .btn-primary { background-color: var(--primary-color); color: white; margin-top: 8px; }
-    .btn-primary:active { background-color: var(--primary-hover); }
-    .btn-secondary { background-color: #4b6584; color: white; font-size: 0.8rem; padding: 8px; margin-bottom: 12px; }
-
-    .status-bar { margin-top: 10px; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85rem; font-weight: bold; }
-    .status-online { background-color: var(--status-online); color: var(--status-online-text); }
-    .status-offline { background-color: var(--status-offline); color: var(--status-offline-text); }
-
-    .sync-counter { font-size: 0.8rem; text-align: center; color: #666; margin-top: 8px; font-weight: bold; }
-  </style>
+  <meta name="theme-color" content="#2e7d32">
 </head>
 <body>
 
-<div class="app-container">
-  <header>
-    <img src="logo.png" alt="Agrícola Huarmey">
-    <h1>Registro movilidades Agrícola Huarmey</h1>
+  <!-- Cabecera -->
+  <header class="app-header">
+    <div class="header-brand">
+      <img src="logo.png" alt="Agrícola Huarmey" class="logo" id="appLogo">
+      <h1>Agrícola Huarmey</h1>
+    </div>
+    <div class="status-bar">
+      <span id="netStatus" class="status-badge online">● Conectado</span>
+      <span id="syncStatus" class="sync-badge">Pendientes: 0</span>
+    </div>
   </header>
 
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('p1')">Movilidades</button>
-    <button class="tab-btn" onclick="switchTab('p2')">Ausentismo</button>
-  </div>
+  <!-- Navegación por pestañas -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('movilidadesTab')">Movilidades</button>
+    <button class="tab-btn" onclick="switchTab('ausentismosTab')">Ausentismo</button>
+  </nav>
 
-  <!-- PÁGINA 1: MOVILIDADES -->
-  <div id="p1" class="form-page active">
-    <button class="btn btn-secondary" onclick="syncMaestros()">🔄 Actualizar Lista de Placas y Personal</button>
-    <form id="form-movilidades" onsubmit="handleMovilidadesSubmit(event)">
-      <div class="form-group">
-        <label>🚌 Placa de Unidad:</label>
-        <select id="m-placa" required onchange="onPlacaChange(this.value)">
-          <option value="">Seleccione una placa...</option>
-        </select>
+  <main class="container">
+    
+    <!-- PÁGINA 1: Registros de Movilidades -->
+    <section id="movilidadesTab" class="tab-content active">
+      <div class="section-header">
+        <h2>Registro de Pasajeros</h2>
+        <button type="button" class="btn-secondary" id="btnSyncPlacas">Actualizar Lista de Placas</button>
       </div>
-      <div class="form-group">
-        <label>Conductor:</label>
-        <input type="text" id="m-conductor" readonly placeholder="Seleccione la placa primero...">
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex:1;">
-          <label>Tipo:</label>
-          <input type="text" id="m-tipo" readonly>
+
+      <form id="formMovilidades">
+        <div class="form-group">
+          <label for="movPlaca">Placa de Unidad *</label>
+          <select id="movPlaca" required>
+            <option value="">Seleccione placa...</option>
+          </select>
         </div>
-        <div class="form-group" style="flex:1;">
-          <label>Capacidad:</label>
-          <input type="number" id="m-capacidad" readonly>
+
+        <div class="form-group">
+          <label for="movConductor">Conductor</label>
+          <input type="text" id="movConductor" readonly class="readonly-input">
         </div>
-      </div>
-      <div class="form-group">
-        <label>Ruta:</label>
-        <input type="text" id="m-ruta" readonly>
-      </div>
-      <div class="form-group">
-        <label>Cultivo:</label>
-        <input type="text" id="m-cultivo" readonly>
-      </div>
-      <div class="form-group">
-        <label>N° Pasajeros *:</label>
-        <input type="number" id="m-pasajeros" required min="0" placeholder="Ej. 15" oninput="calculateSeats()">
-      </div>
-      <div class="form-group">
-        <label>Asientos Libres:</label>
-        <input type="number" id="m-asientos" readonly>
-      </div>
-      <div class="form-group">
-        <label>Observaciones:</label>
-        <textarea id="m-obs" placeholder="Opcional..."></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">GUARDAR REGISTROS</button>
-    </form>
-  </div>
 
-  <!-- PÁGINA 2: AUSENTISMO -->
-  <div id="p2" class="form-page">
-    <form id="form-ausentismo" onsubmit="handleAusentismoSubmit(event)">
-      <div class="form-group">
-        <label>Placa *</label>
-        <select id="a-placa" required onchange="onAusentismoPlacaChange(this.value)">
-          <option value="">Seleccione Placa...</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Ruta</label>
-        <input type="text" id="a-ruta" readonly placeholder="Se autocompleta con la placa">
-      </div>
-      <div class="form-group">
-        <label>DNI Personal *</label>
-        <input type="text" id="a-dni" maxlength="8" pattern="\d{8}" required placeholder="Ingrese 8 dígitos" oninput="searchDNI(this.value)">
-      </div>
-      <div class="form-group">
-        <label>Apellidos y Nombres</label>
-        <input type="text" id="a-nombre" readonly placeholder="Búsqueda automática por DNI">
-      </div>
-      <div class="form-group">
-        <label>Fecha de Falta *</label>
-        <input type="date" id="a-fecha-falta" required>
-      </div>
-      <div class="form-group">
-        <label>Motivo de Ausencia *</label>
-        <select id="a-motivo" required>
-          <option value="">Seleccione...</option>
-          <option value="Ninguno">Ninguno</option>
-          <option value="Descanso médico (Absentismo)">Descanso médico (Absentismo)</option>
-          <option value="Permiso con papeleta (Absentismo)">Permiso con papeleta (Absentismo)</option>
-          <option value="Enfermedad">Enfermedad</option>
-          <option value="Problemas familiares">Problemas familiares</option>
-          <option value="Transporte (Especificar en observaciones)">Transporte (Especificar en observaciones)</option>
-          <option value="Otro trabajo (Especificar en observaciones)">Otro trabajo (Especificar en observaciones)</option>
-          <option value="Desmotivación">Desmotivación</option>
-          <option value="Sacar tarjeta">Sacar tarjeta</option>
-          <option value="Pago">Pago</option>
-          <option value="Horario">Horario</option>
-          <option value="Alimentación">Alimentación</option>
-          <option value="Campamento">Campamento</option>
-          <option value="Ambiente laboral">Ambiente laboral</option>
-          <option value="Renuncia (Especificar en observaciones)">Renuncia (Especificar en observaciones)</option>
-          <option value="Problemas con el caporal (Especificar en observaciones)">Problemas con el caporal (Especificar en observaciones)</option>
-          <option value="Estudios">Estudios</option>
-          <option value="Viaje">Viaje</option>
-          <option value="Accidente">Accidente</option>
-          <option value="No desea continuar (Especificar en observaciones)">No desea continuar (Especificar en observaciones)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Observaciones</label>
-        <textarea id="a-obs" placeholder="Detalle observaciones adicionales..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>¿Vas a regresar? *</label>
-        <select id="a-regresar" required onchange="onRegresarChange(this.value)">
-          <option value="SI">SI</option>
-          <option value="NO">NO</option>
-          <option value="Lo está pensando">Lo está pensando</option>
-        </select>
-      </div>
-      <div class="form-group" id="retorno-container">
-        <label>Retorno</label>
-        <select id="a-retorno-tipo" onchange="onRetornoTipoChange(this.value)">
-          <option value="Inmediato">Inmediato</option>
-          <option value="Fecha">Ingrese en la fecha:</option>
-        </select>
-        <input type="date" id="a-retorno-fecha" style="display:none; margin-top:5px;">
-      </div>
-      <button type="submit" class="btn btn-primary">Guardar Registro</button>
-    </form>
-  </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movTipoCap">Tipo / Capacidad</label>
+            <input type="text" id="movTipoCap" readonly class="readonly-input">
+          </div>
+          <div class="form-group">
+            <label for="movRutaCultivo">Ruta / Cultivo</label>
+            <input type="text" id="movRutaCultivo" readonly class="readonly-input">
+          </div>
+        </div>
 
-  <div id="status-bar" class="status-bar status-online">• Conectado</div>
-  <div id="sync-counter" class="sync-counter">📋 GUARDANDO EN LA NUBE (0)</div>
-</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movPasajeros">N° Pasajeros *</label>
+            <input type="number" id="movPasajeros" min="0" required placeholder="0">
+          </div>
+          <div class="form-group">
+            <label for="movAsientosLibres">Asientos Libres</label>
+            <input type="number" id="movAsientosLibres" readonly class="readonly-input highlighted">
+          </div>
+        </div>
 
-<script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaq-Vy-UD1uJ3AQBiJl8zqQ0pPHdaay5C5im2c1IaojzK3eL_7QlfCFIxqNyRWLVtv/exec';
+        <div class="form-group">
+          <label for="movObservaciones">Observaciones</label>
+          <textarea id="movObservaciones" rows="3" placeholder="Detalles opcionales..."></textarea>
+        </div>
 
-  let db = null;
-  let maestriaData = [];
-  let personalData = [];
+        <button type="submit" class="btn-primary">Guardar Registro</button>
+      </form>
+    </section>
 
-  // Función asíncrona segura para asegurar que la IndexedDB esté lista siempre
-  function getDB() {
-    return new Promise((resolve, reject) => {
-      if (db) return resolve(db);
+    <!-- PÁGINA 2: Registro de Ausentismo -->
+    <section id="ausentismosTab" class="tab-content">
+      <h2>Registro de Ausentismo</h2>
 
-      const request = indexedDB.open('HuarmeyDB', 3);
-      
-      request.onupgradeneeded = (e) => {
-        const database = e.target.result;
-        if (database.objectStoreNames.contains('movilidades')) database.deleteObjectStore('movilidades');
-        if (database.objectStoreNames.contains('ausentismo')) database.deleteObjectStore('ausentismo');
-        if (database.objectStoreNames.contains('maestros')) database.deleteObjectStore('maestros');
-        if (database.objectStoreNames.contains('personal')) database.deleteObjectStore('personal');
+      <form id="formAusentismos">
+        <div class="form-group">
+          <label for="ausPlaca">Placa y Ruta *</label>
+          <select id="ausPlaca" required>
+            <option value="">Seleccione placa...</option>
+          </select>
+        </div>
 
-        database.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
-        database.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
-        database.createObjectStore('maestros', { keyPath: 'id', autoIncrement: true });
-        database.createObjectStore('personal', { keyPath: 'id', autoIncrement: true });
-      };
+        <div class="form-group">
+          <label for="ausDni">DNI Personal (8 dígitos) *</label>
+          <input type="text" id="ausDni" maxlength="8" pattern="\d{8}" required placeholder="Ingrese DNI">
+        </div>
 
-      request.onsuccess = (e) => {
-        db = e.target.result;
-        resolve(db);
-      };
+        <div class="form-group">
+          <label for="ausNombre">Apellidos y Nombres</label>
+          <input type="text" id="ausNombre" readonly class="readonly-input">
+        </div>
 
-      request.onerror = (e) => {
-        reject(e.target.error);
-      };
-    });
-  }
+        <div class="form-group">
+          <label for="ausFechaFalta">Fecha de Falta *</label>
+          <input type="date" id="ausFechaFalta" required>
+        </div>
 
-  // Inicializar al cargar la página
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      await getDB();
-      await loadLocalData();
-      checkNetwork();
-    } catch(err) {
-      console.error('Error inicializando base de datos local:', err);
-    }
-  });
+        <div class="form-group">
+          <label for="ausMotivo">Motivo de Ausencia *</label>
+          <select id="ausMotivo" required>
+            <option value="">Seleccione motivo...</option>
+            <option value="Ninguno">Ninguno</option>
+            <option value="Descanso médico">Descanso médico</option>
+            <option value="Permiso">Permiso</option>
+            <option value="Enfermedad">Enfermedad</option>
+            <option value="Transporte">Transporte</option>
+            <option value="OTRO">OTRO</option>
+          </select>
+        </div>
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.form-page').forEach(page => page.classList.remove('active'));
-    
-    if(tabId === 'p1') document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    else document.querySelectorAll('.tab-btn')[1].classList.add('active');
-    
-    document.getElementById(tabId).classList.add('active');
-  }
+        <div class="form-group">
+          <label for="ausRegresa">¿Vas a regresar? *</label>
+          <select id="ausRegresa" required>
+            <option value="">Seleccione...</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+            <option value="Lo está pensando">Lo está pensando</option>
+          </select>
+        </div>
 
-  window.addEventListener('online', checkNetwork);
-  window.addEventListener('offline', checkNetwork);
+        <div class="form-group hidden" id="groupFechaRetorno">
+          <label for="ausFechaRetorno">Fecha / Tipo de Retorno</label>
+          <select id="ausTipoRetorno">
+            <option value="Inmediato">Inmediato</option>
+            <option value="Fecha Especifica">Elegir Fecha</option>
+          </select>
+          <input type="date" id="ausFechaRetorno" class="hidden mt-2">
+        </div>
 
-  function checkNetwork() {
-    const bar = document.getElementById('status-bar');
-    if (navigator.onLine) {
-      bar.className = 'status-bar status-online';
-      bar.textContent = '• Conectado (Sincronizando)';
-      syncPendingData();
-    } else {
-      bar.className = 'status-bar status-offline';
-      bar.textContent = '• Sin conexión a internet (Modo Offline)';
-    }
-    updatePendingCount();
-  }
+        <button type="submit" class="btn-primary">Guardar Ausentismo</button>
+      </form>
+    </section>
 
-  function getPropVal(obj, ...keys) {
-    if (!obj) return '';
-    for (let k of keys) {
-      const matchKey = Object.keys(obj).find(x => x.trim().toLowerCase() === k.trim().toLowerCase());
-      if (matchKey && obj[matchKey] !== undefined && obj[matchKey] !== null) {
-        return String(obj[matchKey]).trim();
-      }
-    }
-    return '';
-  }
+  </main>
 
-  function calculateSeats() {
-    const cap = parseInt(document.getElementById('m-capacidad').value) || 0;
-    const pas = parseInt(document.getElementById('m-pasajeros').value) || 0;
-    document.getElementById('m-asientos').value = Math.max(0, cap - pas);
-  }
-
-  function onPlacaChange(placaVal) {
-    const item = maestriaData.find(m => getPropVal(m, 'placa') === String(placaVal).trim());
-    if (item) {
-      document.getElementById('m-conductor').value = getPropVal(item, 'conductor');
-      document.getElementById('m-tipo').value = getPropVal(item, 'tipo');
-      document.getElementById('m-capacidad').value = getPropVal(item, 'capacidad') || 0;
-      document.getElementById('m-ruta').value = getPropVal(item, 'ruta');
-      document.getElementById('m-cultivo').value = getPropVal(item, 'cultivo');
-      calculateSeats();
-    } else {
-      document.getElementById('m-conductor').value = '';
-      document.getElementById('m-tipo').value = '';
-      document.getElementById('m-capacidad').value = 0;
-      document.getElementById('m-ruta').value = '';
-      document.getElementById('m-cultivo').value = '';
-    }
-  }
-
-  function onAusentismoPlacaChange(placaVal) {
-    const item = maestriaData.find(m => getPropVal(m, 'placa') === String(placaVal).trim());
-    if (item) {
-      document.getElementById('a-ruta').value = getPropVal(item, 'ruta');
-    } else {
-      document.getElementById('a-ruta').value = '';
-    }
-  }
-
-  function searchDNI(dniVal) {
-    const cleanDNI = String(dniVal).trim();
-    if (cleanDNI.length === 8) {
-      const person = personalData.find(p => {
-        const valDni = getPropVal(p, 'dni', 'documento', 'id');
-        return valDni.padStart(8, '0') === cleanDNI.padStart(8, '0');
-      });
-
-      if (person) {
-        document.getElementById('a-nombre').value = getPropVal(person, 'apellidos y nombres', 'nombre completo', 'nombres', 'nombre');
-      } else {
-        document.getElementById('a-nombre').value = 'DNI no encontrado';
-      }
-    } else {
-      document.getElementById('a-nombre').value = '';
-    }
-  }
-
-  function onRegresarChange(val) {
-    const container = document.getElementById('retorno-container');
-    container.style.display = (val === 'SI') ? 'block' : 'none';
-  }
-
-  function onRetornoTipoChange(val) {
-    const fInput = document.getElementById('a-retorno-fecha');
-    fInput.style.display = (val === 'Fecha') ? 'block' : 'none';
-  }
-
-  // Sincronizar Placas y Personal asegurando que la DB local existe
-  async function syncMaestros() {
-    if (!navigator.onLine) {
-      return alert('Sin conexión a internet');
-    }
-
-    try {
-      const database = await getDB();
-
-      const resM = await fetch(`${SCRIPT_URL}?action=getMaestros`, { redirect: 'follow' });
-      const dataM = await resM.json();
-      
-      const resP = await fetch(`${SCRIPT_URL}?action=getPersonal`, { redirect: 'follow' });
-      const dataP = await resP.json();
-
-      if (Array.isArray(dataM) && Array.isArray(dataP)) {
-        const tx = database.transaction(['maestros', 'personal'], 'readwrite');
-        const storeM = tx.objectStore('maestros');
-        const storeP = tx.objectStore('personal');
-        
-        storeM.clear();
-        storeP.clear();
-
-        dataM.forEach(item => storeM.put(item));
-        dataP.forEach(item => storeP.put(item));
-
-        tx.oncomplete = async () => {
-          alert(`¡Datos actualizados correctamente! (${dataM.length} Placas, ${dataP.length} Personas)`);
-          await loadLocalData();
-        };
-      } else {
-        alert('Error: La respuesta del servidor no fue un arreglo válido.');
-      }
-    } catch(e) {
-      alert('Error al conectar con la base de datos o Google Sheets: ' + e.message);
-    }
-  }
-
-  async function loadLocalData() {
-    try {
-      const database = await getDB();
-      const tx = database.transaction(['maestros', 'personal'], 'readonly');
-      
-      tx.objectStore('maestros').getAll().onsuccess = (e) => {
-        maestriaData = e.target.result || [];
-        populatePlacasSelects();
-      };
-
-      tx.objectStore('personal').getAll().onsuccess = (e) => {
-        personalData = e.target.result || [];
-      };
-
-      document.getElementById('a-fecha-falta').value = new Date().toISOString().substring(0, 10);
-    } catch (e) {
-      console.error('Error cargando datos locales:', e);
-    }
-  }
-
-  function populatePlacasSelects() {
-    const sel1 = document.getElementById('m-placa');
-    const sel2 = document.getElementById('a-placa');
-    
-    sel1.innerHTML = '<option value="">Seleccione una placa...</option>';
-    sel2.innerHTML = '<option value="">Seleccione Placa...</option>';
-
-    maestriaData.forEach(m => {
-      const placa = getPropVal(m, 'placa');
-      if (placa) {
-        sel1.innerHTML += `<option value="${placa}">${placa}</option>`;
-        sel2.innerHTML += `<option value="${placa}">${placa}</option>`;
-      }
-    });
-  }
-
-  async function handleMovilidadesSubmit(e) {
-    e.preventDefault();
-    const record = {
-      fechaRegistro: new Date().toISOString(),
-      placa: document.getElementById('m-placa').value,
-      conductor: document.getElementById('m-conductor').value,
-      tipo: document.getElementById('m-tipo').value,
-      capacidad: document.getElementById('m-capacidad').value,
-      ruta: document.getElementById('m-ruta').value,
-      cultivo: document.getElementById('m-cultivo').value,
-      pasajeros: document.getElementById('m-pasajeros').value,
-      asientosLibres: document.getElementById('m-asientos').value,
-      observaciones: document.getElementById('m-obs').value
-    };
-
-    await saveRecord('movilidades', record, () => {
-      alert('Registro guardado localmente');
-      document.getElementById('form-movilidades').reset();
-      checkNetwork();
-    });
-  }
-
-  async function handleAusentismoSubmit(e) {
-    e.preventDefault();
-    
-    let retornoVal = document.getElementById('a-retorno-tipo').value;
-    if (retornoVal === 'Fecha') {
-      retornoVal = document.getElementById('a-retorno-fecha').value;
-    }
-
-    const record = {
-      fechaRegistro: new Date().toISOString(),
-      placa: document.getElementById('a-placa').value,
-      ruta: document.getElementById('a-ruta').value,
-      dni: document.getElementById('a-dni').value,
-      nombreCompleto: document.getElementById('a-nombre').value,
-      fechaFalta: document.getElementById('a-fecha-falta').value,
-      motivo: document.getElementById('a-motivo').value,
-      observaciones: document.getElementById('a-obs').value,
-      regresar: document.getElementById('a-regresar').value,
-      fechaRetorno: retornoVal
-    };
-
-    await saveRecord('ausentismo', record, () => {
-      alert('Registro de ausentismo guardado localmente');
-      document.getElementById('form-ausentismo').reset();
-      checkNetwork();
-    });
-  }
-
-  async function saveRecord(storeName, data, callback) {
-    const database = await getDB();
-    const tx = database.transaction([storeName], 'readwrite');
-    tx.objectStore(storeName).add(data);
-    tx.oncomplete = callback;
-  }
-
-  async function syncPendingData() {
-    if (!navigator.onLine) return;
-
-    await pushStoreData('movilidades', 'saveMovilidades');
-    await pushStoreData('ausentismo', 'saveAusentismo');
-    updatePendingCount();
-  }
-
-  async function pushStoreData(storeName, action) {
-    const database = await getDB();
-    const tx = database.transaction([storeName], 'readonly');
-    const store = tx.objectStore(storeName);
-    const records = await new Promise(res => store.getAll().onsuccess = e => res(e.target.result));
-
-    if (!records || records.length === 0) return;
-
-    try {
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: action, data: records })
-      });
-      const resData = await response.json();
-
-      if (resData.status === 'success') {
-        const txClear = database.transaction([storeName], 'readwrite');
-        txClear.objectStore(storeName).clear();
-      }
-    } catch(e) {
-      console.error('Error enviando datos:', e);
-    }
-  }
-
-  async function updatePendingCount() {
-    try {
-      const database = await getDB();
-      const tx = database.transaction(['movilidades', 'ausentismo'], 'readonly');
-      let total = 0;
-      
-      tx.objectStore('movilidades').count().onsuccess = (e) => {
-        total += e.target.result;
-        tx.objectStore('ausentismo').count().onsuccess = (e2) => {
-          total += e2.target.result;
-          document.getElementById('sync-counter').textContent = `📋 GUARDANDO EN LA NUBE (${total})`;
-        };
-      };
-    } catch(e) {
-      console.error('Error calculando conteo pendiente:', e);
-    }
-  }
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker Registrado'));
-  }
-</script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
