@@ -1,294 +1,468 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1B5E20">
-    <title>Agrícola Huarmey - Control</title>
-    <style>
-        :root { --verde: #1B5E20; --amarillo: #FFB300; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 15px; border-top: 8px solid var(--verde); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .logo { display: block; margin: 0 auto 15px; max-width: 150px; height: auto; }
-        label { display: block; margin-top: 12px; font-weight: bold; font-size: 13px; color: #444; }
-        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        input[readonly] { background: #f8f9fa; color: #666; }
-        .btn { background: var(--verde); color: white; border: none; width: 100%; padding: 16px; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top: 25px; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); background: #0d3d14; }
-        .btn-reload { background: #4a5568; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px; cursor: pointer; }
-        .btn-install { background: #0277BD; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: none; }
-        .pends { max-width: 450px; margin: 20px auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .item { border-left: 5px solid var(--amarillo); background: #fffdf2; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #eee; border-left-width: 5px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Agrícola Huarmey - Control de Movilidades</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1b5e20">
+  <style>
+    :root {
+      --primary-color: #1e5e27;
+      --primary-hover: #14431b;
+      --secondary-color: #d93829;
+      --bg-color: #f4f6f4;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --border-color: #cccccc;
+      --disabled-bg: #e9ecef;
+      --status-online: #d4edda;
+      --status-online-text: #155724;
+      --status-offline: #f8d7da;
+      --status-offline-text: #721c24;
+    }
 
-        .status { text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; }
-        .on { background: #d4edda; color: #155724; }
-        .off { background: #f8d7da; color: #721c24; }
-    </style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; padding: 10px; }
+    .app-container { width: 100%; max-width: 480px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; padding: 16px; }
+
+    header { text-align: center; margin-bottom: 15px; }
+    header img { max-width: 110px; height: auto; }
+    header h1 { font-size: 1.1rem; color: var(--primary-color); margin-top: 5px; font-weight: bold; }
+
+    .nav-tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: none; font-size: 0.9rem; font-weight: bold; color: #666; cursor: pointer; }
+    .tab-btn.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
+
+    .form-page { display: none; }
+    .form-page.active { display: block; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; color: #444; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background-color: #fff;
+    }
+    .form-group input[readonly], .form-group textarea[readonly] { background-color: var(--disabled-bg); color: #555; }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-primary { background-color: var(--primary-color); color: white; margin-top: 8px; }
+    .btn-primary:active { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: #4b6584; color: white; font-size: 0.8rem; padding: 6px; margin-bottom: 10px; }
+
+    .status-bar { margin-top: 10px; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85rem; font-weight: bold; }
+    .status-online { background-color: var(--status-online); color: var(--status-online-text); }
+    .status-offline { background-color: var(--status-offline); color: var(--status-offline-text); }
+
+    .sync-counter { font-size: 0.8rem; text-align: center; color: #666; margin-top: 8px; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-<div class="card">
-    <button id="btnInstalar" class="btn-install">📥 Instalar Aplicación</button>
-    <img src="ICONO HUARMEY.png" class="logo" alt="Logo Agrícola Huarmey">
-    <h3 style="text-align:center; color:var(--verde); margin-top:0;">Registro movilidades Agrícola Huarmey</h3>
+<div class="app-container">
+  <header>
+    <img src="logo.png" alt="Agrícola Huarmey">
+    <h1>Registro movilidades Agrícola Huarmey</h1>
+  </header>
 
-    <form id="formHuarmey">
-        <label>🚎 PLACA DE UNIDAD:</label>
-        <select id="placa" required onchange="llenarCampos()"></select>
-        <button type="button" class="btn-reload" onclick="actualizarMaestrosDesdeNube(true)">🔄 Actualizar Lista de Placas</button>
-        
-        <label>CONDUCTOR:</label>
-        <input type="text" id="conductor" readonly placeholder="Seleccione el conductor...">
-        
-        <div style="display:flex; gap:10px">
-            <div style="flex:1"><label>TIPO:</label><input type="text" id="tipo" readonly></div>
-            <div style="flex:1"><label>CAPACIDAD:</label><input type="number" id="cap" readonly></div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('p1')">Movilidades</button>
+    <button class="tab-btn" onclick="switchTab('p2')">Ausentismo</button>
+  </div>
+
+  <!-- PÁGINA 1: MOVILIDADES -->
+  <div id="p1" class="form-page active">
+    <button class="btn btn-secondary" onclick="syncMaestros()">🔄 Actualizar Lista de Placas</button>
+    <form id="form-movilidades" onsubmit="handleMovilidadesSubmit(event)">
+      <div class="form-group">
+        <label>🚌 Placa de Unidad:</label>
+        <select id="m-placa" required onchange="onPlacaChange(this.value)">
+          <option value="">Seleccione una placa...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Conductor:</label>
+        <input type="text" id="m-conductor" readonly placeholder="Seleccione el conductor...">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Tipo:</label>
+          <input type="text" id="m-tipo" readonly>
         </div>
-
-        <label>RUTA:</label>
-        <input type="text" id="ruta" readonly>
-
-        <label>CULTIVO:</label>
-        <input type="text" id="cultivo" readonly placeholder="Seleccione una placa...">
-
-        <label>N° PASAJEROS:</label>
-        <input type="number" id="pax" required oninput="calcularLibres()" placeholder="Ej. 15">
-
-        <label>ASIENTOS LIBRES:</label>
-        <input type="number" id="lib" readonly>
-
-        <label>OBSERVACIONES:</label>
-        <textarea id="obs" rows="2" placeholder="Opcional..."></textarea>
-
-        <button type="submit" class="btn">GUARDAR REGISTROS</button>
+        <div class="form-group" style="flex:1;">
+          <label>Capacidad:</label>
+          <input type="number" id="m-capacidad" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ruta:</label>
+        <input type="text" id="m-ruta" readonly>
+      </div>
+      <div class="form-group">
+        <label>Cultivo:</label>
+        <input type="text" id="m-cultivo" readonly>
+      </div>
+      <div class="form-group">
+        <label>N° Pasajeros *:</label>
+        <input type="number" id="m-pasajeros" required min="0" placeholder="Ej. 15" oninput="calculateSeats()">
+      </div>
+      <div class="form-group">
+        <label>Asientos Libres:</label>
+        <input type="number" id="m-asientos" readonly>
+      </div>
+      <div class="form-group">
+        <label>Observaciones:</label>
+        <textarea id="m-obs" placeholder="Opcional..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">GUARDAR REGISTROS</button>
     </form>
+  </div>
 
-    <div id="st" class="status on">● Verificando red...</div>
+  <!-- PÁGINA 2: AUSENTISMO -->
+  <div id="p2" class="form-page">
+    <form id="form-ausentismo" onsubmit="handleAusentismoSubmit(event)">
+      <div class="form-group">
+        <label>Placa *</label>
+        <select id="a-placa" required onchange="onAusentismoPlacaChange(this.value)">
+          <option value="">Seleccione Placa...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ruta</label>
+        <input type="text" id="a-ruta" readonly placeholder="Se autocompleta con la placa">
+      </div>
+      <div class="form-group">
+        <label>DNI Personal *</label>
+        <input type="text" id="a-dni" maxlength="8" pattern="\d{8}" required placeholder="8 dígitos" oninput="searchDNI(this.value)">
+      </div>
+      <div class="form-group">
+        <label>Apellidos y Nombres</label>
+        <input type="text" id="a-nombre" readonly placeholder="Búsqueda por DNI">
+      </div>
+      <div class="form-group">
+        <label>Fecha de Falta *</label>
+        <input type="date" id="a-fecha-falta" required>
+      </div>
+      <div class="form-group">
+        <label>Motivo de Ausencia *</label>
+        <select id="a-motivo" required>
+          <option value="">Seleccione...</option>
+          <option value="Ninguno">Ninguno</option>
+          <option value="Descanso médico (Absentismo)">Descanso médico (Absentismo)</option>
+          <option value="Permiso con papeleta (Absentismo)">Permiso con papeleta (Absentismo)</option>
+          <option value="Enfermedad">Enfermedad</option>
+          <option value="Problemas familiares">Problemas familiares</option>
+          <option value="Transporte (Especificar en observaciones)">Transporte (Especificar en observaciones)</option>
+          <option value="Otro trabajo (Especificar en observaciones)">Otro trabajo (Especificar en observaciones)</option>
+          <option value="Desmotivación">Desmotivación</option>
+          <option value="Sacar tarjeta">Sacar tarjeta</option>
+          <option value="Pago">Pago</option>
+          <option value="Horario">Horario</option>
+          <option value="Alimentación">Alimentación</option>
+          <option value="Campamento">Campamento</option>
+          <option value="Ambiente laboral">Ambiente laboral</option>
+          <option value="Renuncia (Especificar en observaciones)">Renuncia (Especificar en observaciones)</option>
+          <option value="Problemas con el caporal (Especificar en observaciones)">Problemas con el caporal (Especificar en observaciones)</option>
+          <option value="Estudios">Estudios</option>
+          <option value="Viaje">Viaje</option>
+          <option value="Accidente">Accidente</option>
+          <option value="No desea continuar (Especificar en observaciones)">No desea continuar (Especificar en observaciones)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="a-obs" placeholder="Detalle observaciones adicionales..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>¿Vas a regresar? *</label>
+        <select id="a-regresar" required onchange="onRegresarChange(this.value)">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+          <option value="Lo está pensando">Lo está pensando</option>
+        </select>
+      </div>
+      <div class="form-group" id="retorno-container">
+        <label>Retorno</label>
+        <select id="a-retorno-tipo" onchange="onRetornoTipoChange(this.value)">
+          <option value="Inmediato">Inmediato</option>
+          <option value="Fecha">Ingrese en la fecha:</option>
+        </select>
+        <input type="date" id="a-retorno-fecha" style="display:none; margin-top:5px;">
+      </div>
+      <button type="submit" class="btn btn-primary">Guardar Registro</button>
+    </form>
+  </div>
+
+  <div id="status-bar" class="status-bar status-online">• Conectado (Sincronizando)</div>
+  <div id="sync-counter" class="sync-counter">📋 GUARDANDO EN LA NUBE (0)</div>
 </div>
 
-<div class="pends">
-    <p style="font-weight:bold; color:#666; margin:0 0 10px;">📋 GUARDANDO EN LA NUBE (<span id="count">0</span>)</p>
-    <div id="list"></div>
-</div>
-
-<script src="https://unpkg.com/dexie@3.2.0/dist/dexie.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx7tSb6Iz3o7CghAdGOUyI8F4dHjETJybyZM0Gte1XOII3cNOQXVvLWqbfFkAzeXPqw/exec';
+  // REEMPLAZAR ESTA URL CON TU GOOGLE APPS SCRIPT WEB APP URL
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_YOUR_SCRIPT_ID/exec';
 
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => reg.update())
-                .catch(err => console.log("Error SW: ", err));
-        });
+  let db;
+  let maestriaData = [];
+  let personalData = [];
+
+  // Inicializar DB IndexedDB
+  const request = indexedDB.open('HuarmeyDB', 2);
+  request.onupgradeneeded = (e) => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains('movilidades')) db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
+    if (!db.objectStoreNames.contains('ausentismo')) db.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
+    if (!db.objectStoreNames.contains('maestros')) db.createObjectStore('maestros', { keyPath: 'placa' });
+    if (!db.objectStoreNames.contains('personal')) db.createObjectStore('personal', { keyPath: 'dni' });
+  };
+  request.onsuccess = (e) => {
+    db = e.target.result;
+    loadLocalData();
+    checkNetwork();
+  };
+
+  // Navegación de Pestañas
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.form-page').forEach(page => page.classList.remove('active'));
+    
+    if(tabId === 'p1') document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    else document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  // Estado de red
+  window.addEventListener('online', checkNetwork);
+  window.addEventListener('offline', checkNetwork);
+
+  function checkNetwork() {
+    const bar = document.getElementById('status-bar');
+    if (navigator.onLine) {
+      bar.className = 'status-bar status-online';
+      bar.textContent = '• Conectado (Sincronizando)';
+      syncPendingData();
+    } else {
+      bar.className = 'status-bar status-offline';
+      bar.textContent = '• Sin Conexión (Modo Offline)';
     }
+    updatePendingCount();
+  }
 
-    let deferredPrompt;
-    const btnInstalar = document.getElementById('btnInstalar');
+  // Cálculos dinámicos
+  function calculateSeats() {
+    const cap = parseInt(document.getElementById('m-capacidad').value) || 0;
+    const pas = parseInt(document.getElementById('m-pasajeros').value) || 0;
+    document.getElementById('m-asientos').value = Math.max(0, cap - pas);
+  }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        btnInstalar.style.display = 'block';
-    });
-
-    btnInstalar.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                btnInstalar.style.display = 'none';
-            }
-            deferredPrompt = null;
-        }
-    });
-
-    const db = new Dexie('BDXX_HUARMEY');
-    db.version(1).stores({ maestros: 'placa', registros: '++id, estado' });
-
-    let listaMaestros = [];
-
-    function obtenerPropiedad(obj, nombres) {
-        if (!obj) return '';
-        const keys = Object.keys(obj);
-        for (let name of nombres) {
-            const match = keys.find(k => k.trim().toUpperCase() === name.toUpperCase());
-            if (match && obj[match] !== undefined) return obj[match];
-        }
-        return '';
+  function onPlacaChange(placa) {
+    const item = maestriaData.find(m => m.placa === placa);
+    if (item) {
+      document.getElementById('m-conductor').value = item.conductor || '';
+      document.getElementById('m-tipo').value = item.tipo || '';
+      document.getElementById('m-capacidad').value = item.capacidad || 0;
+      document.getElementById('m-ruta').value = item.ruta || '';
+      document.getElementById('m-cultivo').value = item.cultivo || '';
+      calculateSeats();
     }
+  }
 
-    async function cargarDesdedbLocal() {
-        listaMaestros = await db.maestros.toArray();
-        const selectPlaca = document.getElementById('placa');
-
-        if (listaMaestros.length === 0) {
-            selectPlaca.innerHTML = '<option value="">Sin datos. Presione "Actualizar Lista"</option>';
-        } else {
-            const seleccionActual = selectPlaca.value;
-            listaMaestros.sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
-            
-            selectPlaca.innerHTML = '<option value="">Seleccione una placa...</option>' + 
-                listaMaestros.map(m => `<option value="${m.placa}">${m.placa}</option>`).join('');
-            
-            if (seleccionActual) selectPlaca.value = seleccionActual;
-        }
+  function onAusentismoPlacaChange(placa) {
+    const item = maestriaData.find(m => m.placa === placa);
+    if (item) {
+      document.getElementById('a-ruta').value = item.ruta || '';
     }
+  }
 
-    async function actualizarMaestrosDesdeNube(manual = false) {
-        if (!navigator.onLine) {
-            if (manual) alert("Requiere conexión a internet para actualizar placas.");
-            return;
-        }
-        try {
-            // Se genera una URL única por cada petición para romper cualquier caché
-            const urlUnica = API_URL + '?v=' + Math.random().toString(36).substring(2) + '&t=' + Date.now();
-            const response = await fetch(urlUnica);
-            const data = await response.json();
-            
-            if (Array.isArray(data) && data.length > 0) {
-                const mapeados = data.map(item => {
-                    const plc = String(obtenerPropiedad(item, ['placa', 'PLACA DE UNIDAD', 'PLACA'])).trim().toUpperCase();
-                    return {
-                        placa: plc,
-                        conductor: String(obtenerPropiedad(item, ['conductor', 'CONDUCTOR'])).trim(),
-                        tipo: String(obtenerPropiedad(item, ['tipo', 'TIPO'])).trim(),
-                        capacidad: obtenerPropiedad(item, ['capacidad', 'CAPACIDAD', 'cap']),
-                        ruta: String(obtenerPropiedad(item, ['ruta', 'RUTA'])).trim(),
-                        cultivo: String(obtenerPropiedad(item, ['cultivo', 'CULTIVO'])).trim()
-                    };
-                }).filter(x => x.placa !== '');
-
-                if (mapeados.length > 0) {
-                    await db.maestros.clear();
-                    await db.maestros.bulkPut(mapeados);
-                    await cargarDesdedbLocal();
-                    if (manual) alert("✅ Lista de placas actualizada con éxito (" + mapeados.length + " placas).");
-                }
-            }
-        } catch (e) {
-            console.error("Error al actualizar maestros:", e);
-            if (manual) alert("❌ Error al conectar con Google Sheets.");
-        }
+  function searchDNI(dni) {
+    if (dni.length === 8) {
+      const person = personalData.find(p => String(p.dni).padStart(8, '0') === dni);
+      if (person) {
+        document.getElementById('a-nombre').value = person['apellidos y nombres'] || person.nombre || '';
+      } else {
+        document.getElementById('a-nombre').value = 'No encontrado';
+      }
+    } else {
+      document.getElementById('a-nombre').value = '';
     }
+  }
 
-    async function iniciar() {
-        await cargarDesdedbLocal();
-        dibujarPendientes();
-        actualizarEstadoRed();
-        await actualizarMaestrosDesdeNube(false);
+  function onRegresarChange(val) {
+    const container = document.getElementById('retorno-container');
+    container.style.display = (val === 'SI') ? 'block' : 'none';
+  }
+
+  function onRetornoTipoChange(val) {
+    const fInput = document.getElementById('a-retorno-fecha');
+    fInput.style.display = (val === 'Fecha') ? 'block' : 'none';
+  }
+
+  // Sincronizar Maestros de Backend
+  async function syncMaestros() {
+    if (!navigator.onLine) return alert('Atención: Sin conexión no se puede descargar maestros actualizados.');
+    try {
+      const resM = await fetch(`${SCRIPT_URL}?action=getMaestros`);
+      const dataM = await resM.json();
+      
+      const resP = await fetch(`${SCRIPT_URL}?action=getPersonal`);
+      const dataP = await resP.json();
+
+      const tx = db.transaction(['maestros', 'personal'], 'readwrite');
+      const storeM = tx.objectStore('maestros');
+      const storeP = tx.objectStore('personal');
+      
+      storeM.clear();
+      storeP.clear();
+
+      dataM.forEach(item => storeM.put(item));
+      dataP.forEach(item => storeP.put(item));
+
+      alert('¡Lista de placas y personal actualizada exitosamente!');
+      loadLocalData();
+    } catch(e) {
+      alert('Error sincronizando maestros: ' + e);
     }
+  }
 
-    function llenarCampos() {
-        const placaValor = document.getElementById('placa').value.trim().toUpperCase();
-        const m = listaMaestros.find(x => String(x.placa).trim().toUpperCase() === placaValor);
-        
-        if (m) {
-            document.getElementById('conductor').value = m.conductor || '';
-            document.getElementById('tipo').value = m.tipo || '';
-            document.getElementById('cap').value = m.capacidad || 0;
-            document.getElementById('ruta').value = m.ruta || '';
-            document.getElementById('cultivo').value = m.cultivo || '';
-            calcularLibres();
-        } else {
-            document.getElementById('conductor').value = '';
-            document.getElementById('tipo').value = '';
-            document.getElementById('cap').value = '';
-            document.getElementById('ruta').value = '';
-            document.getElementById('cultivo').value = '';
-            document.getElementById('lib').value = '';
-        }
-    }
-
-    function calcularLibres() {
-        const cap = parseInt(document.getElementById('cap').value) || 0;
-        const pax = parseInt(document.getElementById('pax').value) || 0;
-        document.getElementById('lib').value = Math.max(0, cap - pax);
-    }
-
-    document.getElementById('formHuarmey').onsubmit = async (e) => {
-        e.preventDefault();
-        const registro = {
-            fecha: new Date().toLocaleString('es-PE'),
-            placa: document.getElementById('placa').value,
-            conductor: document.getElementById('conductor').value,
-            tipo: document.getElementById('tipo').value,
-            ruta: document.getElementById('ruta').value,
-            cultivo: document.getElementById('cultivo').value,
-            capacidad: document.getElementById('cap').value,
-            pasajeros: document.getElementById('pax').value,
-            libres: document.getElementById('lib').value,
-            observaciones: document.getElementById('obs').value,
-            estado: 'P'
-        };
-        
-        await db.registros.add(registro);
-        document.getElementById('formHuarmey').reset();
-        alert("✅ Guardado localmente en el dispositivo.");
-        dibujarPendientes();
-        if (navigator.onLine) sincronizar();
+  function loadLocalData() {
+    const tx = db.transaction(['maestros', 'personal'], 'readonly');
+    
+    tx.objectStore('maestros').getAll().onsuccess = (e) => {
+      maestriaData = e.target.result;
+      populatePlacasSelects();
     };
 
-    async function dibujarPendientes() {
-        const pends = await db.registros.where('estado').equals('P').toArray();
-        document.getElementById('count').innerText = pends.length;
-        document.getElementById('list').innerHTML = pends.map(p => `
-            <div class="item">
-                <div><b>${p.placa}</b><br><small>${p.fecha}</small></div>
-                <div style="font-size:11px; color:#856404; font-weight:bold;">ESPERANDO RED...</div>
-            </div>
-        `).join('');
+    tx.objectStore('personal').getAll().onsuccess = (e) => {
+      personalData = e.target.result;
+    };
+
+    // Setear Fecha falta actual
+    document.getElementById('a-fecha-falta').valueToDate = new Date();
+    document.getElementById('a-fecha-falta').value = new Date().toISOString().substring(0, 10);
+  }
+
+  function populatePlacasSelects() {
+    const sel1 = document.getElementById('m-placa');
+    const sel2 = document.getElementById('a-placa');
+    
+    sel1.innerHTML = '<option value="">Seleccione una placa...</option>';
+    sel2.innerHTML = '<option value="">Seleccione Placa...</option>';
+
+    maestriaData.forEach(m => {
+      sel1.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+      sel2.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+    });
+  }
+
+  // Submit Handlers
+  function handleMovilidadesSubmit(e) {
+    e.preventDefault();
+    const record = {
+      fechaRegistro: new Date().toISOString(),
+      placa: document.getElementById('m-placa').value,
+      conductor: document.getElementById('m-conductor').value,
+      tipo: document.getElementById('m-tipo').value,
+      capacidad: document.getElementById('m-capacidad').value,
+      ruta: document.getElementById('m-ruta').value,
+      cultivo: document.getElementById('m-cultivo').value,
+      pasajeros: document.getElementById('m-pasajeros').value,
+      asientosLibres: document.getElementById('m-asientos').value,
+      observaciones: document.getElementById('m-obs').value
+    };
+
+    saveRecord('movilidades', record, () => {
+      alert('Registro guardado localmente');
+      document.getElementById('form-movilidades').reset();
+      checkNetwork();
+    });
+  }
+
+  function handleAusentismoSubmit(e) {
+    e.preventDefault();
+    
+    let retornoVal = document.getElementById('a-retorno-tipo').value;
+    if (retornoVal === 'Fecha') {
+      retornoVal = document.getElementById('a-retorno-fecha').value;
     }
 
-    async function sincronizar() {
-        if (!navigator.onLine) return;
-        const pends = await db.registros.where('estado').equals('P').toArray();
-        
-        for (let r of pends) {
-            try {
-                const f = new URLSearchParams();
-                f.append('fecha', r.fecha);
-                f.append('placa', r.placa);
-                f.append('conductor', r.conductor);
-                f.append('tipo', r.tipo);
-                f.append('ruta', r.ruta);
-                f.append('cultivo', r.cultivo);
-                f.append('capacidad', r.capacidad);
-                f.append('pasajeros', r.pasajeros);
-                f.append('libres', r.libres);
-                f.append('observaciones', r.observaciones);
+    const record = {
+      fechaRegistro: new Date().toISOString(),
+      placa: document.getElementById('a-placa').value,
+      ruta: document.getElementById('a-ruta').value,
+      dni: document.getElementById('a-dni').value,
+      nombreCompleto: document.getElementById('a-nombre').value,
+      fechaFalta: document.getElementById('a-fecha-falta').value,
+      motivo: document.getElementById('a-motivo').value,
+      observaciones: document.getElementById('a-obs').value,
+      regresar: document.getElementById('a-regresar').value,
+      fechaRetorno: retornoVal
+    };
 
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: f.toString(),
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                });
+    saveRecord('ausentismo', record, () => {
+      alert('Registro de ausentismo guardado localmente');
+      document.getElementById('form-ausentismo').reset();
+      checkNetwork();
+    });
+  }
 
-                await db.registros.update(r.id, { estado: 'E' });
-            } catch (e) { console.error(e); break; }
-        }
-        dibujarPendientes();
+  function saveRecord(storeName, data, callback) {
+    const tx = db.transaction([storeName], 'readwrite');
+    tx.objectStore(storeName).add(data);
+    tx.oncomplete = callback;
+  }
+
+  // Sincronización Automática hacia Google Sheets
+  async function syncPendingData() {
+    if (!navigator.onLine) return;
+
+    await pushStoreData('movilidades', 'saveMovilidades');
+    await pushStoreData('ausentismo', 'saveAusentismo');
+    updatePendingCount();
+  }
+
+  async function pushStoreData(storeName, action) {
+    const tx = db.transaction([storeName], 'readonly');
+    const store = tx.objectStore(storeName);
+    const records = await new Promise(res => store.getAll().onsuccess = e => res(e.target.result));
+
+    if (records.length === 0) return;
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, data: records })
+      });
+      const resData = await response.json();
+
+      if (resData.status === 'success') {
+        const txClear = db.transaction([storeName], 'readwrite');
+        txClear.objectStore(storeName).clear();
+      }
+    } catch(e) {
+      console.error('Error enviando datos: ', e);
     }
+  }
 
-    function actualizarEstadoRed() {
-        const st = document.getElementById('st');
-        if (navigator.onLine) {
-            st.innerText = '● Conectado (Sincronizando)';
-            st.className = 'status on';
-            sincronizar();
-            actualizarMaestrosDesdeNube(false);
-        } else {
-            st.innerText = '○ Modo Offline (Campo sin internet)';
-            st.className = 'status off';
-        }
-    }
+  function updatePendingCount() {
+    if (!db) return;
+    const tx = db.transaction(['movilidades', 'ausentismo'], 'readonly');
+    let total = 0;
+    
+    tx.objectStore('movilidades').count().onsuccess = (e) => {
+      total += e.target.result;
+      tx.objectStore('ausentismo').count().onsuccess = (e2) => {
+        total += e2.target.result;
+        document.getElementById('sync-counter').textContent = `📋 GUARDANDO EN LA NUBE (${total})`;
+      };
+    };
+  }
 
-    window.addEventListener('online', actualizarEstadoRed);
-    window.addEventListener('offline', actualizarEstadoRed);
-
-    iniciar();
+  // Registrar Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker Registrado'));
+  }
 </script>
 </body>
 </html>
