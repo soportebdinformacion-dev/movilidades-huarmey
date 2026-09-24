@@ -1,21 +1,20 @@
-const CACHE_NAME = 'huarmey-v2';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'huarmey-pwa-v1';
+const ASSETS = [
   './',
-  './Index.html',
+  './index.html',
   './manifest.json',
-  './ICONO HUARMEY.png',
-  'https://unpkg.com/dexie@3.2.0/dist/dexie.min.js'
+  './logo.png'
 ];
 
-// Instalación
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
   self.skipWaiting();
 });
 
-// Activación
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,18 +28,17 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Intercepción de peticiones (ESTA ES LA CLAVE)
 self.addEventListener('fetch', (e) => {
-  // Si la petición es hacia Google Apps Script (API), ir SIEMPRE a la red (sin pasar por caché)
-  if (e.request.url.includes('script.google.com')) {
-    e.respondWith(fetch(e.request));
-    return;
-  }
-
-  // Para el resto de archivos (HTML, imágenes, JS), usar caché local con fallback a la red
+  if (e.request.method !== 'GET') return;
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      return cachedResponse || fetch(e.request);
-    })
+      if (cachedResponse) return cachedResponse;
+      return fetch(e.request).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(e.request, networkResponse.clone());
+          return networkResponse;
+        });
+      });
+    }).catch(() => caches.match('./index.html'))
   );
 });
