@@ -48,7 +48,7 @@
     .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; text-align: center; }
     .btn-primary { background-color: var(--primary-color); color: white; margin-top: 8px; }
     .btn-primary:active { background-color: var(--primary-hover); }
-    .btn-secondary { background-color: #4b6584; color: white; font-size: 0.8rem; padding: 6px; margin-bottom: 10px; }
+    .btn-secondary { background-color: #4b6584; color: white; font-size: 0.8rem; padding: 8px; margin-bottom: 12px; }
 
     .status-bar { margin-top: 10px; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85rem; font-weight: bold; }
     .status-online { background-color: var(--status-online); color: var(--status-online-text); }
@@ -72,7 +72,7 @@
 
   <!-- PÁGINA 1: MOVILIDADES -->
   <div id="p1" class="form-page active">
-    <button class="btn btn-secondary" onclick="syncMaestros()">🔄 Actualizar Lista de Placas</button>
+    <button class="btn btn-secondary" onclick="syncMaestros()">🔄 Actualizar Lista de Placas y Personal</button>
     <form id="form-movilidades" onsubmit="handleMovilidadesSubmit(event)">
       <div class="form-group">
         <label>🚌 Placa de Unidad:</label>
@@ -82,7 +82,7 @@
       </div>
       <div class="form-group">
         <label>Conductor:</label>
-        <input type="text" id="m-conductor" readonly placeholder="Seleccione el conductor...">
+        <input type="text" id="m-conductor" readonly placeholder="Seleccione la placa primero...">
       </div>
       <div style="display: flex; gap: 10px;">
         <div class="form-group" style="flex:1;">
@@ -133,11 +133,11 @@
       </div>
       <div class="form-group">
         <label>DNI Personal *</label>
-        <input type="text" id="a-dni" maxlength="8" pattern="\d{8}" required placeholder="8 dígitos" oninput="searchDNI(this.value)">
+        <input type="text" id="a-dni" maxlength="8" pattern="\d{8}" required placeholder="Ingrese 8 dígitos" oninput="searchDNI(this.value)">
       </div>
       <div class="form-group">
         <label>Apellidos y Nombres</label>
-        <input type="text" id="a-nombre" readonly placeholder="Búsqueda por DNI">
+        <input type="text" id="a-nombre" readonly placeholder="Búsqueda automática por DNI">
       </div>
       <div class="form-group">
         <label>Fecha de Falta *</label>
@@ -193,27 +193,32 @@
     </form>
   </div>
 
-  <div id="status-bar" class="status-bar status-online">• Conectado (Sincronizando)</div>
+  <div id="status-bar" class="status-bar status-online">• Conectado</div>
   <div id="sync-counter" class="sync-counter">📋 GUARDANDO EN LA NUBE (0)</div>
 </div>
 
 <script>
-  // IMPORTANTE: Asegúrate de desplegar tu Apps Script como Web App (Acceso: Cualquier persona / Anyone)
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw71vJT0LOqufaiV5rAxjxMvC324FcWQbbYEtT9Uomfwty-ZX4ozPyDtdcMVvX3oCO/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZXbjQcp6xM-tGraXqcCSdSU_bMhcr2HHlW2wFHxDEivmLHKa4_9An4SfU4uuQBfa3/exec';
 
   let db;
   let maestriaData = [];
   let personalData = [];
 
-  // Inicializar DB IndexedDB
-  const request = indexedDB.open('HuarmeyDB', 2);
+  // Version 3 para asegurar autoincremento correcto sin bloqueos de llaves duplicadas
+  const request = indexedDB.open('HuarmeyDB', 3);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
-    if (!db.objectStoreNames.contains('movilidades')) db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
-    if (!db.objectStoreNames.contains('ausentismo')) db.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
-    if (!db.objectStoreNames.contains('maestros')) db.createObjectStore('maestros', { keyPath: 'placa' });
-    if (!db.objectStoreNames.contains('personal')) db.createObjectStore('personal', { keyPath: 'dni' });
+    if (db.objectStoreNames.contains('movilidades')) db.deleteObjectStore('movilidades');
+    if (db.objectStoreNames.contains('ausentismo')) db.deleteObjectStore('ausentismo');
+    if (db.objectStoreNames.contains('maestros')) db.deleteObjectStore('maestros');
+    if (db.objectStoreNames.contains('personal')) db.deleteObjectStore('personal');
+
+    db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
+    db.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
+    db.createObjectStore('maestros', { keyPath: 'id', autoIncrement: true });
+    db.createObjectStore('personal', { keyPath: 'id', autoIncrement: true });
   };
+  
   request.onsuccess = (e) => {
     db = e.target.result;
     loadLocalData();
@@ -230,7 +235,6 @@
     document.getElementById(tabId).classList.add('active');
   }
 
-  // Estado de red
   window.addEventListener('online', checkNetwork);
   window.addEventListener('offline', checkNetwork);
 
@@ -247,39 +251,62 @@
     updatePendingCount();
   }
 
-  // Cálculos dinámicos
+  function getPropVal(obj, ...keys) {
+    if (!obj) return '';
+    for (let k of keys) {
+      const matchKey = Object.keys(obj).find(x => x.trim().toLowerCase() === k.trim().toLowerCase());
+      if (matchKey && obj[matchKey] !== undefined && obj[matchKey] !== null) {
+        return String(obj[matchKey]).trim();
+      }
+    }
+    return '';
+  }
+
   function calculateSeats() {
     const cap = parseInt(document.getElementById('m-capacidad').value) || 0;
     const pas = parseInt(document.getElementById('m-pasajeros').value) || 0;
     document.getElementById('m-asientos').value = Math.max(0, cap - pas);
   }
 
-  function onPlacaChange(placa) {
-    const item = maestriaData.find(m => String(m.placa) === String(placa));
+  function onPlacaChange(placaVal) {
+    const item = maestriaData.find(m => getPropVal(m, 'placa') === String(placaVal).trim());
     if (item) {
-      document.getElementById('m-conductor').value = item.conductor || '';
-      document.getElementById('m-tipo').value = item.tipo || '';
-      document.getElementById('m-capacidad').value = item.capacidad || 0;
-      document.getElementById('m-ruta').value = item.ruta || '';
-      document.getElementById('m-cultivo').value = item.cultivo || '';
+      document.getElementById('m-conductor').value = getPropVal(item, 'conductor');
+      document.getElementById('m-tipo').value = getPropVal(item, 'tipo');
+      document.getElementById('m-capacidad').value = getPropVal(item, 'capacidad') || 0;
+      document.getElementById('m-ruta').value = getPropVal(item, 'ruta');
+      document.getElementById('m-cultivo').value = getPropVal(item, 'cultivo');
       calculateSeats();
+    } else {
+      document.getElementById('m-conductor').value = '';
+      document.getElementById('m-tipo').value = '';
+      document.getElementById('m-capacidad').value = 0;
+      document.getElementById('m-ruta').value = '';
+      document.getElementById('m-cultivo').value = '';
     }
   }
 
-  function onAusentismoPlacaChange(placa) {
-    const item = maestriaData.find(m => String(m.placa) === String(placa));
+  function onAusentismoPlacaChange(placaVal) {
+    const item = maestriaData.find(m => getPropVal(m, 'placa') === String(placaVal).trim());
     if (item) {
-      document.getElementById('a-ruta').value = item.ruta || '';
+      document.getElementById('a-ruta').value = getPropVal(item, 'ruta');
+    } else {
+      document.getElementById('a-ruta').value = '';
     }
   }
 
-  function searchDNI(dni) {
-    if (dni.length === 8) {
-      const person = personalData.find(p => String(p.dni).padStart(8, '0') === String(dni));
+  function searchDNI(dniVal) {
+    const cleanDNI = String(dniVal).trim();
+    if (cleanDNI.length === 8) {
+      const person = personalData.find(p => {
+        const valDni = getPropVal(p, 'dni', 'documento', 'id');
+        return valDni.padStart(8, '0') === cleanDNI.padStart(8, '0');
+      });
+
       if (person) {
-        document.getElementById('a-nombre').value = person['apellidos y nombres'] || person.nombre || '';
+        document.getElementById('a-nombre').value = getPropVal(person, 'apellidos y nombres', 'nombre completo', 'nombres', 'nombre');
       } else {
-        document.getElementById('a-nombre').value = 'No encontrado';
+        document.getElementById('a-nombre').value = 'DNI no encontrado';
       }
     } else {
       document.getElementById('a-nombre').value = '';
@@ -296,7 +323,7 @@
     fInput.style.display = (val === 'Fecha') ? 'block' : 'none';
   }
 
-  // Sincronizar Maestros de Backend
+  // Sincronizar Placas y Personal
   async function syncMaestros() {
     if (!navigator.onLine) {
       return alert('Sin conexión a internet');
@@ -309,20 +336,26 @@
       const resP = await fetch(`${SCRIPT_URL}?action=getPersonal`, { redirect: 'follow' });
       const dataP = await resP.json();
 
-      const tx = db.transaction(['maestros', 'personal'], 'readwrite');
-      const storeM = tx.objectStore('maestros');
-      const storeP = tx.objectStore('personal');
-      
-      storeM.clear();
-      storeP.clear();
+      if (Array.isArray(dataM) && Array.isArray(dataP)) {
+        const tx = db.transaction(['maestros', 'personal'], 'readwrite');
+        const storeM = tx.objectStore('maestros');
+        const storeP = tx.objectStore('personal');
+        
+        storeM.clear();
+        storeP.clear();
 
-      dataM.forEach(item => storeM.put(item));
-      dataP.forEach(item => storeP.put(item));
+        dataM.forEach(item => storeM.put(item));
+        dataP.forEach(item => storeP.put(item));
 
-      alert('¡Lista de placas y personal actualizada exitosamente!');
-      loadLocalData();
+        tx.oncomplete = () => {
+          alert(`¡Datos actualizados! (${dataM.length} Placas, ${dataP.length} Personas)`);
+          loadLocalData();
+        };
+      } else {
+        alert('Error: La respuesta del servidor no fue válida.');
+      }
     } catch(e) {
-      alert('Error al conectar con la hoja de cálculo: ' + e.message);
+      alert('Error al conectar con Google Sheets: ' + e.message);
     }
   }
 
@@ -350,14 +383,14 @@
     sel2.innerHTML = '<option value="">Seleccione Placa...</option>';
 
     maestriaData.forEach(m => {
-      if (m.placa) {
-        sel1.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
-        sel2.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+      const placa = getPropVal(m, 'placa');
+      if (placa) {
+        sel1.innerHTML += `<option value="${placa}">${placa}</option>`;
+        sel2.innerHTML += `<option value="${placa}">${placa}</option>`;
       }
     });
   }
 
-  // Submit Handlers
   function handleMovilidadesSubmit(e) {
     e.preventDefault();
     const record = {
@@ -414,7 +447,6 @@
     tx.oncomplete = callback;
   }
 
-  // Sincronización hacia Google Sheets
   async function syncPendingData() {
     if (!navigator.onLine) return;
 
@@ -442,14 +474,9 @@
       if (resData.status === 'success') {
         const txClear = db.transaction([storeName], 'readwrite');
         txClear.objectStore(storeName).clear();
-      } else {
-        console.error('Error reportado por el servidor:', resData.message);
       }
     } catch(e) {
-      console.error('Error enviando datos por falta de conexión:', e);
-      const bar = document.getElementById('status-bar');
-      bar.className = 'status-bar status-offline';
-      bar.textContent = '• Sin conexión a internet';
+      console.error('Error enviando datos:', e);
     }
   }
 
