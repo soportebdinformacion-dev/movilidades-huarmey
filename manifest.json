@@ -1,6 +1,6 @@
 {
-  "short_name": "AgricolaHuarmey",
-  "name": "Agrícola Huarmey - Control de Transporte",
+  "short_name": "AgriHuarmey",
+  "name": "Agrícola Huarmey - Control de Campo",
   "icons": [
     {
       "src": "logo.png",
@@ -14,8 +14,8 @@
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#ffffff",
-  "theme_color": "#1b5e20",
+  "background_color": "#2e7d32",
+  "theme_color": "#2e7d32",
   "display": "standalone",
   "orientation": "portrait"
 }
