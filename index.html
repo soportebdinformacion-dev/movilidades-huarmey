@@ -61,7 +61,7 @@
 
 <div class="app-container">
   <header>
-    <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey">
+    <img src="logo.png" alt="Agrícola Huarmey">
     <h1>Registro movilidades Agrícola Huarmey</h1>
   </header>
 
@@ -198,8 +198,8 @@
 </div>
 
 <script>
-  // REEMPLAZAR ESTA URL CON TU GOOGLE APPS SCRIPT WEB APP URL
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8aDHJPGcTgkTTb64GJNMytgmZ07GWFFDHiH1o_pkAY0cEnpDuHx5rdp_WRsGXtMO1/exec';
+  // IMPORTANTE: Asegúrate de desplegar tu Apps Script como Web App (Acceso: Cualquier persona / Anyone)
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_YOUR_SCRIPT_ID/exec';
 
   let db;
   let maestriaData = [];
@@ -220,7 +220,6 @@
     checkNetwork();
   };
 
-  // Navegación de Pestañas
   function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.form-page').forEach(page => page.classList.remove('active'));
@@ -243,7 +242,7 @@
       syncPendingData();
     } else {
       bar.className = 'status-bar status-offline';
-      bar.textContent = '• Sin Conexión (Modo Offline)';
+      bar.textContent = '• Sin conexión a internet (Modo Offline)';
     }
     updatePendingCount();
   }
@@ -256,7 +255,7 @@
   }
 
   function onPlacaChange(placa) {
-    const item = maestriaData.find(m => m.placa === placa);
+    const item = maestriaData.find(m => String(m.placa) === String(placa));
     if (item) {
       document.getElementById('m-conductor').value = item.conductor || '';
       document.getElementById('m-tipo').value = item.tipo || '';
@@ -268,7 +267,7 @@
   }
 
   function onAusentismoPlacaChange(placa) {
-    const item = maestriaData.find(m => m.placa === placa);
+    const item = maestriaData.find(m => String(m.placa) === String(placa));
     if (item) {
       document.getElementById('a-ruta').value = item.ruta || '';
     }
@@ -276,7 +275,7 @@
 
   function searchDNI(dni) {
     if (dni.length === 8) {
-      const person = personalData.find(p => String(p.dni).padStart(8, '0') === dni);
+      const person = personalData.find(p => String(p.dni).padStart(8, '0') === String(dni));
       if (person) {
         document.getElementById('a-nombre').value = person['apellidos y nombres'] || person.nombre || '';
       } else {
@@ -299,12 +298,15 @@
 
   // Sincronizar Maestros de Backend
   async function syncMaestros() {
-    if (!navigator.onLine) return alert('Atención: Sin conexión no se puede descargar maestros actualizados.');
+    if (!navigator.onLine) {
+      return alert('Sin conexión a internet');
+    }
+
     try {
-      const resM = await fetch(`${SCRIPT_URL}?action=getMaestros`);
+      const resM = await fetch(`${SCRIPT_URL}?action=getMaestros`, { redirect: 'follow' });
       const dataM = await resM.json();
       
-      const resP = await fetch(`${SCRIPT_URL}?action=getPersonal`);
+      const resP = await fetch(`${SCRIPT_URL}?action=getPersonal`, { redirect: 'follow' });
       const dataP = await resP.json();
 
       const tx = db.transaction(['maestros', 'personal'], 'readwrite');
@@ -320,24 +322,23 @@
       alert('¡Lista de placas y personal actualizada exitosamente!');
       loadLocalData();
     } catch(e) {
-      alert('Error sincronizando maestros: ' + e);
+      alert('Error al conectar con la hoja de cálculo: ' + e.message);
     }
   }
 
   function loadLocalData() {
+    if (!db) return;
     const tx = db.transaction(['maestros', 'personal'], 'readonly');
     
     tx.objectStore('maestros').getAll().onsuccess = (e) => {
-      maestriaData = e.target.result;
+      maestriaData = e.target.result || [];
       populatePlacasSelects();
     };
 
     tx.objectStore('personal').getAll().onsuccess = (e) => {
-      personalData = e.target.result;
+      personalData = e.target.result || [];
     };
 
-    // Setear Fecha falta actual
-    document.getElementById('a-fecha-falta').valueToDate = new Date();
     document.getElementById('a-fecha-falta').value = new Date().toISOString().substring(0, 10);
   }
 
@@ -349,8 +350,10 @@
     sel2.innerHTML = '<option value="">Seleccione Placa...</option>';
 
     maestriaData.forEach(m => {
-      sel1.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
-      sel2.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+      if (m.placa) {
+        sel1.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+        sel2.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+      }
     });
   }
 
@@ -411,7 +414,7 @@
     tx.oncomplete = callback;
   }
 
-  // Sincronización Automática hacia Google Sheets
+  // Sincronización hacia Google Sheets
   async function syncPendingData() {
     if (!navigator.onLine) return;
 
@@ -425,11 +428,12 @@
     const store = tx.objectStore(storeName);
     const records = await new Promise(res => store.getAll().onsuccess = e => res(e.target.result));
 
-    if (records.length === 0) return;
+    if (!records || records.length === 0) return;
 
     try {
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
+        redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: action, data: records })
       });
@@ -438,9 +442,14 @@
       if (resData.status === 'success') {
         const txClear = db.transaction([storeName], 'readwrite');
         txClear.objectStore(storeName).clear();
+      } else {
+        console.error('Error reportado por el servidor:', resData.message);
       }
     } catch(e) {
-      console.error('Error enviando datos: ', e);
+      console.error('Error enviando datos por falta de conexión:', e);
+      const bar = document.getElementById('status-bar');
+      bar.className = 'status-bar status-offline';
+      bar.textContent = '• Sin conexión a internet';
     }
   }
 
@@ -458,7 +467,6 @@
     };
   }
 
-  // Registrar Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(() => console.log('Service Worker Registrado'));
