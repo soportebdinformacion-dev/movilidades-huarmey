@@ -61,7 +61,7 @@
 
 <div class="app-container">
   <header>
-    <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey">
+    <img src="logo.png" alt="Agrícola Huarmey">
     <h1>Registro movilidades Agrícola Huarmey</h1>
   </header>
 
@@ -198,32 +198,53 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZXbjQcp6xM-tGraXqcCSdSU_bMhcr2HHlW2wFHxDEivmLHKa4_9An4SfU4uuQBfa3/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw71vJT0LOqufaiV5rAxjxMvC324FcWQbbYEtT9Uomfwty-ZX4ozPyDtdcMVvX3oCO/exec';
 
-  let db;
+  let db = null;
   let maestriaData = [];
   let personalData = [];
 
-  // Version 3 para asegurar autoincremento correcto sin bloqueos de llaves duplicadas
-  const request = indexedDB.open('HuarmeyDB', 3);
-  request.onupgradeneeded = (e) => {
-    db = e.target.result;
-    if (db.objectStoreNames.contains('movilidades')) db.deleteObjectStore('movilidades');
-    if (db.objectStoreNames.contains('ausentismo')) db.deleteObjectStore('ausentismo');
-    if (db.objectStoreNames.contains('maestros')) db.deleteObjectStore('maestros');
-    if (db.objectStoreNames.contains('personal')) db.deleteObjectStore('personal');
+  // Función asíncrona segura para asegurar que la IndexedDB esté lista siempre
+  function getDB() {
+    return new Promise((resolve, reject) => {
+      if (db) return resolve(db);
 
-    db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
-    db.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
-    db.createObjectStore('maestros', { keyPath: 'id', autoIncrement: true });
-    db.createObjectStore('personal', { keyPath: 'id', autoIncrement: true });
-  };
-  
-  request.onsuccess = (e) => {
-    db = e.target.result;
-    loadLocalData();
-    checkNetwork();
-  };
+      const request = indexedDB.open('HuarmeyDB', 3);
+      
+      request.onupgradeneeded = (e) => {
+        const database = e.target.result;
+        if (database.objectStoreNames.contains('movilidades')) database.deleteObjectStore('movilidades');
+        if (database.objectStoreNames.contains('ausentismo')) database.deleteObjectStore('ausentismo');
+        if (database.objectStoreNames.contains('maestros')) database.deleteObjectStore('maestros');
+        if (database.objectStoreNames.contains('personal')) database.deleteObjectStore('personal');
+
+        database.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
+        database.createObjectStore('ausentismo', { keyPath: 'id', autoIncrement: true });
+        database.createObjectStore('maestros', { keyPath: 'id', autoIncrement: true });
+        database.createObjectStore('personal', { keyPath: 'id', autoIncrement: true });
+      };
+
+      request.onsuccess = (e) => {
+        db = e.target.result;
+        resolve(db);
+      };
+
+      request.onerror = (e) => {
+        reject(e.target.error);
+      };
+    });
+  }
+
+  // Inicializar al cargar la página
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      await getDB();
+      await loadLocalData();
+      checkNetwork();
+    } catch(err) {
+      console.error('Error inicializando base de datos local:', err);
+    }
+  });
 
   function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -323,13 +344,15 @@
     fInput.style.display = (val === 'Fecha') ? 'block' : 'none';
   }
 
-  // Sincronizar Placas y Personal
+  // Sincronizar Placas y Personal asegurando que la DB local existe
   async function syncMaestros() {
     if (!navigator.onLine) {
       return alert('Sin conexión a internet');
     }
 
     try {
+      const database = await getDB();
+
       const resM = await fetch(`${SCRIPT_URL}?action=getMaestros`, { redirect: 'follow' });
       const dataM = await resM.json();
       
@@ -337,7 +360,7 @@
       const dataP = await resP.json();
 
       if (Array.isArray(dataM) && Array.isArray(dataP)) {
-        const tx = db.transaction(['maestros', 'personal'], 'readwrite');
+        const tx = database.transaction(['maestros', 'personal'], 'readwrite');
         const storeM = tx.objectStore('maestros');
         const storeP = tx.objectStore('personal');
         
@@ -347,32 +370,36 @@
         dataM.forEach(item => storeM.put(item));
         dataP.forEach(item => storeP.put(item));
 
-        tx.oncomplete = () => {
-          alert(`¡Datos actualizados! (${dataM.length} Placas, ${dataP.length} Personas)`);
-          loadLocalData();
+        tx.oncomplete = async () => {
+          alert(`¡Datos actualizados correctamente! (${dataM.length} Placas, ${dataP.length} Personas)`);
+          await loadLocalData();
         };
       } else {
-        alert('Error: La respuesta del servidor no fue válida.');
+        alert('Error: La respuesta del servidor no fue un arreglo válido.');
       }
     } catch(e) {
-      alert('Error al conectar con Google Sheets: ' + e.message);
+      alert('Error al conectar con la base de datos o Google Sheets: ' + e.message);
     }
   }
 
-  function loadLocalData() {
-    if (!db) return;
-    const tx = db.transaction(['maestros', 'personal'], 'readonly');
-    
-    tx.objectStore('maestros').getAll().onsuccess = (e) => {
-      maestriaData = e.target.result || [];
-      populatePlacasSelects();
-    };
+  async function loadLocalData() {
+    try {
+      const database = await getDB();
+      const tx = database.transaction(['maestros', 'personal'], 'readonly');
+      
+      tx.objectStore('maestros').getAll().onsuccess = (e) => {
+        maestriaData = e.target.result || [];
+        populatePlacasSelects();
+      };
 
-    tx.objectStore('personal').getAll().onsuccess = (e) => {
-      personalData = e.target.result || [];
-    };
+      tx.objectStore('personal').getAll().onsuccess = (e) => {
+        personalData = e.target.result || [];
+      };
 
-    document.getElementById('a-fecha-falta').value = new Date().toISOString().substring(0, 10);
+      document.getElementById('a-fecha-falta').value = new Date().toISOString().substring(0, 10);
+    } catch (e) {
+      console.error('Error cargando datos locales:', e);
+    }
   }
 
   function populatePlacasSelects() {
@@ -391,7 +418,7 @@
     });
   }
 
-  function handleMovilidadesSubmit(e) {
+  async function handleMovilidadesSubmit(e) {
     e.preventDefault();
     const record = {
       fechaRegistro: new Date().toISOString(),
@@ -406,14 +433,14 @@
       observaciones: document.getElementById('m-obs').value
     };
 
-    saveRecord('movilidades', record, () => {
+    await saveRecord('movilidades', record, () => {
       alert('Registro guardado localmente');
       document.getElementById('form-movilidades').reset();
       checkNetwork();
     });
   }
 
-  function handleAusentismoSubmit(e) {
+  async function handleAusentismoSubmit(e) {
     e.preventDefault();
     
     let retornoVal = document.getElementById('a-retorno-tipo').value;
@@ -434,15 +461,16 @@
       fechaRetorno: retornoVal
     };
 
-    saveRecord('ausentismo', record, () => {
+    await saveRecord('ausentismo', record, () => {
       alert('Registro de ausentismo guardado localmente');
       document.getElementById('form-ausentismo').reset();
       checkNetwork();
     });
   }
 
-  function saveRecord(storeName, data, callback) {
-    const tx = db.transaction([storeName], 'readwrite');
+  async function saveRecord(storeName, data, callback) {
+    const database = await getDB();
+    const tx = database.transaction([storeName], 'readwrite');
     tx.objectStore(storeName).add(data);
     tx.oncomplete = callback;
   }
@@ -456,7 +484,8 @@
   }
 
   async function pushStoreData(storeName, action) {
-    const tx = db.transaction([storeName], 'readonly');
+    const database = await getDB();
+    const tx = database.transaction([storeName], 'readonly');
     const store = tx.objectStore(storeName);
     const records = await new Promise(res => store.getAll().onsuccess = e => res(e.target.result));
 
@@ -472,7 +501,7 @@
       const resData = await response.json();
 
       if (resData.status === 'success') {
-        const txClear = db.transaction([storeName], 'readwrite');
+        const txClear = database.transaction([storeName], 'readwrite');
         txClear.objectStore(storeName).clear();
       }
     } catch(e) {
@@ -480,18 +509,22 @@
     }
   }
 
-  function updatePendingCount() {
-    if (!db) return;
-    const tx = db.transaction(['movilidades', 'ausentismo'], 'readonly');
-    let total = 0;
-    
-    tx.objectStore('movilidades').count().onsuccess = (e) => {
-      total += e.target.result;
-      tx.objectStore('ausentismo').count().onsuccess = (e2) => {
-        total += e2.target.result;
-        document.getElementById('sync-counter').textContent = `📋 GUARDANDO EN LA NUBE (${total})`;
+  async function updatePendingCount() {
+    try {
+      const database = await getDB();
+      const tx = database.transaction(['movilidades', 'ausentismo'], 'readonly');
+      let total = 0;
+      
+      tx.objectStore('movilidades').count().onsuccess = (e) => {
+        total += e.target.result;
+        tx.objectStore('ausentismo').count().onsuccess = (e2) => {
+          total += e2.target.result;
+          document.getElementById('sync-counter').textContent = `📋 GUARDANDO EN LA NUBE (${total})`;
+        };
       };
-    };
+    } catch(e) {
+      console.error('Error calculando conteo pendiente:', e);
+    }
   }
 
   if ('serviceWorker' in navigator) {
