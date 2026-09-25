@@ -1,290 +1,369 @@
-// Asegúrate de colocar la URL exacta generada al Desplegar como Web App en Google Apps Script
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKI8VhEn02S0jDX0LMhzKedumASd9R-suZnKVH9s7Fe1Rf-eXvg0MFWmXOZMPEyG0W/exec';
+// URL de despliegue de tu Google Apps Script
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzjO7rmOgLE1HDNVa2FCoNafV6mlBRbpz5BlleN0qJ5-I3vYNpupNN1gHGakHIDTqIo/exec";
 
-let currentPlacasData = [];
+let db = null;
+let maestrosCache = [];
+let personalCache = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-  registerServiceWorker();
-  initApp();
-  setupEventListeners();
+// Inicialización de IndexedDB
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("HuarmeyDB", 1);
+
+    request.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains("maestros")) {
+        database.createObjectStore("maestros", { keyPath: "placa" });
+      }
+      if (!database.objectStoreNames.contains("personal")) {
+        database.createObjectStore("personal", { keyPath: "dni" });
+      }
+      if (!database.objectStoreNames.contains("syncQueue")) {
+        database.createObjectStore("syncQueue", { autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      resolve(db);
+    };
+
+    request.onerror = (e) => reject(e);
+  });
+}
+
+// Operaciones IndexedDB
+function saveToStore(storeName, items) {
+  const tx = db.transaction(storeName, "readwrite");
+  const store = tx.objectStore(storeName);
+  items.forEach(item => store.put(item));
+}
+
+function getFromStore(storeName) {
+  return new Promise((resolve) => {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+  });
+}
+
+function addToQueue(data) {
+  return new Promise((resolve) => {
+    const tx = db.transaction("syncQueue", "readwrite");
+    const store = tx.objectStore("syncQueue");
+    store.add(data);
+    tx.oncomplete = () => {
+      updateSyncStatus();
+      resolve();
+    };
+  });
+}
+
+// Registro e Invocación de Eventos al Cargar
+document.addEventListener("DOMContentLoaded", async () => {
+  await initDB();
+  setupNetworkListeners();
+  setupUIEvents();
+  
+  // Establecer fecha por defecto en ausentismo
+  document.getElementById("ausFecha").valueToDate = new Date();
+  document.getElementById("ausFecha").value = new Date().toISOString().split('T')[0];
+  
+  // Cargar datos locales primero
+  await loadLocalData();
+  
+  // Sincronizar maestros si hay red
+  if (navigator.onLine) {
+    syncMaestrosAndPersonal();
+  }
 });
 
-function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.log('SW error:', err));
-  }
+// Monitoreo de Estado Red
+function setupNetworkListeners() {
+  window.addEventListener("online", handleNetworkChange);
+  window.addEventListener("offline", handleNetworkChange);
+  handleNetworkChange();
 }
 
-async function initApp() {
-  const fechaInput = document.getElementById('ausFechaFalta');
-  if (fechaInput) {
-    fechaInput.value = new Date().toISOString().split('T')[0];
-  }
-
-  updateNetworkStatus();
-  await loadPlacas();
-  updateSyncCounter();
-
-  if (navigator.onLine) {
-    syncQueue();
-  }
-}
-
-function setupEventListeners() {
-  window.addEventListener('online', () => { updateNetworkStatus(); syncQueue(); });
-  window.addEventListener('offline', () => { updateNetworkStatus(); });
-
-  // Evento al seleccionar una placa en Movilidades
-  document.getElementById('movPlaca').addEventListener('change', (e) => {
-    const placaSeleccionada = e.target.value;
-    const data = currentPlacasData.find((p) => p.placa === placaSeleccionada);
-    if (data) {
-      document.getElementById('movConductor').value = data.conductor || '';
-      document.getElementById('movTipoCap').value = `${data.tipo || ''} (${data.capacidad || 0} pax)`;
-      document.getElementById('movRutaCultivo').value = `${data.ruta || ''} / ${data.cultivo || ''}`;
-      document.getElementById('movPlaca').dataset.capacidad = data.capacidad || 0;
-      calcFreeSeats();
-    } else {
-      clearMovFields();
-    }
-  });
-
-  document.getElementById('movPasajeros').addEventListener('input', calcFreeSeats);
-
-  // Búsqueda automática de DNI
-  document.getElementById('ausDni').addEventListener('input', async (e) => {
-    const dni = e.target.value.trim();
-    if (dni.length === 8) {
-      document.getElementById('ausNombre').value = 'Buscando...';
-      const person = await getLocalItem('personal', dni);
-      if (person) {
-        document.getElementById('ausNombre').value = person.nombre;
-      } else if (navigator.onLine) {
-        try {
-          const res = await fetch(`${SCRIPT_URL}?action=getPersonal&dni=${dni}`);
-          const data = await res.json();
-          if (data && data.nombre) {
-            document.getElementById('ausNombre').value = data.nombre;
-            saveLocalData('personal', [data]);
-          } else {
-            document.getElementById('ausNombre').value = 'No encontrado';
-          }
-        } catch (err) {
-          document.getElementById('ausNombre').value = 'Error al consultar';
-        }
-      } else {
-        document.getElementById('ausNombre').value = 'Sin conexión (no hallado local)';
-      }
-    } else {
-      document.getElementById('ausNombre').value = '';
-    }
-  });
-
-  // Mostrar u ocultar fecha de retorno
-  document.getElementById('ausRegresa').addEventListener('change', (e) => {
-    const group = document.getElementById('groupFechaRetorno');
-    if (e.target.value === 'SI') {
-      group.classList.remove('hidden');
-    } else {
-      group.classList.add('hidden');
-    }
-  });
-
-  document.getElementById('ausTipoRetorno').addEventListener('change', (e) => {
-    const inputFecha = document.getElementById('ausFechaRetorno');
-    if (e.target.value === 'Fecha Especifica') {
-      inputFecha.classList.remove('hidden');
-    } else {
-      inputFecha.classList.add('hidden');
-    }
-  });
-
-  // Botón para actualizar manualmente la lista de placas
-  document.getElementById('btnSyncPlacas').addEventListener('click', async () => {
-    if (navigator.onLine) {
-      await fetchAndStoreMaestros();
-      await loadPlacas();
-      alert('Lista de placas actualizada correctamente.');
-    } else {
-      alert('Requiere conexión a internet para sincronizar la lista de placas.');
-    }
-  });
-
-  document.getElementById('formMovilidades').addEventListener('submit', handleMovilidadesSubmit);
-  document.getElementById('formAusentismos').addEventListener('submit', handleAusentismosSubmit);
-}
-
-function switchTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  if (event && event.target) {
-    event.target.classList.add('active');
-  }
-}
-
-function calcFreeSeats() {
-  const cap = parseInt(document.getElementById('movPlaca').dataset.capacidad || 0);
-  const pas = parseInt(document.getElementById('movPasajeros').value || 0);
-  document.getElementById('movAsientosLibres').value = cap - pas;
-}
-
-function clearMovFields() {
-  document.getElementById('movConductor').value = '';
-  document.getElementById('movTipoCap').value = '';
-  document.getElementById('movRutaCultivo').value = '';
-  document.getElementById('movAsientosLibres').value = '';
-  document.getElementById('movPlaca').dataset.capacidad = 0;
-}
-
-// Carga las placas desde IndexedDB o las consulta al servidor
-async function loadPlacas() {
-  currentPlacasData = await getLocalData('maestros');
+function handleNetworkChange() {
+  const statusNet = document.getElementById("statusNetwork");
+  const statusBar = document.getElementById("statusBar");
   
-  // Si no hay placas guardadas localmente y hay internet, se realiza la consulta a Google Apps Script
-  if ((!currentPlacasData || currentPlacasData.length === 0) && navigator.onLine) {
-    await fetchAndStoreMaestros();
-    currentPlacasData = await getLocalData('maestros');
-  }
-
-  const movSelect = document.getElementById('movPlaca');
-  const ausSelect = document.getElementById('ausPlaca');
-
-  if (movSelect) movSelect.innerHTML = '<option value="">Seleccione placa...</option>';
-  if (ausSelect) ausSelect.innerHTML = '<option value="">Seleccione placa...</option>';
-
-  if (currentPlacasData && currentPlacasData.length > 0) {
-    currentPlacasData.forEach(p => {
-      if (movSelect) {
-        const optM = document.createElement('option');
-        optM.value = p.placa;
-        optM.textContent = `${p.placa} - ${p.conductor}`;
-        movSelect.appendChild(optM);
-      }
-      if (ausSelect) {
-        const optA = document.createElement('option');
-        optA.value = p.placa;
-        optA.textContent = `${p.placa} - (${p.ruta})`;
-        ausSelect.appendChild(optA);
-      }
-    });
+  if (navigator.onLine) {
+    statusNet.innerHTML = `<i class="bi bi-wifi"></i> Conectado`;
+    statusBar.className = "bg-success text-white text-center py-1 status-bar";
+    processQueue();
+  } else {
+    statusNet.innerHTML = `<i class="bi bi-wifi-off"></i> Modo Offline (Guardado Local)`;
+    statusBar.className = "bg-warning text-dark text-center py-1 status-bar";
   }
 }
 
-async function fetchAndStoreMaestros() {
+async function updateSyncStatus() {
+  const queue = await getFromStore("syncQueue");
+  const statusSync = document.getElementById("statusSync");
+  statusSync.innerHTML = `<i class="bi bi-cloud"></i> Pendientes: ${queue.length}`;
+}
+
+// Carga de Maestros y Personal
+async function syncMaestrosAndPersonal() {
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=getMaestros`);
-    const data = await res.json();
-    if (data.maestros && data.maestros.length > 0) {
-      await saveLocalData('maestros', data.maestros);
+    const resM = await fetch(`${GAS_API_URL}?action=getMaestros`);
+    const dataM = await resM.json();
+    if (dataM.status === "success") {
+      maestrosCache = dataM.maestros;
+      saveToStore("maestros", maestrosCache);
     }
-    if (data.personal && data.personal.length > 0) {
-      await saveLocalData('personal', data.personal);
+
+    const resP = await fetch(`${GAS_API_URL}?action=getPersonal`);
+    const dataP = await resP.json();
+    if (dataP.status === "success") {
+      personalCache = dataP.personal;
+      saveToStore("personal", personalCache);
     }
+
+    populateDropdowns();
   } catch (e) {
-    console.error('Error al descargar lista de maestros:', e);
+    console.warn("No se pudo actualizar maestros desde la nube, usando local.");
   }
 }
 
-async function handleMovilidadesSubmit(e) {
-  e.preventDefault();
-  const payload = {
-    fechaRegistro: new Date().toISOString(),
-    placa: document.getElementById('movPlaca').value,
-    conductor: document.getElementById('movConductor').value,
-    tipoCapacidad: document.getElementById('movTipoCap').value,
-    rutaCultivo: document.getElementById('movRutaCultivo').value,
-    pasajeros: document.getElementById('movPasajeros').value,
-    asientosLibres: document.getElementById('movAsientosLibres').value,
-    observaciones: document.getElementById('movObservaciones').value
-  };
-
-  await addQueueItem('queue_movilidades', payload);
-  document.getElementById('formMovilidades').reset();
-  clearMovFields();
-  alert('Registro de movilidad guardado localmente.');
-  updateSyncCounter();
-  if (navigator.onLine) syncQueue();
+async function loadLocalData() {
+  maestrosCache = await getFromStore("maestros");
+  personalCache = await getFromStore("personal");
+  populateDropdowns();
 }
 
-async function handleAusentismosSubmit(e) {
-  e.preventDefault();
-  const regresa = document.getElementById('ausRegresa').value;
-  let fechaRetorno = 'N/A';
-  if (regresa === 'SI') {
-    const tipo = document.getElementById('ausTipoRetorno').value;
-    fechaRetorno = tipo === 'Inmediato' ? 'Inmediato' : document.getElementById('ausFechaRetorno').value;
-  }
+function populateDropdowns() {
+  const movPlaca = document.getElementById("movPlaca");
+  const ausPlaca = document.getElementById("ausPlaca");
 
-  const payload = {
-    fechaRegistro: new Date().toISOString(),
-    placaRuta: document.getElementById('ausPlaca').value,
-    dni: document.getElementById('ausDni').value,
-    nombre: document.getElementById('ausNombre').value,
-    fechaFalta: document.getElementById('ausFechaFalta').value,
-    motivo: document.getElementById('ausMotivo').value,
-    regresa: regresa,
-    fechaRetorno: fechaRetorno
-  };
+  movPlaca.innerHTML = '<option value="">Seleccione una placa...</option>';
+  ausPlaca.innerHTML = '<option value="">Seleccione una placa...</option>';
 
-  await addQueueItem('queue_ausentismos', payload);
-  document.getElementById('formAusentismos').reset();
-  document.getElementById('groupFechaRetorno').classList.add('hidden');
-  alert('Registro de ausentismo guardado localmente.');
-  updateSyncCounter();
-  if (navigator.onLine) syncQueue();
+  maestrosCache.forEach(m => {
+    movPlaca.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+    ausPlaca.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+  });
 }
 
-function updateNetworkStatus() {
-  const badge = document.getElementById('netStatus');
-  if (badge) {
-    if (navigator.onLine) {
-      badge.textContent = '● Conectado';
-      badge.className = 'status-badge online';
+// Configuración de UI e Interacciones de Formulario
+function setupUIEvents() {
+  // Cambio de Placa en Movilidades
+  document.getElementById("movPlaca").addEventListener("change", (e) => {
+    const m = maestrosCache.find(x => x.placa === e.target.value);
+    if (m) {
+      document.getElementById("movConductor").value = m.conductor;
+      document.getElementById("movTipo").value = m.tipo;
+      document.getElementById("movCapacidad").value = m.capacidad;
+      document.getElementById("movRuta").value = m.ruta;
+      document.getElementById("movCultivo").value = m.cultivo;
+      calcAsientos();
+    }
+  });
+
+  // Cálculo Dinámico de Asientos
+  document.getElementById("movPasajeros").addEventListener("input", calcAsientos);
+
+  // Cambio de Placa en Ausentismo
+  document.getElementById("ausPlaca").addEventListener("change", (e) => {
+    const m = maestrosCache.find(x => x.placa === e.target.value);
+    document.getElementById("ausRuta").value = m ? m.ruta : "";
+  });
+
+  // Búsqueda de DNI Personal
+  document.getElementById("ausDni").addEventListener("input", (e) => {
+    const val = e.target.value;
+    if (val.length === 8) {
+      const p = personalCache.find(x => x.dni === val);
+      document.getElementById("ausNombres").value = p ? p.nombres : "DNI NO ENCONTRADO EN MAESTRO";
     } else {
-      badge.textContent = '● Modo Offline';
-      badge.className = 'status-badge offline';
+      document.getElementById("ausNombres").value = "";
+    }
+  });
+
+  // Motivo de Ausentismo y Requerimiento de Observación
+  document.getElementById("ausMotivo").addEventListener("change", (e) => {
+    const val = e.target.value;
+    const lbl = document.getElementById("lblAusObs");
+    const obs = document.getElementById("ausObs");
+
+    if (val.includes("(Especificar en obs)")) {
+      lbl.innerHTML = 'Observaciones <span class="text-danger">*</span>';
+      obs.required = true;
+    } else {
+      lbl.innerHTML = 'Observaciones';
+      obs.required = false;
+    }
+  });
+
+  // Despliegue Condicional de Retorno
+  document.getElementById("ausRegresar").addEventListener("change", (e) => {
+    const val = e.target.value;
+    const group = document.getElementById("groupRetorno");
+    if (val === "SI") {
+      group.classList.remove("d-none");
+    } else {
+      group.classList.add("d-none");
+    }
+  });
+
+  document.getElementById("ausRetornoOpcion").addEventListener("change", (e) => {
+    const val = e.target.value;
+    const inputF = document.getElementById("ausFechaRetorno");
+    if (val === "Fecha específica") {
+      inputF.classList.remove("d-none");
+      inputF.required = true;
+    } else {
+      inputF.classList.add("d-none");
+      inputF.required = false;
+    }
+  });
+
+  // Envío Formulario Movilidad
+  document.getElementById("formMovilidad").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      type: "movilidad",
+      data: {
+        placa: document.getElementById("movPlaca").value,
+        conductor: document.getElementById("movConductor").value,
+        tipo: document.getElementById("movTipo").value,
+        capacidad: document.getElementById("movCapacidad").value,
+        ruta: document.getElementById("movRuta").value,
+        cultivo: document.getElementById("movCultivo").value,
+        pasajeros: document.getElementById("movPasajeros").value,
+        asientosLibres: document.getElementById("movAsientos").innerText,
+        observaciones: document.getElementById("movObs").value
+      }
+    };
+
+    await saveRecord(payload);
+    e.target.reset();
+    document.getElementById("boxAsientos").className = "p-3 text-center rounded alert-asientos bg-light text-dark border";
+    document.getElementById("movAsientos").innerText = "0";
+  });
+
+  // Envío Formulario Ausentismo
+  document.getElementById("formAusentismo").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    let retornoDet = "";
+    const vaReg = document.getElementById("ausRegresar").value;
+    if (vaReg === "SI") {
+      const op = document.getElementById("ausRetornoOpcion").value;
+      retornoDet = op === "Fecha específica" ? `Fecha: ${document.getElementById("ausFechaRetorno").value}` : op;
+    }
+
+    const payload = {
+      type: "ausentismo",
+      data: {
+        placa: document.getElementById("ausPlaca").value,
+        ruta: document.getElementById("ausRuta").value,
+        dni: document.getElementById("ausDni").value,
+        nombres: document.getElementById("ausNombres").value,
+        fechaFalta: document.getElementById("ausFecha").value,
+        motivo: document.getElementById("ausMotivo").value,
+        observaciones: document.getElementById("ausObs").value,
+        vaARegresar: vaReg,
+        retornoDetalle: retornoDet
+      }
+    };
+
+    await saveRecord(payload);
+    e.target.reset();
+    document.getElementById("groupRetorno").classList.add("d-none");
+    document.getElementById("ausFecha").value = new Date().toISOString().split('T')[0];
+  });
+
+  // Forzar Actualización Manual
+  document.getElementById("btnUpdateMaestros").addEventListener("click", () => {
+    if (navigator.onLine) {
+      syncMaestrosAndPersonal();
+      alert("Listas actualizadas correctamente.");
+    } else {
+      alert("No hay conexión a Internet para actualizar la lista.");
+    }
+  });
+}
+
+function calcAsientos() {
+  const cap = parseInt(document.getElementById("movCapacidad").value) || 0;
+  const pas = parseInt(document.getElementById("movPasajeros").value) || 0;
+  const libres = cap - pas;
+
+  const display = document.getElementById("movAsientos");
+  const box = document.getElementById("boxAsientos");
+
+  display.innerText = libres;
+
+  if (libres < 0) {
+    box.className = "p-3 text-center rounded alert-asientos bg-danger text-white";
+  } else if (libres === 0) {
+    box.className = "p-3 text-center rounded alert-asientos bg-warning text-dark";
+  } else {
+    box.className = "p-3 text-center rounded alert-asientos bg-success text-white";
+  }
+}
+
+// Sincronización y Procesamiento de Registros
+async function saveRecord(payload) {
+  if (navigator.onLine) {
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const resJson = await res.json();
+      if (resJson.status === "success") {
+        alert("Registro enviado e ingresado con éxito.");
+        return;
+      }
+    } catch (e) {
+      console.warn("Fallo al enviar a la nube, guardando en cola offline.");
     }
   }
+
+  await addToQueue(payload);
+  alert("Sin conexión. Registro guardado localmente en el dispositivo.");
 }
 
-async function updateSyncCounter() {
-  const movs = await getQueueItems('queue_movilidades');
-  const aus = await getQueueItems('queue_ausentismos');
-  const badge = document.getElementById('syncStatus');
-  if (badge) {
-    badge.textContent = `Pendientes: ${movs.length + aus.length}`;
-  }
+async function processQueue() {
+  const tx = db.transaction("syncQueue", "readonly");
+  const store = tx.objectStore("syncQueue");
+  const req = store.openCursor();
+
+  req.onsuccess = async (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const item = cursor.value;
+      const key = cursor.key;
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify(item)
+        });
+        const resJson = await res.json();
+
+        if (resJson.status === "success") {
+          const deleteTx = db.transaction("syncQueue", "readwrite");
+          deleteTx.objectStore("syncQueue").delete(key);
+        }
+      } catch (err) {
+        console.error("Error sincronizando ítem de la cola:", err);
+      }
+      cursor.continue();
+    } else {
+      updateSyncStatus();
+    }
+  };
 }
 
-async function syncQueue() {
-  if (!navigator.onLine) return;
-
-  const movs = await getQueueItems('queue_movilidades');
-  for (const item of movs) {
-    try {
-      await sendToScript('saveMovilidad', item.value);
-      await removeQueueItem('queue_movilidades', item.key);
-    } catch (e) { break; }
-  }
-
-  const aus = await getQueueItems('queue_ausentismos');
-  for (const item of aus) {
-    try {
-      await sendToScript('saveAusentismo', item.value);
-      await removeQueueItem('queue_ausentismos', item.key);
-    } catch (e) { break; }
-  }
-
-  updateSyncCounter();
-}
-
-async function sendToScript(action, data) {
-  await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload: data })
-  });
-  return { status: 'success' };
+// Registro de Service Worker
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker Registrado con Éxito"))
+    .catch((err) => console.error("Error al registrar SW:", err));
 }
