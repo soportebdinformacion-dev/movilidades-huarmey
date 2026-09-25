@@ -122,7 +122,7 @@
         </div>
 
         <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
-          GUARDAR REGISTROS
+          GUARDAR REGISTRO
         </button>
       </form>
     </section>
@@ -223,17 +223,20 @@
   </main>
 
   <script>
-    // REEMPLAZAR POR TU URL DE GOOGLE APPS SCRIPT PUBLICADA
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpz0LuG9ZeYF9Z11oa3yIkI0Xm3oK6uwb2-J5DjZth5ll4cJiVeVR9tPB9eZlbVcbV/exec';
+    // URL DE PUBLICACIÓN DE TU GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyttFguJB_kkAqxsoEl1FzA4dQQMRDSQXcVHxkBDcuti-3I7YLbuehIWRc7_IgZllyw/exec';
 
+    // DATOS DE RESPALDO DE SEGURIDAD
     const DEFAULT_MAESTROS = [
       { placa: 'ABC-123', conductor: 'Juan Pérez', tipo: 'Bus', capacidad: 30, ruta: 'Ruta 1 - Huarmey Norte', cultivo: 'Arándano' },
-      { placa: 'XYZ-789', conductor: 'Carlos López', tipo: 'Custer', capacidad: 18, ruta: 'Ruta 2 - Huarmey Sur', cultivo: 'Palto' }
+      { placa: 'XYZ-789', conductor: 'Carlos López', tipo: 'Custer', capacidad: 18, ruta: 'Ruta 2 - Huarmey Sur', cultivo: 'Palto' },
+      { placa: 'MNO-456', conductor: 'Miguel Torres', tipo: 'Minivan', capacidad: 12, ruta: 'Ruta 3 - Campo Centro', cultivo: 'Espárrago' }
     ];
 
     const DEFAULT_PERSONAL = [
       { dni: '00324569', nombres: 'García Mendoza, Roberto' },
-      { dni: '02534795', nombres: 'Quispe Huamán, Ana María' }
+      { dni: '02534795', nombres: 'Quispe Huamán, Ana María' },
+      { dni: '42048377', nombres: 'Rojas Salazar, Fernando' }
     ];
 
     let db;
@@ -262,9 +265,10 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
+    // Consulta con Callback JSONP para bypass CORS
     function fetchMaestros(forceUser = false) {
       if (!navigator.onLine) {
-        if (forceUser) alert('Modo Offline: Usando catálogos guardados en el dispositivo.');
+        if (forceUser) alert('Modo Offline: Usando catálogos almacenados en el dispositivo.');
         return;
       }
 
@@ -281,14 +285,22 @@
 
           populatePlacas();
           if (forceUser) alert('¡Listas actualizadas correctamente desde Google Sheets!');
+        } else {
+          if (forceUser) alert('No se encontraron registros en Google Sheets.');
         }
       };
 
+      const oldScript = document.getElementById('jsonp-maestros');
+      if (oldScript) oldScript.remove();
+
       const script = document.createElement('script');
+      script.id = 'jsonp-maestros';
       script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
-      script.onerror = () => { populatePlacas(); };
+      script.onerror = () => {
+        populatePlacas();
+        if (forceUser) alert('Error al conectar con Google Sheets. Verifique la publicación del script.');
+      };
       document.body.appendChild(script);
-      setTimeout(() => { if (script.parentNode) document.body.removeChild(script); }, 5000);
     }
 
     function loadLocalMaestros() {
@@ -363,19 +375,27 @@
     function autoFillAusentismoPlaca() {
       const placa = document.getElementById('aus-placa').value;
       const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
-      document.getElementById('aus-ruta').value = item ? (item.ruta || '') : '';
+      if (item) {
+        document.getElementById('aus-ruta').value = item.ruta || '';
+      } else {
+        document.getElementById('aus-ruta').value = '';
+      }
     }
 
     function searchDNI(val) {
       val = val.trim();
-      while (val.length < 8 && val.length > 0 && !isNaN(val)) { val = '0' + val; }
       if (val.length === 8) {
         const p = personalData.find(item => {
           let cleanDni = String(item.dni).trim();
           while (cleanDni.length < 8) cleanDni = '0' + cleanDni;
           return cleanDni === val;
         });
-        document.getElementById('aus-nombres').value = p ? p.nombres : 'NO ENCONTRADO EN PADRÓN';
+
+        if (p) {
+          document.getElementById('aus-nombres').value = p.nombres;
+        } else {
+          document.getElementById('aus-nombres').value = 'NO ENCONTRADO EN PADRÓN';
+        }
       } else {
         document.getElementById('aus-nombres').value = '';
       }
@@ -468,37 +488,10 @@
       };
     }
 
-    async function sendRecordToCloud(typeName, item) {
-      const payload = { type: typeName, data: item };
-      
-      // Intento 1: Envío vía POST con Form-UrlEncoded (Supera restricciones de Apps Script)
-      try {
-        const params = new URLSearchParams();
-        params.append('payload', JSON.stringify(payload));
-
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params.toString()
-        });
-        return true;
-      } catch (err) {
-        // Intento 2: Caída a GET con callback antierrores
-        try {
-          const encoded = encodeURIComponent(JSON.stringify(payload));
-          await fetch(`${APPS_SCRIPT_URL}?action=saveData&data=${encoded}`, { mode: 'no-cors' });
-          return true;
-        } catch (err2) {
-          return false;
-        }
-      }
-    }
-
     async function syncPendingData() {
       if (!navigator.onLine || !db) return;
 
-      const processStore = (storeName, typeName) => {
+      const syncStore = (storeName, typeName) => {
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
         store.openCursor().onsuccess = async (e) => {
@@ -506,20 +499,26 @@
           if (cursor) {
             if (cursor.value.status === 'Pendiente') {
               const item = cursor.value;
-              const sent = await sendRecordToCloud(typeName, item);
-              if (sent) {
+              try {
+                await fetch(APPS_SCRIPT_URL, {
+                  method: 'POST',
+                  mode: 'no-cors',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ type: typeName, data: item })
+                });
                 item.status = 'Sincronizado';
-                cursor.update(item);
-                updateQueueCount();
-              }
+                const updateTx = db.transaction(storeName, 'readwrite');
+                updateTx.objectStore(storeName).put(item);
+                updateTx.oncomplete = () => updateQueueCount();
+              } catch (err) { }
             }
             cursor.continue();
           }
         };
       };
 
-      processStore('movilidades', 'movilidad');
-      processStore('ausentismos', 'ausentismo');
+      syncStore('movilidades', 'movilidad');
+      syncStore('ausentismos', 'ausentismo');
     }
 
     window.addEventListener('online', () => {
