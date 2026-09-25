@@ -122,7 +122,7 @@
         </div>
 
         <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
-          GUARDAR REGISTRO
+          GUARDAR REGISTROS
         </button>
       </form>
     </section>
@@ -224,26 +224,24 @@
 
   <script>
     // URL DE PUBLICACIÓN DE TU GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyttFguJB_kkAqxsoEl1FzA4dQQMRDSQXcVHxkBDcuti-3I7YLbuehIWRc7_IgZllyw/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOB0OaL5kEr722makQaJG3Zzpdr6yxiKn8zVYiZBcY6HIc-fC1DFrIFVQRZ-u7dFin/exec';
 
-    // DATOS DE RESPALDO DE SEGURIDAD
+    // DATOS DE RESPALDO DE SEGURIDAD (Carga inmediata)
     const DEFAULT_MAESTROS = [
       { placa: 'ABC-123', conductor: 'Juan Pérez', tipo: 'Bus', capacidad: 30, ruta: 'Ruta 1 - Huarmey Norte', cultivo: 'Arándano' },
-      { placa: 'XYZ-789', conductor: 'Carlos López', tipo: 'Custer', capacidad: 18, ruta: 'Ruta 2 - Huarmey Sur', cultivo: 'Palto' },
-      { placa: 'MNO-456', conductor: 'Miguel Torres', tipo: 'Minivan', capacidad: 12, ruta: 'Ruta 3 - Campo Centro', cultivo: 'Espárrago' }
+      { placa: 'XYZ-789', conductor: 'Carlos López', tipo: 'Custer', capacidad: 18, ruta: 'Ruta 2 - Huarmey Sur', cultivo: 'Palto' }
     ];
 
     const DEFAULT_PERSONAL = [
       { dni: '00324569', nombres: 'García Mendoza, Roberto' },
-      { dni: '02534795', nombres: 'Quispe Huamán, Ana María' },
-      { dni: '42048377', nombres: 'Rojas Salazar, Fernando' }
+      { dni: '02534795', nombres: 'Quispe Huamán, Ana María' }
     ];
 
     let db;
     let maestrosData = DEFAULT_MAESTROS;
     let personalData = DEFAULT_PERSONAL;
 
-    // Inicializar IndexedDB
+    // Inicializar IndexedDB para soporte Offline
     const request = indexedDB.open('AgricolaHuarmeyDB', 1);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
@@ -285,22 +283,14 @@
 
           populatePlacas();
           if (forceUser) alert('¡Listas actualizadas correctamente desde Google Sheets!');
-        } else {
-          if (forceUser) alert('No se encontraron registros en Google Sheets.');
         }
       };
 
-      const oldScript = document.getElementById('jsonp-maestros');
-      if (oldScript) oldScript.remove();
-
       const script = document.createElement('script');
-      script.id = 'jsonp-maestros';
       script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
-      script.onerror = () => {
-        populatePlacas();
-        if (forceUser) alert('Error al conectar con Google Sheets. Verifique la publicación del script.');
-      };
+      script.onerror = () => { populatePlacas(); };
       document.body.appendChild(script);
+      setTimeout(() => { if (script.parentNode) document.body.removeChild(script); }, 5000);
     }
 
     function loadLocalMaestros() {
@@ -345,6 +335,7 @@
       if (currentAusVal) ausSelect.value = currentAusVal;
     }
 
+    // Autocompletado de Movilidad
     function autoFillMovilidad() {
       const placa = document.getElementById('mov-placa').value;
       const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
@@ -372,6 +363,7 @@
       document.getElementById('mov-asientos').value = Math.max(0, cap - pas);
     }
 
+    // Autocompletado de Ausentismo
     function autoFillAusentismoPlaca() {
       const placa = document.getElementById('aus-placa').value;
       const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
@@ -382,6 +374,7 @@
       }
     }
 
+    // Búsqueda Instantánea de Personal por DNI (8 dígitos)
     function searchDNI(val) {
       val = val.trim();
       if (val.length === 8) {
@@ -430,7 +423,7 @@
       saveRecord('movilidades', record, () => {
         document.getElementById('form-movilidad').reset();
         document.getElementById('mov-asientos').value = '';
-        alert('✅ Registro de Movilidad guardado correctamente.');
+        alert('✅ Registro de Movilidad guardado localmente.');
       });
     }
 
@@ -456,7 +449,7 @@
 
       saveRecord('ausentismos', record, () => {
         document.getElementById('form-ausentismo').reset();
-        alert('✅ Registro de Ausentismo guardado correctamente.');
+        alert('✅ Registro de Ausentismo guardado localmente.');
       });
     }
 
@@ -507,9 +500,8 @@
                   body: JSON.stringify({ type: typeName, data: item })
                 });
                 item.status = 'Sincronizado';
-                const updateTx = db.transaction(storeName, 'readwrite');
-                updateTx.objectStore(storeName).put(item);
-                updateTx.oncomplete = () => updateQueueCount();
+                cursor.update(item);
+                updateQueueCount();
               } catch (err) { }
             }
             cursor.continue();
@@ -533,6 +525,7 @@
       document.getElementById('status-text').innerText = "Modo Offline (Guardando localmente)";
     });
 
+    // Iniciar renderizado
     populatePlacas();
 
     if ('serviceWorker' in navigator) {
