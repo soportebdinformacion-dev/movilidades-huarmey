@@ -3,255 +3,511 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agrícola Huarmey - Control de Campo</title>
+  <title>Agrícola Huarmey - Control de Transporte y Ausentismo</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1E4D2B">
-  <!-- Bootstrap 5 CSS & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  
+  <meta name="theme-color" content="#1E5328">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            agricola: {
+              green: '#1E5328',
+              lightGreen: '#E8F5E9',
+              red: '#D32F2F',
+              accent: '#2E7D32'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    :root {
-      --verde-agricola: #1E4D2B;
-      --rojo-acento: #D32F2F;
-      --fondo-neutro: #F4F6F4;
-    }
-
-    body {
-      background-color: var(--fondo-neutro);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding-bottom: 30px;
-    }
-
-    .navbar {
-      background-color: var(--verde-agricola);
-      color: white;
-    }
-
-    .brand-logo {
-      height: 40px;
-      margin-right: 10px;
-    }
-
-    .nav-tabs .nav-link {
-      color: #495057;
-      font-weight: 600;
-    }
-
-    .nav-tabs .nav-link.active {
-      color: var(--verde-agricola);
-      border-bottom: 3px solid var(--verde-agricola);
-    }
-
-    .btn-agricola {
-      background-color: var(--verde-agricola);
-      color: white;
-      font-weight: bold;
-      padding: 12px;
-    }
-
-    .btn-agricola:hover {
-      background-color: #15371e;
-      color: white;
-    }
-
-    .status-bar {
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    .alert-asientos {
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f6f8; }
+    .tab-active { border-bottom: 4px solid #1E5328; color: #1E5328; font-weight: bold; }
   </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
-  <!-- Encabezado -->
-  <nav class="navbar navbar-dark px-3 shadow-sm">
-    <div class="d-flex align-items-center">
-      <img src="ICONO HUARMEY.png" alt="Logo" class="brand-logo">
-      <span class="navbar-brand mb-0 h1">Agrícola Huarmey</span>
+  <!-- Encabezado con Logo Corporativo -->
+  <header class="bg-white shadow-md p-4 text-center sticky top-0 z-50">
+    <div class="flex flex-col items-center justify-center">
+      <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey Logo" class="h-16 mb-1 object-contain">
+      <h1 class="text-xl font-bold text-agricola-green">Agrícola Huarmey</h1>
+      <p class="text-xs text-gray-500">Sistema de Control de Transporte y Ausentismo</p>
     </div>
+  </header>
+
+  <!-- Indicador de Estado de Conexión y Cola Local -->
+  <div id="status-bar" class="bg-agricola-lightGreen text-agricola-green px-4 py-2 text-sm font-semibold flex justify-between items-center border-b border-green-200">
+    <div class="flex items-center space-x-2">
+      <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block"></span>
+      <span id="status-text">Conectado (Sincronizando)</span>
+    </div>
+    <span id="queue-count" class="bg-white px-2 py-1 rounded text-xs border border-green-300 font-bold">
+      GUARDANDO EN LA NUBE (0)
+    </span>
+  </div>
+
+  <!-- Menú de Navegación por Pestañas -->
+  <nav class="flex bg-white shadow border-b">
+    <button id="tab-movilidades-btn" onclick="switchTab('movilidades')" class="flex-1 py-3 text-center font-medium text-gray-600 tab-active">
+      🚌 Movilidades
+    </button>
+    <button id="tab-ausentismo-btn" onclick="switchTab('ausentismo')" class="flex-1 py-3 text-center font-medium text-gray-600">
+      📋 Ausentismo
+    </button>
   </nav>
 
-  <!-- Barra de Estado / Red -->
-  <div id="statusBar" class="bg-secondary text-white text-center py-1 status-bar">
-    <span id="statusNetwork"><i class="bi bi-wifi-off"></i> Comprobando conexión...</span> | 
-    <span id="statusSync"><i class="bi bi-cloud"></i> Peticiones pendientes: 0</span>
-  </div>
+  <!-- Contenido Principal -->
+  <main class="flex-grow p-4 max-w-lg mx-auto w-full">
 
-  <div class="container mt-3">
-    <!-- Navegación por pestañas -->
-    <ul class="nav nav-tabs nav-fill mb-3" id="mainTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="movilidad-tab" data-bs-toggle="tab" data-bs-target="#movilidad-panel" type="button" role="tab"><i class="bi bi-bus-front"></i> Movilidades</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="ausentismo-tab" data-bs-toggle="tab" data-bs-target="#ausentismo-panel" type="button" role="tab"><i class="bi bi-person-x"></i> Ausentismo</button>
-      </li>
-    </ul>
+    <!-- SECCIÓN 1: REGISTRO DE MOVILIDADES -->
+    <section id="section-movilidades" class="bg-white rounded-xl shadow-md p-5 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
+        <button onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50">
+          🔄 Actualizar Placas
+        </button>
+      </div>
 
-    <div class="tab-content" id="mainTabContent">
+      <form id="form-movilidad" onsubmit="handleSaveMovilidad(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa de Unidad *</label>
+          <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+            <option value="">Seleccione una placa...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Conductor</label>
+          <input type="text" id="mov-conductor" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tipo</label>
+            <input type="text" id="mov-tipo" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Capacidad</label>
+            <input type="number" id="mov-capacidad" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 font-bold">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
+            <input type="text" id="mov-ruta" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Cultivo</label>
+            <input type="text" id="mov-cultivo" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">N° Pasajeros *</label>
+          <input type="number" id="mov-pasajeros" min="0" oninput="calculateSeats()" required placeholder="Ej. 15" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Asientos Libres</label>
+          <input type="number" id="mov-asientos" readonly class="w-full p-3 bg-green-50 border border-green-300 text-agricola-green font-bold rounded-lg text-lg">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Observaciones</label>
+          <textarea id="mov-observaciones" rows="2" placeholder="Opcional..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
+          GUARDAR REGISTRO
+        </button>
+      </form>
+    </section>
+
+    <!-- SECCIÓN 2: REGISTRO DE AUSENTISMO -->
+    <section id="section-ausentismo" class="bg-white rounded-xl shadow-md p-5 space-y-4 hidden">
+      <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Registro de Ausentismo</h2>
+
+      <form id="form-ausentismo" onsubmit="handleSaveAusentismo(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa *</label>
+          <select id="aus-placa" onchange="autoFillAusentismoPlaca()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+            <option value="">Seleccione Placa...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
+          <input type="text" id="aus-ruta" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI Personal *</label>
+          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="8 dígitos" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apellidos y Nombres</label>
+          <input type="text" id="aus-nombres" readonly placeholder="Búsqueda por DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 font-semibold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha de Falta *</label>
+          <input type="date" id="aus-fechafalta" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Motivo de Ausencia *</label>
+          <select id="aus-motivo" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+            <option value="">Seleccione...</option>
+            <option value="Ninguno">Ninguno</option>
+            <option value="Descanso médico (Absentismo)">Descanso médico (Absentismo)</option>
+            <option value="Permiso con papeleta (Absentismo)">Permiso con papeleta (Absentismo)</option>
+            <option value="Enfermedad">Enfermedad</option>
+            <option value="Problemas familiares">Problemas familiares</option>
+            <option value="Transporte (Especificar en observaciones)">Transporte (Especificar en observaciones)</option>
+            <option value="Otro trabajo (Especificar en observaciones)">Otro trabajo (Especificar en observaciones)</option>
+            <option value="Desmotivación">Desmotivación</option>
+            <option value="Sacar tarjeta">Sacar tarjeta</option>
+            <option value="Pago">Pago</option>
+            <option value="Horario">Horario</option>
+            <option value="Alimentación">Alimentación</option>
+            <option value="Campamento">Campamento</option>
+            <option value="Ambiente laboral">Ambiente laboral</option>
+            <option value="Renuncia (Especificar en observaciones)">Renuncia (Especificar en observaciones)</option>
+            <option value="Problemas con el caporal (Especificar en observaciones)">Problemas con el caporal (Especificar en observaciones)</option>
+            <option value="Estudios">Estudios</option>
+            <option value="Viaje">Viaje</option>
+            <option value="Accidente">Accidente</option>
+            <option value="No desea continuar (Especificar en observaciones)">No desea continuar (Especificar en observaciones)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Observaciones</label>
+          <textarea id="aus-observaciones" rows="2" placeholder="Detalle observaciones adicionales..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">¿Vas a regresar? *</label>
+          <select id="aus-regresar" onchange="toggleRetornoSection()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+            <option value="Lo está pensando">Lo está pensando</option>
+          </select>
+        </div>
+
+        <div id="container-retorno" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retorno</label>
+            <select id="aus-retornotipo" onchange="toggleFechaRetornoInput()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+              <option value="Inmediato">Inmediato</option>
+              <option value="Especificar fecha">Especificar fecha</option>
+            </select>
+          </div>
+          <div id="container-fecharetorno" class="hidden">
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha de Retorno</label>
+            <input type="date" id="aus-fecharetorno" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
+          GUARDAR REGISTRO
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- LÓGICA DE APLICACIÓN Y SINCRONIZACIÓN -->
+  <script>
+    // URL DE GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYED_SCRIPT_ID/exec';
+
+    let db;
+    let maestrosData = [];
+    let personalData = [];
+
+    // Inicializar IndexedDB
+    const request = indexedDB.open('AgricolaHuarmeyDB', 1);
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains('movilidades')) {
+        db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('ausentismos')) {
+        db.createObjectStore('ausentismos', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('maestros')) {
+        db.createObjectStore('maestros', { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      loadLocalMaestros();
+      updateQueueCount();
+      syncPendingData();
+    };
+
+    // Pestañas
+    function switchTab(tab) {
+      document.getElementById('section-movilidades').classList.toggle('hidden', tab !== 'movilidades');
+      document.getElementById('section-ausentismo').classList.toggle('hidden', tab !== 'ausentismo');
+      document.getElementById('tab-movilidades-btn').classList.toggle('tab-active', tab === 'movilidades');
+      document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
+    }
+
+    // Monitoreo de conexión
+    function updateOnlineStatus() {
+      const isOnline = navigator.onLine;
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (isOnline) {
+        dot.className = "h-3 w-3 rounded-full bg-green-500 inline-block";
+        text.innerText = "Conectado (Sincronizando)";
+        syncPendingData();
+      } else {
+        dot.className = "h-3 w-3 rounded-full bg-red-500 inline-block";
+        text.innerText = "Modo Offline (Guardando localmente)";
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // Cargar Catálogos Maestros
+    async function fetchMaestros(force = false) {
+      if (navigator.onLine) {
+        try {
+          const res = await fetch(`${APPS_SCRIPT_URL}?action=getMaestros`);
+          const data = await res.json();
+          if (data.status === 'success') {
+            maestrosData = data.maestros;
+            personalData = data.personal;
+            // Guardar en IndexedDB
+            const tx = db.transaction('maestros', 'readwrite');
+            tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
+            tx.objectStore('maestros').put({ key: 'personal', value: personalData });
+            populatePlacas();
+            alert('Catálogos actualizados correctamente.');
+          }
+        } catch (err) {
+          console.warn('Error fetching maestros, using local:', err);
+        }
+      }
+    }
+
+    function loadLocalMaestros() {
+      const tx = db.transaction('maestros', 'readonly');
+      const reqM = tx.objectStore('maestros').get('maestros');
+      reqM.onsuccess = () => {
+        if (reqM.result) maestrosData = reqM.result.value;
+        populatePlacas();
+      };
+      const reqP = tx.objectStore('maestros').get('personal');
+      reqP.onsuccess = () => {
+        if (reqP.result) personalData = reqP.result.value;
+      };
+      if (navigator.onLine) fetchMaestros();
+    }
+
+    function populatePlacas() {
+      const movSelect = document.getElementById('mov-placa');
+      const ausSelect = document.getElementById('aus-placa');
+      movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
+      ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
       
-      <!-- MÓDULO 1: REGISTRO DE MOVILIDADES -->
-      <div class="tab-pane fade show active" id="movilidad-panel" role="tabpanel">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <form id="formMovilidad">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Placa de Unidad *</label>
-                <select class="form-select form-select-lg" id="movPlaca" required>
-                  <option value="">Seleccione una placa...</option>
-                </select>
-              </div>
+      maestrosData.forEach(m => {
+        movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+        ausSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
+      });
+    }
 
-              <div class="row g-2 mb-3">
-                <div class="col-6">
-                  <label class="form-label small">Conductor</label>
-                  <input type="text" class="form-control bg-light" id="movConductor" readonly>
-                </div>
-                <div class="col-6">
-                  <label class="form-label small">Tipo</label>
-                  <input type="text" class="form-control bg-light" id="movTipo" readonly>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small">Capacidad</label>
-                  <input type="number" class="form-control bg-light fw-bold" id="movCapacidad" readonly>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small">Ruta</label>
-                  <input type="text" class="form-control bg-light" id="movRuta" readonly>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small">Cultivo</label>
-                  <input type="text" class="form-control bg-light" id="movCultivo" readonly>
-                </div>
-              </div>
+    // Autocompletado Movilidad
+    function autoFillMovilidad() {
+      const placa = document.getElementById('mov-placa').value;
+      const item = maestrosData.find(m => m.placa === placa);
+      if (item) {
+        document.getElementById('mov-conductor').value = item.conductor || '';
+        document.getElementById('mov-tipo').value = item.tipo || '';
+        document.getElementById('mov-capacidad').value = item.capacidad || 0;
+        document.getElementById('mov-ruta').value = item.ruta || '';
+        document.getElementById('mov-cultivo').value = item.cultivo || '';
+        calculateSeats();
+      }
+    }
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">N° Pasajeros Actuales *</label>
-                <input type="number" class="form-control form-control-lg" id="movPasajeros" min="0" required>
-              </div>
+    function calculateSeats() {
+      const cap = parseInt(document.getElementById('mov-capacidad').value) || 0;
+      const pas = parseInt(document.getElementById('mov-pasajeros').value) || 0;
+      document.getElementById('mov-asientos').value = Math.max(0, cap - pas);
+    }
 
-              <div class="mb-3">
-                <div class="p-3 text-center rounded alert-asientos bg-light text-dark border" id="boxAsientos">
-                  Asientos Libres: <span id="movAsientos">0</span>
-                </div>
-              </div>
+    // Autocompletado Ausentismo Placa
+    function autoFillAusentismoPlaca() {
+      const placa = document.getElementById('aus-placa').value;
+      const item = maestrosData.find(m => m.placa === placa);
+      if (item) {
+        document.getElementById('aus-ruta').value = item.ruta || '';
+      }
+    }
 
-              <div class="mb-3">
-                <label class="form-label">Observaciones</label>
-                <textarea class="form-control" id="movObs" rows="2" placeholder="Opcional..."></textarea>
-              </div>
+    // Búsqueda por DNI
+    function searchDNI(val) {
+      if (val.length === 8) {
+        const p = personalData.find(item => String(item.dni).padStart(8, '0') === val);
+        document.getElementById('aus-nombres').value = p ? p.nombres : 'PERSONAL NO ENCONTRADO';
+      } else {
+        document.getElementById('aus-nombres').value = '';
+      }
+    }
 
-              <button type="submit" class="btn btn-agricola w-100 shadow-sm mb-2">
-                <i class="bi bi-save"></i> GUARDAR REGISTRO
-              </button>
-              <button type="button" class="btn btn-outline-secondary w-100 btn-sm" id="btnUpdateMaestros">
-                <i class="bi bi-arrow-repeat"></i> Actualizar Lista de Placas
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+    // Lógica Retorno
+    function toggleRetornoSection() {
+      const reg = document.getElementById('aus-regresar').value;
+      document.getElementById('container-retorno').classList.toggle('hidden', reg !== 'SI');
+    }
 
-      <!-- MÓDULO 2: REGISTRO DE AUSENTISMO -->
-      <div class="tab-pane fade" id="ausentismo-panel" role="tabpanel">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <form id="formAusentismo">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Placa de Unidad *</label>
-                <select class="form-select" id="ausPlaca" required>
-                  <option value="">Seleccione una placa...</option>
-                </select>
-              </div>
+    function toggleFechaRetornoInput() {
+      const tipo = document.getElementById('aus-retornotipo').value;
+      document.getElementById('container-fecharetorno').classList.toggle('hidden', tipo !== 'Especificar fecha');
+    }
 
-              <div class="mb-3">
-                <label class="form-label small">Ruta</label>
-                <input type="text" class="form-control bg-light" id="ausRuta" readonly>
-              </div>
+    // Guardado Movilidad
+    function handleSaveMovilidad(e) {
+      e.preventDefault();
+      const record = {
+        fechaRegistro: new Date().toISOString(),
+        placa: document.getElementById('mov-placa').value,
+        conductor: document.getElementById('mov-conductor').value,
+        tipo: document.getElementById('mov-tipo').value,
+        capacidad: document.getElementById('mov-capacidad').value,
+        ruta: document.getElementById('mov-ruta').value,
+        cultivo: document.getElementById('mov-cultivo').value,
+        pasajeros: document.getElementById('mov-pasajeros').value,
+        asientosLibres: document.getElementById('mov-asientos').value,
+        observaciones: document.getElementById('mov-observaciones').value,
+        status: 'Pendiente'
+      };
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">DNI Personal (8 dígitos) *</label>
-                <input type="text" class="form-control" id="ausDni" maxlength="8" pattern="[0-9]{8}" placeholder="Ingrese DNI..." required>
-              </div>
+      saveRecord('movilidades', record, () => {
+        document.getElementById('form-movilidad').reset();
+        alert('Registro de Movilidad guardado exitosamente.');
+      });
+    }
 
-              <div class="mb-3">
-                <label class="form-label small">Apellidos y Nombres</label>
-                <input type="text" class="form-control bg-light fw-bold text-uppercase" id="ausNombres" readonly placeholder="Búsqueda por DNI...">
-              </div>
+    // Guardado Ausentismo
+    function handleSaveAusentismo(e) {
+      e.preventDefault();
+      const reg = document.getElementById('aus-regresar').value;
+      const tipoR = document.getElementById('aus-retornotipo').value;
+      const fechaR = tipoR === 'Especificar fecha' ? document.getElementById('aus-fecharetorno').value : tipoR;
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">Fecha de Falta *</label>
-                <input type="date" class="form-control" id="ausFecha" required>
-              </div>
+      const record = {
+        fechaRegistro: new Date().toISOString(),
+        placa: document.getElementById('aus-placa').value,
+        ruta: document.getElementById('aus-ruta').value,
+        dni: document.getElementById('aus-dni').value,
+        nombres: document.getElementById('aus-nombres').value,
+        fechaFalta: document.getElementById('aus-fechafalta').value,
+        motivo: document.getElementById('aus-motivo').value,
+        observaciones: document.getElementById('aus-observaciones').value,
+        vasARegresar: reg,
+        fechaRetorno: reg === 'SI' ? fechaR : 'N/A',
+        status: 'Pendiente'
+      };
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">Motivo de Ausencia *</label>
-                <select class="form-select" id="ausMotivo" required>
-                  <option value="">Seleccione un motivo...</option>
-                  <option value="Ninguno">Ninguno</option>
-                  <option value="Descanso médico (Absentismo)">Descanso médico (Absentismo)</option>
-                  <option value="Permiso con papeleta (Absentismo)">Permiso con papeleta (Absentismo)</option>
-                  <option value="Enfermedad">Enfermedad</option>
-                  <option value="Problemas familiares">Problemas familiares</option>
-                  <option value="Transporte (Especificar en obs)">Transporte (Especificar en obs)</option>
-                  <option value="Otro trabajo (Especificar en obs)">Otro trabajo (Especificar en obs)</option>
-                  <option value="Desmotivación">Desmotivación</option>
-                  <option value="Sacar tarjeta">Sacar tarjeta</option>
-                  <option value="Pago">Pago</option>
-                  <option value="Horario">Horario</option>
-                  <option value="Alimentación">Alimentación</option>
-                  <option value="Campamento">Campamento</option>
-                  <option value="Ambiente laboral">Ambiente laboral</option>
-                  <option value="Renuncia (Especificar en obs)">Renuncia (Especificar en obs)</option>
-                  <option value="Problemas con el caporal (Especificar en obs)">Problemas con el caporal (Especificar en obs)</option>
-                  <option value="Estudios">Estudios</option>
-                  <option value="Viaje">Viaje</option>
-                  <option value="Accidente">Accidente</option>
-                  <option value="No desea continuar (Especificar en obs)">No desea continuar (Especificar en obs)</option>
-                </select>
-              </div>
+      saveRecord('ausentismos', record, () => {
+        document.getElementById('form-ausentismo').reset();
+        alert('Registro de Ausentismo guardado exitosamente.');
+      });
+    }
 
-              <div class="mb-3">
-                <label class="form-label" id="lblAusObs">Observaciones</label>
-                <textarea class="form-control" id="ausObs" rows="2"></textarea>
-              </div>
+    function saveRecord(storeName, record, callback) {
+      const tx = db.transaction(storeName, 'readwrite');
+      tx.objectStore(storeName).add(record);
+      tx.oncomplete = () => {
+        updateQueueCount();
+        syncPendingData();
+        callback();
+      };
+    }
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">¿Vas a regresar? *</label>
-                <select class="form-select" id="ausRegresar" required>
-                  <option value="">Seleccione...</option>
-                  <option value="SI">SI</option>
-                  <option value="NO">NO</option>
-                  <option value="Lo está pensando">Lo está pensando</option>
-                </select>
-              </div>
+    function updateQueueCount() {
+      let count = 0;
+      const tx = db.transaction(['movilidades', 'ausentismos'], 'readonly');
+      tx.objectStore('movilidades').openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) { if (cursor.value.status === 'Pendiente') count++; cursor.continue(); }
+      };
+      tx.objectStore('ausentismos').openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) { if (cursor.value.status === 'Pendiente') count++; cursor.continue(); }
+        else {
+          document.getElementById('queue-count').innerText = `GUARDANDO EN LA NUBE (${count})`;
+        }
+      };
+    }
 
-              <div class="mb-3 d-none" id="groupRetorno">
-                <label class="form-label fw-bold">Opciones de Retorno *</label>
-                <select class="form-select mb-2" id="ausRetornoOpcion">
-                  <option value="Inmediato">Inmediato</option>
-                  <option value="Fecha específica">Fecha específica</option>
-                </select>
-                <input type="date" class="form-control d-none" id="ausFechaRetorno">
-              </div>
+    // Sincronizar datos pendientes con Google Sheets
+    async function syncPendingData() {
+      if (!navigator.onLine) return;
 
-              <button type="submit" class="btn btn-agricola w-100 shadow-sm">
-                <i class="bi bi-save"></i> GUARDAR AUSENTISMO
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      const txM = db.transaction('movilidades', 'readwrite');
+      const storeM = txM.objectStore('movilidades');
+      storeM.openCursor().onsuccess = async (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          if (cursor.value.status === 'Pendiente') {
+            const item = cursor.value;
+            try {
+              await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'movilidad', data: item })
+              });
+              item.status = 'Sincronizado';
+              cursor.update(item);
+              updateQueueCount();
+            } catch (err) { console.error('Error sync movilidad:', err); }
+          }
+          cursor.continue();
+        }
+      };
 
-    </div>
-  </div>
+      const txA = db.transaction('ausentismos', 'readwrite');
+      const storeA = txA.objectStore('ausentismos');
+      storeA.openCursor().onsuccess = async (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          if (cursor.value.status === 'Pendiente') {
+            const item = cursor.value;
+            try {
+              await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'ausentismo', data: item })
+              });
+              item.status = 'Sincronizado';
+              cursor.update(item);
+              updateQueueCount();
+            } catch (err) { console.error('Error sync ausentismo:', err); }
+          }
+          cursor.continue();
+        }
+      };
+    }
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="app.js"></script>
+    // Registro de Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registrado'));
+    }
+  </script>
 </body>
 </html>
