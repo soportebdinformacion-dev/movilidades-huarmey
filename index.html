@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agrícola Huarmey - Control de Transporte y Ausentismo</title>
+  <title>Agrícola Huarmey - Movilidades y Ausentismo</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1E5328">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,8 +15,7 @@
             agricola: {
               green: '#1E5328',
               lightGreen: '#E8F5E9',
-              red: '#D32F2F',
-              accent: '#2E7D32'
+              red: '#D32F2F'
             }
           }
         }
@@ -39,7 +38,7 @@
     </div>
   </header>
 
-  <!-- Indicador de Estado de Conexión y Cola Local -->
+  <!-- Barra de Estado -->
   <div id="status-bar" class="bg-agricola-lightGreen text-agricola-green px-4 py-2 text-sm font-semibold flex justify-between items-center border-b border-green-200">
     <div class="flex items-center space-x-2">
       <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block"></span>
@@ -50,7 +49,7 @@
     </span>
   </div>
 
-  <!-- Menú de Navegación por Pestañas -->
+  <!-- Navegación -->
   <nav class="flex bg-white shadow border-b">
     <button id="tab-movilidades-btn" onclick="switchTab('movilidades')" class="flex-1 py-3 text-center font-medium text-gray-600 tab-active">
       🚌 Movilidades
@@ -60,15 +59,15 @@
     </button>
   </nav>
 
-  <!-- Contenido Principal -->
+  <!-- Contenedor Principal -->
   <main class="flex-grow p-4 max-w-lg mx-auto w-full">
 
     <!-- SECCIÓN 1: REGISTRO DE MOVILIDADES -->
     <section id="section-movilidades" class="bg-white rounded-xl shadow-md p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
         <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
-        <button onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50">
-          🔄 Actualizar Placas
+        <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50">
+          🔄 Actualizar Lista
         </button>
       </div>
 
@@ -76,34 +75,34 @@
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa de Unidad *</label>
           <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="">Seleccione una placa...</option>
+            <option value="">Cargando placas...</option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Conductor</label>
-          <input type="text" id="mov-conductor" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          <input type="text" id="mov-conductor" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tipo</label>
-            <input type="text" id="mov-tipo" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+            <input type="text" id="mov-tipo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Capacidad</label>
-            <input type="number" id="mov-capacidad" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 font-bold">
+            <input type="number" id="mov-capacidad" readonly placeholder="0" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
-            <input type="text" id="mov-ruta" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+            <input type="text" id="mov-ruta" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Cultivo</label>
-            <input type="text" id="mov-cultivo" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+            <input type="text" id="mov-cultivo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
         </div>
 
@@ -114,7 +113,7 @@
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Asientos Libres</label>
-          <input type="number" id="mov-asientos" readonly class="w-full p-3 bg-green-50 border border-green-300 text-agricola-green font-bold rounded-lg text-lg">
+          <input type="number" id="mov-asientos" readonly placeholder="0" class="w-full p-3 bg-green-50 border border-green-300 text-agricola-green font-bold rounded-lg text-lg">
         </div>
 
         <div>
@@ -123,7 +122,7 @@
         </div>
 
         <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
-          GUARDAR REGISTRO
+          GUARDAR REGISTROS
         </button>
       </form>
     </section>
@@ -136,13 +135,13 @@
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa *</label>
           <select id="aus-placa" onchange="autoFillAusentismoPlaca()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="">Seleccione Placa...</option>
+            <option value="">Cargando placas...</option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
-          <input type="text" id="aus-ruta" readonly class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+          <input type="text" id="aus-ruta" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
         </div>
 
         <div>
@@ -152,7 +151,7 @@
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apellidos y Nombres</label>
-          <input type="text" id="aus-nombres" readonly placeholder="Búsqueda por DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 font-semibold">
+          <input type="text" id="aus-nombres" readonly placeholder="Búsqueda automática por DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-bold">
         </div>
 
         <div>
@@ -223,16 +222,15 @@
 
   </main>
 
-  <!-- LÓGICA DE APLICACIÓN Y SINCRONIZACIÓN -->
   <script>
-    // URL DE GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrWOC2mS_ApQ6jloNm4EC89I1qxZLE8hfBGBSdr58s5mdmOrbwhFCoVyqRZs6JQmN_/exec';
+    // URL DESPLEGADA DE TU GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwH_-biqj0sNpOdE_Mgz338FRwxsovCy5IVP3sf0QjS-KfMdD_mR7RGQQcBMrte7nSv/exec';
 
     let db;
     let maestrosData = [];
     let personalData = [];
 
-    // Inicializar IndexedDB
+    // Inicialización IndexedDB
     const request = indexedDB.open('AgricolaHuarmeyDB', 1);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
@@ -246,14 +244,13 @@
         db.createObjectStore('maestros', { keyPath: 'key' });
       }
     };
+
     request.onsuccess = (e) => {
       db = e.target.result;
       loadLocalMaestros();
       updateQueueCount();
-      syncPendingData();
     };
 
-    // Pestañas
     function switchTab(tab) {
       document.getElementById('section-movilidades').classList.toggle('hidden', tab !== 'movilidades');
       document.getElementById('section-ausentismo').classList.toggle('hidden', tab !== 'ausentismo');
@@ -261,75 +258,77 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
-    // Monitoreo de conexión
-    function updateOnlineStatus() {
-      const isOnline = navigator.onLine;
-      const dot = document.getElementById('status-dot');
-      const text = document.getElementById('status-text');
-      if (isOnline) {
-        dot.className = "h-3 w-3 rounded-full bg-green-500 inline-block";
-        text.innerText = "Conectado (Sincronizando)";
-        syncPendingData();
-      } else {
-        dot.className = "h-3 w-3 rounded-full bg-red-500 inline-block";
-        text.innerText = "Modo Offline (Guardando localmente)";
+    // Consulta de Maestros con JSONP Fallback para saltar bloqueo CORS
+    function fetchMaestros(forceUser = false) {
+      if (!navigator.onLine) {
+        if (forceUser) alert('No hay conexión a internet para actualizar los catálogos.');
+        return;
       }
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
 
-    // Cargar Catálogos Maestros
-    async function fetchMaestros(force = false) {
-      if (navigator.onLine) {
-        try {
-          const res = await fetch(`${APPS_SCRIPT_URL}?action=getMaestros`);
-          const data = await res.json();
-          if (data.status === 'success') {
-            maestrosData = data.maestros;
-            personalData = data.personal;
-            // Guardar en IndexedDB
-            const tx = db.transaction('maestros', 'readwrite');
-            tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
-            tx.objectStore('maestros').put({ key: 'personal', value: personalData });
-            populatePlacas();
-            alert('Catálogos actualizados correctamente.');
-          }
-        } catch (err) {
-          console.warn('Error fetching maestros, using local:', err);
+      window.handleGoogleMaestros = function(response) {
+        if (response && response.status === 'success') {
+          maestrosData = response.maestros || [];
+          personalData = response.personal || [];
+
+          // Guardar en almacenamiento local IndexedDB
+          const tx = db.transaction('maestros', 'readwrite');
+          tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
+          tx.objectStore('maestros').put({ key: 'personal', value: personalData });
+
+          populatePlacas();
+          if (forceUser) alert('¡Lista de Placas y Personal actualizada exitosamente!');
         }
-      }
+      };
+
+      const script = document.createElement('script');
+      script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
+      document.body.appendChild(script);
+      script.onload = () => document.body.removeChild(script);
     }
 
     function loadLocalMaestros() {
       const tx = db.transaction('maestros', 'readonly');
       const reqM = tx.objectStore('maestros').get('maestros');
       reqM.onsuccess = () => {
-        if (reqM.result) maestrosData = reqM.result.value;
-        populatePlacas();
+        if (reqM.result && reqM.result.value.length > 0) {
+          maestrosData = reqM.result.value;
+          populatePlacas();
+        }
       };
+
       const reqP = tx.objectStore('maestros').get('personal');
       reqP.onsuccess = () => {
         if (reqP.result) personalData = reqP.result.value;
       };
+
+      // Si hay internet, actualiza siempre en segundo plano
       if (navigator.onLine) fetchMaestros();
     }
 
     function populatePlacas() {
       const movSelect = document.getElementById('mov-placa');
       const ausSelect = document.getElementById('aus-placa');
+
       movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
       ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
-      
+
+      if (maestrosData.length === 0) {
+        movSelect.innerHTML = '<option value="">Sin placas (Actualizar)</option>';
+        ausSelect.innerHTML = '<option value="">Sin placas (Actualizar)</option>';
+        return;
+      }
+
       maestrosData.forEach(m => {
         movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
         ausSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
       });
     }
 
-    // Autocompletado Movilidad
+    // AUTOCOMPLETADO DE CAMPOS POR PLACA EN REGISTRO MOVILIDAD
     function autoFillMovilidad() {
       const placa = document.getElementById('mov-placa').value;
-      const item = maestrosData.find(m => m.placa === placa);
+      const item = maestrosData.find(m => String(m.placa).trim() === String(placa).trim());
+
       if (item) {
         document.getElementById('mov-conductor').value = item.conductor || '';
         document.getElementById('mov-tipo').value = item.tipo || '';
@@ -337,6 +336,13 @@
         document.getElementById('mov-ruta').value = item.ruta || '';
         document.getElementById('mov-cultivo').value = item.cultivo || '';
         calculateSeats();
+      } else {
+        document.getElementById('mov-conductor').value = '';
+        document.getElementById('mov-tipo').value = '';
+        document.getElementById('mov-capacidad').value = '';
+        document.getElementById('mov-ruta').value = '';
+        document.getElementById('mov-cultivo').value = '';
+        document.getElementById('mov-asientos').value = '';
       }
     }
 
@@ -346,26 +352,32 @@
       document.getElementById('mov-asientos').value = Math.max(0, cap - pas);
     }
 
-    // Autocompletado Ausentismo Placa
+    // AUTOCOMPLETADO DE RUTA POR PLACA EN AUSENTISMO
     function autoFillAusentismoPlaca() {
       const placa = document.getElementById('aus-placa').value;
-      const item = maestrosData.find(m => m.placa === placa);
+      const item = maestrosData.find(m => String(m.placa).trim() === String(placa).trim());
       if (item) {
         document.getElementById('aus-ruta').value = item.ruta || '';
+      } else {
+        document.getElementById('aus-ruta').value = '';
       }
     }
 
-    // Búsqueda por DNI
+    // BÚSQUEDA AUTOMÁTICA DE PERSONAL POR DNI
     function searchDNI(val) {
+      val = val.trim();
       if (val.length === 8) {
         const p = personalData.find(item => String(item.dni).padStart(8, '0') === val);
-        document.getElementById('aus-nombres').value = p ? p.nombres : 'PERSONAL NO ENCONTRADO';
+        if (p) {
+          document.getElementById('aus-nombres').value = p.nombres;
+        } else {
+          document.getElementById('aus-nombres').value = 'NO ENCONTRADO EN PADRÓN';
+        }
       } else {
         document.getElementById('aus-nombres').value = '';
       }
     }
 
-    // Lógica Retorno
     function toggleRetornoSection() {
       const reg = document.getElementById('aus-regresar').value;
       document.getElementById('container-retorno').classList.toggle('hidden', reg !== 'SI');
@@ -376,11 +388,10 @@
       document.getElementById('container-fecharetorno').classList.toggle('hidden', tipo !== 'Especificar fecha');
     }
 
-    // Guardado Movilidad
     function handleSaveMovilidad(e) {
       e.preventDefault();
       const record = {
-        fechaRegistro: new Date().toISOString(),
+        fechaRegistro: new Date().toLocaleString('es-PE'),
         placa: document.getElementById('mov-placa').value,
         conductor: document.getElementById('mov-conductor').value,
         tipo: document.getElementById('mov-tipo').value,
@@ -395,19 +406,19 @@
 
       saveRecord('movilidades', record, () => {
         document.getElementById('form-movilidad').reset();
-        alert('Registro de Movilidad guardado exitosamente.');
+        document.getElementById('mov-asientos').value = '';
+        alert('✅ Registro de Movilidad guardado correctamente.');
       });
     }
 
-    // Guardado Ausentismo
     function handleSaveAusentismo(e) {
       e.preventDefault();
       const reg = document.getElementById('aus-regresar').value;
       const tipoR = document.getElementById('aus-retornotipo').value;
-      const fechaR = tipoR === 'Especificar fecha' ? document.getElementById('aus-fecharetorno').value : tipoR;
+      const fechaR = (reg === 'SI' && tipoR === 'Especificar fecha') ? document.getElementById('aus-fecharetorno').value : (reg === 'SI' ? tipoR : 'N/A');
 
       const record = {
-        fechaRegistro: new Date().toISOString(),
+        fechaRegistro: new Date().toLocaleString('es-PE'),
         placa: document.getElementById('aus-placa').value,
         ruta: document.getElementById('aus-ruta').value,
         dni: document.getElementById('aus-dni').value,
@@ -416,13 +427,13 @@
         motivo: document.getElementById('aus-motivo').value,
         observaciones: document.getElementById('aus-observaciones').value,
         vasARegresar: reg,
-        fechaRetorno: reg === 'SI' ? fechaR : 'N/A',
+        fechaRetorno: fechaR,
         status: 'Pendiente'
       };
 
       saveRecord('ausentismos', record, () => {
         document.getElementById('form-ausentismo').reset();
-        alert('Registro de Ausentismo guardado exitosamente.');
+        alert('✅ Registro de Ausentismo guardado correctamente.');
       });
     }
 
@@ -438,6 +449,7 @@
 
     function updateQueueCount() {
       let count = 0;
+      if (!db) return;
       const tx = db.transaction(['movilidades', 'ausentismos'], 'readonly');
       tx.objectStore('movilidades').openCursor().onsuccess = (e) => {
         const cursor = e.target.result;
@@ -452,61 +464,52 @@
       };
     }
 
-    // Sincronizar datos pendientes con Google Sheets
     async function syncPendingData() {
       if (!navigator.onLine) return;
 
-      const txM = db.transaction('movilidades', 'readwrite');
-      const storeM = txM.objectStore('movilidades');
-      storeM.openCursor().onsuccess = async (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          if (cursor.value.status === 'Pendiente') {
-            const item = cursor.value;
-            try {
-              await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'movilidad', data: item })
-              });
-              item.status = 'Sincronizado';
-              cursor.update(item);
-              updateQueueCount();
-            } catch (err) { console.error('Error sync movilidad:', err); }
+      const syncStore = (storeName, typeName) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        store.openCursor().onsuccess = async (e) => {
+          const cursor = e.target.result;
+          if (cursor) {
+            if (cursor.value.status === 'Pendiente') {
+              const item = cursor.value;
+              try {
+                await fetch(APPS_SCRIPT_URL, {
+                  method: 'POST',
+                  mode: 'no-cors',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ type: typeName, data: item })
+                });
+                item.status = 'Sincronizado';
+                cursor.update(item);
+                updateQueueCount();
+              } catch (err) { console.error('Error al sincronizar:', err); }
+            }
+            cursor.continue();
           }
-          cursor.continue();
-        }
+        };
       };
 
-      const txA = db.transaction('ausentismos', 'readwrite');
-      const storeA = txA.objectStore('ausentismos');
-      storeA.openCursor().onsuccess = async (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          if (cursor.value.status === 'Pendiente') {
-            const item = cursor.value;
-            try {
-              await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'ausentismo', data: item })
-              });
-              item.status = 'Sincronizado';
-              cursor.update(item);
-              updateQueueCount();
-            } catch (err) { console.error('Error sync ausentismo:', err); }
-          }
-          cursor.continue();
-        }
-      };
+      syncStore('movilidades', 'movilidad');
+      syncStore('ausentismos', 'ausentismo');
     }
 
-    // Registro de Service Worker
+    window.addEventListener('online', () => {
+      document.getElementById('status-dot').className = "h-3 w-3 rounded-full bg-green-500 inline-block";
+      document.getElementById('status-text').innerText = "Conectado (Sincronizando)";
+      fetchMaestros();
+      syncPendingData();
+    });
+
+    window.addEventListener('offline', () => {
+      document.getElementById('status-dot').className = "h-3 w-3 rounded-full bg-red-500 inline-block";
+      document.getElementById('status-text').innerText = "Modo Offline (Guardando localmente)";
+    });
+
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker Registrado'));
+      navigator.serviceWorker.register('service-worker.js');
     }
   </script>
 </body>
