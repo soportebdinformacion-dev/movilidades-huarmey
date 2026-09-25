@@ -1,6 +1,6 @@
 {
-  "short_name": "Huarmey",
-  "name": "Agrícola Huarmey - Registro de Campo",
+  "short_name": "HuarmeyApp",
+  "name": "Agrícola Huarmey - Movilidades y Ausentismo",
   "icons": [
     {
       "src": "ICONO HUARMEY.png",
@@ -14,8 +14,8 @@
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#F4F6F4",
-  "theme_color": "#1E4D2B",
+  "background_color": "#ffffff",
+  "theme_color": "#1E5328",
   "display": "standalone",
   "orientation": "portrait"
 }
