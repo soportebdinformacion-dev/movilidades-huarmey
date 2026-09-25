@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agrícola Huarmey - Movilidades y Ausentismo</title>
+  <title>Agrícola Huarmey - Control de Transporte y Ausentismo</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1E5328">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -29,16 +29,16 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Encabezado con Logo Corporativo -->
+  <!-- Encabezado con Logo -->
   <header class="bg-white shadow-md p-4 text-center sticky top-0 z-50">
     <div class="flex flex-col items-center justify-center">
-      <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey Logo" class="h-16 mb-1 object-contain">
+      <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey Logo" class="h-16 mb-1 object-contain" onerror="this.style.display='none'">
       <h1 class="text-xl font-bold text-agricola-green">Agrícola Huarmey</h1>
       <p class="text-xs text-gray-500">Sistema de Control de Transporte y Ausentismo</p>
     </div>
   </header>
 
-  <!-- Barra de Estado -->
+  <!-- Indicador de Estado -->
   <div id="status-bar" class="bg-agricola-lightGreen text-agricola-green px-4 py-2 text-sm font-semibold flex justify-between items-center border-b border-green-200">
     <div class="flex items-center space-x-2">
       <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block"></span>
@@ -49,7 +49,7 @@
     </span>
   </div>
 
-  <!-- Navegación -->
+  <!-- Navegación por Pestañas -->
   <nav class="flex bg-white shadow border-b">
     <button id="tab-movilidades-btn" onclick="switchTab('movilidades')" class="flex-1 py-3 text-center font-medium text-gray-600 tab-active">
       🚌 Movilidades
@@ -66,58 +66,58 @@
     <section id="section-movilidades" class="bg-white rounded-xl shadow-md p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
         <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
-        <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50">
-          🔄 Actualizar Lista
+        <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50 font-semibold">
+          🔄 Actualizar Placas
         </button>
       </div>
 
       <form id="form-movilidad" onsubmit="handleSaveMovilidad(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa de Unidad *</label>
-          <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="">Cargando placas...</option>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">PLACA DE UNIDAD *</label>
+          <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-semibold text-gray-800">
+            <option value="">Seleccione una placa...</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Conductor</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CONDUCTOR</label>
           <input type="text" id="mov-conductor" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tipo</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">TIPO</label>
             <input type="text" id="mov-tipo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Capacidad</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CAPACIDAD</label>
             <input type="number" id="mov-capacidad" readonly placeholder="0" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RUTA</label>
             <input type="text" id="mov-ruta" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Cultivo</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CULTIVO</label>
             <input type="text" id="mov-cultivo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">N° Pasajeros *</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">N° PASAJEROS *</label>
           <input type="number" id="mov-pasajeros" min="0" oninput="calculateSeats()" required placeholder="Ej. 15" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Asientos Libres</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ASIENTOS LIBRES</label>
           <input type="number" id="mov-asientos" readonly placeholder="0" class="w-full p-3 bg-green-50 border border-green-300 text-agricola-green font-bold rounded-lg text-lg">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Observaciones</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">OBSERVACIONES</label>
           <textarea id="mov-observaciones" rows="2" placeholder="Opcional..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
         </div>
 
@@ -133,34 +133,34 @@
 
       <form id="form-ausentismo" onsubmit="handleSaveAusentismo(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Placa *</label>
-          <select id="aus-placa" onchange="autoFillAusentismoPlaca()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="">Cargando placas...</option>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">PLACA *</label>
+          <select id="aus-placa" onchange="autoFillAusentismoPlaca()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-semibold text-gray-800">
+            <option value="">Seleccione Placa...</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ruta</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RUTA</label>
           <input type="text" id="aus-ruta" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI Personal *</label>
-          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="8 dígitos" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI PERSONAL *</label>
+          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="8 dígitos (Ej. 00324569)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-mono text-base">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apellidos y Nombres</label>
-          <input type="text" id="aus-nombres" readonly placeholder="Búsqueda automática por DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-bold">
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">APELLIDOS Y NOMBRES</label>
+          <input type="text" id="aus-nombres" readonly placeholder="Búsqueda por DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha de Falta *</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">FECHA DE FALTA *</label>
           <input type="date" id="aus-fechafalta" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Motivo de Ausencia *</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">MOTIVO DE AUSENCIA *</label>
           <select id="aus-motivo" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
             <option value="">Seleccione...</option>
             <option value="Ninguno">Ninguno</option>
@@ -187,12 +187,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Observaciones</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">OBSERVACIONES</label>
           <textarea id="aus-observaciones" rows="2" placeholder="Detalle observaciones adicionales..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">¿Vas a regresar? *</label>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">¿VAS A REGRESAR? *</label>
           <select id="aus-regresar" onchange="toggleRetornoSection()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
             <option value="SI">SI</option>
             <option value="NO">NO</option>
@@ -202,14 +202,14 @@
 
         <div id="container-retorno" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retorno</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RETORNO</label>
             <select id="aus-retornotipo" onchange="toggleFechaRetornoInput()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
               <option value="Inmediato">Inmediato</option>
               <option value="Especificar fecha">Especificar fecha</option>
             </select>
           </div>
           <div id="container-fecharetorno" class="hidden">
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha de Retorno</label>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">FECHA DE RETORNO</label>
             <input type="date" id="aus-fecharetorno" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
           </div>
         </div>
@@ -223,26 +223,33 @@
   </main>
 
   <script>
-    // URL DESPLEGADA DE TU GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwH_-biqj0sNpOdE_Mgz338FRwxsovCy5IVP3sf0QjS-KfMdD_mR7RGQQcBMrte7nSv/exec';
+    // URL DE PUBLICACIÓN DE TU GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTFHcOMnCXKGFHofqM3SOIY0Y0qUD1RwrNdZojtNvv1Vu_gC7E1EKhM32n9WQza1H2/exec';
+
+    // DATOS DE RESPALDO DE SEGURIDAD (Carga inmediata para demostración o fallos de red)
+    const DEFAULT_MAESTROS = [
+      { placa: 'ABC-123', conductor: 'Juan Pérez', tipo: 'Bus', capacidad: 30, ruta: 'Ruta 1 - Huarmey Norte', cultivo: 'Arándano' },
+      { placa: 'XYZ-789', conductor: 'Carlos López', tipo: 'Custer', capacidad: 18, ruta: 'Ruta 2 - Huarmey Sur', cultivo: 'Palto' },
+      { placa: 'MNO-456', conductor: 'Miguel Torres', type: 'Minivan', capacidad: 12, ruta: 'Ruta 3 - Campo Centro', cultivo: 'Espárrago' }
+    ];
+
+    const DEFAULT_PERSONAL = [
+      { dni: '00324569', nombres: 'García Mendoza, Roberto' },
+      { dni: '02534795', nombres: 'Quispe Huamán, Ana María' },
+      { dni: '42048377', nombres: 'Rojas Salazar, Fernando' }
+    ];
 
     let db;
-    let maestrosData = [];
-    let personalData = [];
+    let maestrosData = DEFAULT_MAESTROS;
+    let personalData = DEFAULT_PERSONAL;
 
-    // Inicialización IndexedDB
+    // Inicializar IndexedDB
     const request = indexedDB.open('AgricolaHuarmeyDB', 1);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
-      if (!db.objectStoreNames.contains('movilidades')) {
-        db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('ausentismos')) {
-        db.createObjectStore('ausentismos', { keyPath: 'id', autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains('maestros')) {
-        db.createObjectStore('maestros', { keyPath: 'key' });
-      }
+      if (!db.objectStoreNames.contains('movilidades')) db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('ausentismos')) db.createObjectStore('ausentismos', { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains('maestros')) db.createObjectStore('maestros', { keyPath: 'key' });
     };
 
     request.onsuccess = (e) => {
@@ -258,35 +265,42 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
-    // Consulta de Maestros con JSONP Fallback para saltar bloqueo CORS
+    // Consulta con Callback JSONP para bypass CORS
     function fetchMaestros(forceUser = false) {
       if (!navigator.onLine) {
-        if (forceUser) alert('No hay conexión a internet para actualizar los catálogos.');
+        if (forceUser) alert('Modo Offline: Usando catálogos almacenados en el dispositivo.');
         return;
       }
 
       window.handleGoogleMaestros = function(response) {
         if (response && response.status === 'success') {
-          maestrosData = response.maestros || [];
-          personalData = response.personal || [];
+          if (response.maestros && response.maestros.length > 0) maestrosData = response.maestros;
+          if (response.personal && response.personal.length > 0) personalData = response.personal;
 
-          // Guardar en almacenamiento local IndexedDB
-          const tx = db.transaction('maestros', 'readwrite');
-          tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
-          tx.objectStore('maestros').put({ key: 'personal', value: personalData });
+          if (db) {
+            const tx = db.transaction('maestros', 'readwrite');
+            tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
+            tx.objectStore('maestros').put({ key: 'personal', value: personalData });
+          }
 
           populatePlacas();
-          if (forceUser) alert('¡Lista de Placas y Personal actualizada exitosamente!');
+          if (forceUser) alert('¡Listas actualizadas correctamente desde Google Sheets!');
         }
       };
 
       const script = document.createElement('script');
       script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
+      script.onerror = () => {
+        populatePlacas();
+      };
       document.body.appendChild(script);
-      script.onload = () => document.body.removeChild(script);
+      setTimeout(() => { if (script.parentNode) document.body.removeChild(script); }, 5000);
     }
 
     function loadLocalMaestros() {
+      populatePlacas(); // Renderizar fallback inmediatamente
+      if (!db) return;
+
       const tx = db.transaction('maestros', 'readonly');
       const reqM = tx.objectStore('maestros').get('maestros');
       reqM.onsuccess = () => {
@@ -298,10 +312,11 @@
 
       const reqP = tx.objectStore('maestros').get('personal');
       reqP.onsuccess = () => {
-        if (reqP.result) personalData = reqP.result.value;
+        if (reqP.result && reqP.result.value.length > 0) {
+          personalData = reqP.result.value;
+        }
       };
 
-      // Si hay internet, actualiza siempre en segundo plano
       if (navigator.onLine) fetchMaestros();
     }
 
@@ -309,25 +324,25 @@
       const movSelect = document.getElementById('mov-placa');
       const ausSelect = document.getElementById('aus-placa');
 
+      const currentMovVal = movSelect.value;
+      const currentAusVal = ausSelect.value;
+
       movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
       ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
-
-      if (maestrosData.length === 0) {
-        movSelect.innerHTML = '<option value="">Sin placas (Actualizar)</option>';
-        ausSelect.innerHTML = '<option value="">Sin placas (Actualizar)</option>';
-        return;
-      }
 
       maestrosData.forEach(m => {
         movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
         ausSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
       });
+
+      if (currentMovVal) movSelect.value = currentMovVal;
+      if (currentAusVal) ausSelect.value = currentAusVal;
     }
 
-    // AUTOCOMPLETADO DE CAMPOS POR PLACA EN REGISTRO MOVILIDAD
+    // Autocompletado de Movilidad al cambiar de Placa
     function autoFillMovilidad() {
       const placa = document.getElementById('mov-placa').value;
-      const item = maestrosData.find(m => String(m.placa).trim() === String(placa).trim());
+      const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
 
       if (item) {
         document.getElementById('mov-conductor').value = item.conductor || '';
@@ -352,10 +367,10 @@
       document.getElementById('mov-asientos').value = Math.max(0, cap - pas);
     }
 
-    // AUTOCOMPLETADO DE RUTA POR PLACA EN AUSENTISMO
+    // Autocompletado de Ausentismo al cambiar de Placa
     function autoFillAusentismoPlaca() {
       const placa = document.getElementById('aus-placa').value;
-      const item = maestrosData.find(m => String(m.placa).trim() === String(placa).trim());
+      const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
       if (item) {
         document.getElementById('aus-ruta').value = item.ruta || '';
       } else {
@@ -363,11 +378,16 @@
       }
     }
 
-    // BÚSQUEDA AUTOMÁTICA DE PERSONAL POR DNI
+    // Búsqueda Instantánea de Personal por DNI (8 dígitos)
     function searchDNI(val) {
       val = val.trim();
       if (val.length === 8) {
-        const p = personalData.find(item => String(item.dni).padStart(8, '0') === val);
+        const p = personalData.find(item => {
+          let cleanDni = String(item.dni).trim();
+          while (cleanDni.length < 8) cleanDni = '0' + cleanDni;
+          return cleanDni === val;
+        });
+
         if (p) {
           document.getElementById('aus-nombres').value = p.nombres;
         } else {
@@ -407,7 +427,7 @@
       saveRecord('movilidades', record, () => {
         document.getElementById('form-movilidad').reset();
         document.getElementById('mov-asientos').value = '';
-        alert('✅ Registro de Movilidad guardado correctamente.');
+        alert('✅ Registro de Movilidad guardado localmente.');
       });
     }
 
@@ -433,11 +453,12 @@
 
       saveRecord('ausentismos', record, () => {
         document.getElementById('form-ausentismo').reset();
-        alert('✅ Registro de Ausentismo guardado correctamente.');
+        alert('✅ Registro de Ausentismo guardado localmente.');
       });
     }
 
     function saveRecord(storeName, record, callback) {
+      if (!db) return;
       const tx = db.transaction(storeName, 'readwrite');
       tx.objectStore(storeName).add(record);
       tx.oncomplete = () => {
@@ -465,7 +486,7 @@
     }
 
     async function syncPendingData() {
-      if (!navigator.onLine) return;
+      if (!navigator.onLine || !db) return;
 
       const syncStore = (storeName, typeName) => {
         const tx = db.transaction(storeName, 'readwrite');
@@ -485,7 +506,7 @@
                 item.status = 'Sincronizado';
                 cursor.update(item);
                 updateQueueCount();
-              } catch (err) { console.error('Error al sincronizar:', err); }
+              } catch (err) { }
             }
             cursor.continue();
           }
@@ -507,6 +528,9 @@
       document.getElementById('status-dot').className = "h-3 w-3 rounded-full bg-red-500 inline-block";
       document.getElementById('status-text').innerText = "Modo Offline (Guardando localmente)";
     });
+
+    // Iniciar renderizado
+    populatePlacas();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
