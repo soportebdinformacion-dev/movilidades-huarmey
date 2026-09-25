@@ -38,7 +38,7 @@
     </div>
   </header>
 
-  <!-- Indicador de Estado / Alerta de Conexión a Google Sheets -->
+  <!-- Indicador de Alerta de Conexión a Google Sheets -->
   <div id="status-bar" class="bg-green-100 text-green-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-green-300">
     <div class="flex items-center space-x-2">
       <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block animate-pulse"></span>
@@ -67,7 +67,7 @@
       <div class="flex justify-between items-center border-b pb-2">
         <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
         <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50 font-semibold flex items-center gap-1">
-          🔄 Actualizar Datos
+          🔄 Actualizar Placas y Personal
         </button>
       </div>
 
@@ -146,12 +146,12 @@
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI PERSONAL *</label>
-          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="Ingrese 8 dígitos (Ej. 41573851)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-mono text-base">
+          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="8 dígitos (Ej. 41573851)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-mono text-base">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">APELLIDOS Y NOMBRES</label>
-          <input type="text" id="aus-nombres" readonly placeholder="Muestra nombres al digitar DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
+          <input type="text" id="aus-nombres" readonly placeholder="Muestra apellidos y nombres al digitar DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
         </div>
 
         <div>
@@ -223,8 +223,7 @@
   </main>
 
   <script>
-    // URL DE PUBLICACIÓN DE TU GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAOg2TzF30aT_2nNp7uvIjty87Y6sRQFr62zskRLWO2VRJVTsut1W1662d-YuJRf1c/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTFHcOMnCXKGFHofqM3SOIY0Y0qUD1RwrNdZojtNvv1Vu_gC7E1EKhM32n9WQza1H2/exec';
 
     // DATOS DE RESPALDO DE SEGURIDAD
     const DEFAULT_MAESTROS = [
@@ -242,7 +241,6 @@
     let maestrosData = DEFAULT_MAESTROS;
     let personalData = DEFAULT_PERSONAL;
 
-    // Inicializar IndexedDB
     const request = indexedDB.open('AgricolaHuarmeyDB', 1);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
@@ -280,11 +278,10 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
-    // Obtenemos los Maestros y Personal con JSONP
     function fetchMaestros(forceUser = false) {
       if (!navigator.onLine) {
-        updateConnectionStatus(false, "🔴 Modos Offline - Sin internet");
-        if (forceUser) alert('Modo Offline: Usando catálogos guardados localmente.');
+        updateConnectionStatus(false, "🔴 Modo Offline - Sin internet");
+        if (forceUser) alert('Modo Offline: Usando datos almacenados en el dispositivo.');
         return;
       }
 
@@ -303,25 +300,25 @@
           }
 
           populatePlacas();
-          updateConnectionStatus(true, "🟢 Conectado a Google Sheets (" + personalData.length + " personas)");
+          updateConnectionStatus(true, `🟢 Conectado a Google Sheets (${maestrosData.length} Placas / ${personalData.length} Personas)`);
 
-          if (forceUser) alert('✅ ¡Conexión exitosa a Google Sheets! ' + personalData.length + ' personas y ' + maestrosData.length + ' unidades cargadas.');
+          if (forceUser) alert(`✅ ¡Conexión Exitosa!\nSe cargaron ${maestrosData.length} placas de vehículos y ${personalData.length} registros de personal.`);
         } else {
-          updateConnectionStatus(false, "⚠️ Error en la respuesta de Google Sheets");
+          updateConnectionStatus(false, "⚠️ Error recuperando datos de Google Sheets");
         }
       };
 
       const script = document.createElement('script');
       script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
       script.onerror = () => {
-        updateConnectionStatus(false, "🔴 Error de conexión con Google Sheets");
+        updateConnectionStatus(false, "🔴 Error de red con Google Sheets");
         populatePlacas();
       };
       document.body.appendChild(script);
 
       setTimeout(() => {
         if (!scriptLoaded) {
-          updateConnectionStatus(false, "🔴 Tiempo de espera agotado al conectar con Google Sheets");
+          updateConnectionStatus(false, "🔴 Tiempo agotado conectando a Google Sheets");
         }
         if (script.parentNode) document.body.removeChild(script);
       }, 6000);
@@ -350,6 +347,7 @@
       if (navigator.onLine) fetchMaestros();
     }
 
+    // Muestra TODAS las placas únicas ordenadas
     function populatePlacas() {
       const movSelect = document.getElementById('mov-placa');
       const ausSelect = document.getElementById('aus-placa');
@@ -360,7 +358,17 @@
       movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
       ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
 
+      // Eliminar duplicados y ordenar alfabéticamente
+      const uniquePlacasMap = new Map();
       maestrosData.forEach(m => {
+        if (m.placa && !uniquePlacasMap.has(m.placa.trim().toUpperCase())) {
+          uniquePlacasMap.set(m.placa.trim().toUpperCase(), m);
+        }
+      });
+
+      const sortedPlacas = Array.from(uniquePlacasMap.values()).sort((a, b) => a.placa.localeCompare(b.placa));
+
+      sortedPlacas.forEach(m => {
         movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
         ausSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
       });
@@ -369,7 +377,6 @@
       if (currentAusVal) ausSelect.value = currentAusVal;
     }
 
-    // Autocompletado de Movilidad al seleccionar Placa
     function autoFillMovilidad() {
       const placa = document.getElementById('mov-placa').value;
       const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
@@ -407,7 +414,7 @@
       }
     }
 
-    // Búsqueda Instantánea de Personal por DNI (8 dígitos)
+    // Busca y muestra TODOS los apellidos y nombres al digitar el DNI (8 dígitos)
     function searchDNI(val) {
       val = val.trim();
       if (val.length === 8) {
@@ -459,7 +466,7 @@
       saveRecord('movilidades', record, () => {
         document.getElementById('form-movilidad').reset();
         document.getElementById('mov-asientos').value = '';
-        alert('✅ Registro de Movilidad guardado correctamente.');
+        alert('✅ Registro de Movilidad guardado localmente.');
       });
     }
 
@@ -485,7 +492,7 @@
 
       saveRecord('ausentismos', record, () => {
         document.getElementById('form-ausentismo').reset();
-        alert('✅ Registro de Ausentismo guardado correctamente.');
+        alert('✅ Registro de Ausentismo guardado localmente.');
       });
     }
 
@@ -559,7 +566,6 @@
       updateConnectionStatus(false, "🔴 Modo Offline (Guardando localmente)");
     });
 
-    // Carga inicial
     populatePlacas();
 
     if ('serviceWorker' in navigator) {
