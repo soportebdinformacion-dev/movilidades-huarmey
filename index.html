@@ -29,7 +29,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Encabezado con Logo -->
+  <!-- Encabezado -->
   <header class="bg-white shadow-md p-4 text-center sticky top-0 z-50">
     <div class="flex flex-col items-center justify-center">
       <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey Logo" class="h-16 mb-1 object-contain" onerror="this.style.display='none'">
@@ -38,18 +38,18 @@
     </div>
   </header>
 
-  <!-- Indicador de Alerta de Conexión a Google Sheets -->
-  <div id="status-bar" class="bg-green-100 text-green-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-green-300">
+  <!-- Barra de Alerta de Conexión -->
+  <div id="status-bar" class="bg-yellow-100 text-yellow-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-yellow-300">
     <div class="flex items-center space-x-2">
-      <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block animate-pulse"></span>
-      <span id="status-text">🟢 Conectado a Google Sheets</span>
+      <span id="status-dot" class="h-3 w-3 rounded-full bg-yellow-500 inline-block animate-pulse"></span>
+      <span id="status-text">🟡 Conectando con Google Sheets...</span>
     </div>
-    <span id="queue-count" class="bg-white px-2 py-1 rounded text-xs border border-green-300 font-bold">
+    <span id="queue-count" class="bg-white px-2 py-1 rounded text-xs border border-yellow-300 font-bold">
       GUARDANDO EN LA NUBE (0)
     </span>
   </div>
 
-  <!-- Navegación por Pestañas -->
+  <!-- Navegación -->
   <nav class="flex bg-white shadow border-b">
     <button id="tab-movilidades-btn" onclick="switchTab('movilidades')" class="flex-1 py-3 text-center font-medium text-gray-600 tab-active">
       🚌 Movilidades
@@ -223,9 +223,8 @@
   </main>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyzBd9I9jVSaMTEUjJgTWy8N-9FGm5RhBAQ1L3SpYBaLBw6PdZ2l9FNpDyJEdjTsY/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyp7cvtlVLsfy9yektPqoYmLBx0q9Ty9WNMF7a29LvEDuQl9T7wpLGPsCoplbgE6gjr/exec';
 
-    // DATOS DE RESPALDO DE SEGURIDAD
     const DEFAULT_MAESTROS = [
       { placa: 'A9Z-969', conductor: 'MUÑOZ SILVA MANUEL', tipo: 'MINIBUS', capacidad: 32, ruta: 'INSCULAS - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' },
       { placa: 'W4M-851', conductor: 'TORRES CHINCHAY NELVER', tipo: 'COMBI', capacidad: 15, ruta: 'LA PILCA - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' }
@@ -278,17 +277,21 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
+    // Consulta robusta con JSONP
     function fetchMaestros(forceUser = false) {
       if (!navigator.onLine) {
-        updateConnectionStatus(false, "🔴 Modo Offline - Sin internet");
+        updateConnectionStatus(false, "🔴 Modo Offline - Sin conexión a internet");
         if (forceUser) alert('Modo Offline: Usando datos almacenados en el dispositivo.');
         return;
       }
 
-      let scriptLoaded = false;
+      let loaded = false;
+      const callbackName = 'handleGoogleMaestros_' + Date.now();
 
-      window.handleGoogleMaestros = function(response) {
-        scriptLoaded = true;
+      window[callbackName] = function(response) {
+        loaded = true;
+        delete window[callbackName];
+        
         if (response && response.status === 'success') {
           if (response.maestros && response.maestros.length > 0) maestrosData = response.maestros;
           if (response.personal && response.personal.length > 0) personalData = response.personal;
@@ -302,26 +305,29 @@
           populatePlacas();
           updateConnectionStatus(true, `🟢 Conectado a Google Sheets (${maestrosData.length} Placas / ${personalData.length} Personas)`);
 
-          if (forceUser) alert(`✅ ¡Conexión Exitosa!\nSe cargaron ${maestrosData.length} placas de vehículos y ${personalData.length} registros de personal.`);
+          if (forceUser) alert(`✅ ¡Conexión Exitosa con Google Sheets!\nSe cargaron ${maestrosData.length} placas y ${personalData.length} personas.`);
         } else {
-          updateConnectionStatus(false, "⚠️ Error recuperando datos de Google Sheets");
+          updateConnectionStatus(false, "⚠️ Error al recibir respuesta de Google Sheets");
         }
       };
 
       const script = document.createElement('script');
-      script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=handleGoogleMaestros&_ts=${Date.now()}`;
+      script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=${callbackName}&_ts=${Date.now()}`;
       script.onerror = () => {
-        updateConnectionStatus(false, "🔴 Error de red con Google Sheets");
+        delete window[callbackName];
+        updateConnectionStatus(false, "🔴 Error de red al conectar con Google Sheets");
         populatePlacas();
       };
+
       document.body.appendChild(script);
 
+      // Tiempo límite ampliado a 12 segundos para redes móviles lentas
       setTimeout(() => {
-        if (!scriptLoaded) {
-          updateConnectionStatus(false, "🔴 Tiempo agotado conectando a Google Sheets");
+        if (!loaded) {
+          updateConnectionStatus(false, "🔴 Tiempo agotado conectando a Google Sheets. (Verifica publicar una Nueva Implementación)");
         }
         if (script.parentNode) document.body.removeChild(script);
-      }, 6000);
+      }, 12000);
     }
 
     function loadLocalMaestros() {
@@ -347,7 +353,6 @@
       if (navigator.onLine) fetchMaestros();
     }
 
-    // Muestra TODAS las placas únicas ordenadas
     function populatePlacas() {
       const movSelect = document.getElementById('mov-placa');
       const ausSelect = document.getElementById('aus-placa');
@@ -358,7 +363,6 @@
       movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
       ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
 
-      // Eliminar duplicados y ordenar alfabéticamente
       const uniquePlacasMap = new Map();
       maestrosData.forEach(m => {
         if (m.placa && !uniquePlacasMap.has(m.placa.trim().toUpperCase())) {
@@ -414,7 +418,6 @@
       }
     }
 
-    // Busca y muestra TODOS los apellidos y nombres al digitar el DNI (8 dígitos)
     function searchDNI(val) {
       val = val.trim();
       if (val.length === 8) {
@@ -466,7 +469,7 @@
       saveRecord('movilidades', record, () => {
         document.getElementById('form-movilidad').reset();
         document.getElementById('mov-asientos').value = '';
-        alert('✅ Registro de Movilidad guardado localmente.');
+        alert('✅ Registro de Movilidad guardado correctamente.');
       });
     }
 
@@ -492,7 +495,7 @@
 
       saveRecord('ausentismos', record, () => {
         document.getElementById('form-ausentismo').reset();
-        alert('✅ Registro de Ausentismo guardado localmente.');
+        alert('✅ Registro de Ausentismo guardado correctamente.');
       });
     }
 
