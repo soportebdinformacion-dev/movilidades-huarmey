@@ -38,7 +38,7 @@
     </div>
   </header>
 
-  <!-- Indicador de Alerta de Conexión a Google Sheets -->
+  <!-- Indicador de Estado de Conexión -->
   <div id="status-bar" class="bg-green-100 text-green-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-green-300">
     <div class="flex items-center space-x-2">
       <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block animate-pulse"></span>
@@ -67,7 +67,7 @@
       <div class="flex justify-between items-center border-b pb-2">
         <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
         <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50 font-semibold flex items-center gap-1">
-          🔄 Actualizar Placas y Personal
+          🔄 Sincronizar Datos
         </button>
       </div>
 
@@ -75,7 +75,7 @@
         <div>
           <label class="block text-xs font-bold text-gray-700 uppercase mb-1">PLACA DE UNIDAD *</label>
           <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-semibold text-gray-800">
-            <option value="">Seleccione una placa...</option>
+            <option value="">Cargando placas...</option>
           </select>
         </div>
 
@@ -223,24 +223,14 @@
   </main>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuDxcseLc1dQWuu6jbeTFSFkooirYOhapOHWBR0DAFqRWfppwyP5E9RlLed6pGS2rJ/exec';
-
-    const DEFAULT_MAESTROS = [
-      { placa: 'A9Z-969', conductor: 'MUÑOZ SILVA MANUEL', tipo: 'MINIBUS', capacidad: 32, ruta: 'INSCULAS - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' },
-      { placa: 'W4M-851', conductor: 'TORRES CHINCHAY NELVER', tipo: 'COMBI', capacidad: 15, ruta: 'LA PILCA - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' }
-    ];
-
-    const DEFAULT_PERSONAL = [
-      { dni: '41573851', nombres: 'GRACIELA TORO DÍAZ' },
-      { dni: '42073638', nombres: 'HENRY ARTURO ALVAREZ LIZAMA' },
-      { dni: '43246877', nombres: 'JOSÉ WILMER CHÁVEZ TAPIA' }
-    ];
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJVCnzaHaVP2SIw4iYaXudZaqiQ3Uh2UHaS86qaNiZ6yJCuC4YZy3fKU1Seo_lppQh/exec';
 
     let db;
-    let maestrosData = DEFAULT_MAESTROS;
-    let personalData = DEFAULT_PERSONAL;
+    let maestrosData = [];
+    let personalData = [];
 
-    const request = indexedDB.open('AgricolaHuarmeyDB', 1);
+    // Inicializar IndexedDB
+    const request = indexedDB.open('AgricolaHuarmeyDB', 2);
     request.onupgradeneeded = (e) => {
       db = e.target.result;
       if (!db.objectStoreNames.contains('movilidades')) db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
@@ -277,18 +267,19 @@
       document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
     }
 
-    // Consulta con Fetch API primero y fallback a JSONP
+    // Consulta con Fetch API y JSONP como fallback
     async function fetchMaestros(forceUser = false) {
       if (!navigator.onLine) {
-        updateConnectionStatus(false, "🔴 Modo Offline - Sin conexión a internet");
-        if (forceUser) alert('Modo Offline: Usando datos locales del dispositivo.');
+        updateConnectionStatus(false, "🔴 Modo Offline - Usando datos locales del dispositivo");
+        if (forceUser) alert('Modo Offline: Usando datos en almacenamiento local.');
         return;
       }
 
       updateConnectionStatus(false, "🟡 Conectando con Google Sheets...");
 
+      // Intento vía Fetch API directo
       try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getMaestros&_ts=${Date.now()}`);
+        const response = await fetch(`${APPS_SCRIPT_URL}?_ts=${Date.now()}`);
         if (response.ok) {
           const data = await response.json();
           if (data && data.status === 'success') {
@@ -297,10 +288,10 @@
           }
         }
       } catch (err) {
-        // Si Fetch falla por redirección CORS, usamos JSONP como alternativa
+        // Fallback por política CORS a JSONP
       }
 
-      // FALLBACK CON SCRIPT DINÁMICO (JSONP)
+      // JSONP Fallback
       const callbackName = 'cb_' + Math.round(Math.random() * 1000000);
       let isProcessed = false;
 
@@ -311,10 +302,10 @@
       };
 
       const script = document.createElement('script');
-      script.src = `${APPS_SCRIPT_URL}?action=getMaestros&callback=${callbackName}&_ts=${Date.now()}`;
+      script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&_ts=${Date.now()}`;
       script.onerror = () => {
         delete window[callbackName];
-        updateConnectionStatus(false, "🔴 Error al conectar con Google Sheets");
+        updateConnectionStatus(false, "🔴 Error de red al conectar con Google Sheets");
         populatePlacas();
       };
 
@@ -323,15 +314,15 @@
       setTimeout(() => {
         if (!isProcessed) {
           delete window[callbackName];
-          updateConnectionStatus(false, "🔴 Sin conexión (Publica una Nueva Implementación en Apps Script)");
+          updateConnectionStatus(false, "🔴 Sin respuesta de Google Sheets");
         }
         if (script.parentNode) document.body.removeChild(script);
-      }, 10000);
+      }, 12000);
     }
 
     function processGoogleResponse(response, forceUser) {
-      if (response && response.maestros && response.maestros.length > 0) maestrosData = response.maestros;
-      if (response && response.personal && response.personal.length > 0) personalData = response.personal;
+      if (response && response.maestros) maestrosData = response.maestros;
+      if (response && response.personal) personalData = response.personal;
 
       if (db) {
         const tx = db.transaction('maestros', 'readwrite');
@@ -340,21 +331,20 @@
       }
 
       populatePlacas();
-      updateConnectionStatus(true, `🟢 Conectado a Google Sheets (${maestrosData.length} Placas / ${personalData.length} Personas)`);
+      updateConnectionStatus(true, `🟢 Conectado (${maestrosData.length} Placas / ${personalData.length} Personas)`);
 
       if (forceUser) {
-        alert(`✅ ¡Conexión Exitosa con Google Sheets!\n\nPlacas cargadas: ${maestrosData.length}\nPersonal registrado: ${personalData.length}`);
+        alert(`✅ Sincronización Exitosa:\n\n- Placas cargadas: ${maestrosData.length}\n- Personal en padrón: ${personalData.length}`);
       }
     }
 
     function loadLocalMaestros() {
-      populatePlacas();
       if (!db) return;
 
       const tx = db.transaction('maestros', 'readonly');
       const reqM = tx.objectStore('maestros').get('maestros');
       reqM.onsuccess = () => {
-        if (reqM.result && reqM.result.value.length > 0) {
+        if (reqM.result && reqM.result.value && reqM.result.value.length > 0) {
           maestrosData = reqM.result.value;
           populatePlacas();
         }
@@ -362,7 +352,7 @@
 
       const reqP = tx.objectStore('maestros').get('personal');
       reqP.onsuccess = () => {
-        if (reqP.result && reqP.result.value.length > 0) {
+        if (reqP.result && reqP.result.value && reqP.result.value.length > 0) {
           personalData = reqP.result.value;
         }
       };
@@ -382,12 +372,12 @@
 
       const uniquePlacasMap = new Map();
       maestrosData.forEach(m => {
-        if (m.placa && !uniquePlacasMap.has(m.placa.trim().toUpperCase())) {
-          uniquePlacasMap.set(m.placa.trim().toUpperCase(), m);
+        if (m.placa && String(m.placa).trim() !== '') {
+          uniquePlacasMap.set(String(m.placa).trim().toUpperCase(), m);
         }
       });
 
-      const sortedPlacas = Array.from(uniquePlacasMap.values()).sort((a, b) => a.placa.localeCompare(b.placa));
+      const sortedPlacas = Array.from(uniquePlacasMap.values()).sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
 
       sortedPlacas.forEach(m => {
         movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
@@ -436,7 +426,7 @@
     }
 
     function searchDNI(val) {
-      val = val.trim();
+      val = String(val).trim();
       if (val.length === 8) {
         let cleanInputDNI = val;
         while (cleanInputDNI.length < 8) cleanInputDNI = '0' + cleanInputDNI;
@@ -584,8 +574,6 @@
     window.addEventListener('offline', () => {
       updateConnectionStatus(false, "🔴 Modo Offline (Guardando localmente)");
     });
-
-    populatePlacas();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
