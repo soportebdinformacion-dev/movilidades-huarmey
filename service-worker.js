@@ -1,5 +1,5 @@
 // Service worker: shell offline (cache-first). Nunca intercepta llamadas a Google.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = 'huarmey-shell-' + CACHE_VERSION;
 const PRECACHE = ['./', './index.html', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 
@@ -32,6 +32,18 @@ self.addEventListener('fetch', (event) => {
   if (url.hostname.endsWith('script.google.com') || url.hostname.endsWith('googleusercontent.com')) return; // directo a la red
   if (url.origin !== self.location.origin) return;
   event.respondWith((async () => {
+    // Páginas HTML: red primero (así las correcciones llegan de inmediato); si no hay red, usa la copia guardada
+    if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
+      try {
+        const res = await fetch(req, { cache: 'no-store' });
+        if (res && res.ok) { const copy = res.clone(); caches.open(CACHE_NAME).then(c => c.put(req, copy)).catch(() => {}); }
+        return res;
+      } catch (err) {
+        const c = (await caches.match(req, { ignoreSearch: true })) || (await caches.match('./index.html'));
+        return c || new Response('Sin conexión', { status: 503, statusText: 'Offline' });
+      }
+    }
+    // Resto (iconos, manifest): caché primero
     const cached = await caches.match(req, { ignoreSearch: true });
     if (cached) return cached;
     try {
@@ -42,10 +54,6 @@ self.addEventListener('fetch', (event) => {
       }
       return res;
     } catch (err) {
-      if (req.mode === 'navigate') {
-        const shell = await caches.match('./index.html');
-        if (shell) return shell;
-      }
       return new Response('Sin conexión', { status: 503, statusText: 'Offline' });
     }
   })());
