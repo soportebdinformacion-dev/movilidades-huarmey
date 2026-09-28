@@ -2,602 +2,1427 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agrícola Huarmey - Control de Transporte y Ausentismo</title>
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#1E5328">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            agricola: {
-              green: '#1E5328',
-              lightGreen: '#E8F5E9',
-              red: '#D32F2F'
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./logo.png">
+  <link rel="manifest" href="./manifest.json">
+  <title>Agrícola Huarmey - Movilidades y Ausentismo</title>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f6f8; }
-    .tab-active { border-bottom: 4px solid #1E5328; color: #1E5328; font-weight: bold; }
+    :root {
+      --primary-color: #1E5328;
+      --primary-hover: #143B1B;
+      --bg-green-light: #E8F5E9;
+      --bg-red-light: #FDECEA;
+      --border-red: #EF9A9A;
+      --text-red: #D32F2F;
+      --text-main: #212121;
+      --text-muted: #666666;
+      --bg-body: #F4F6F4;
+      --bg-card: #FFFFFF;
+      --border-color: #CCCCCC;
+      --disabled-bg: #EEEEEE;
+      --status-yellow-bg: #FFFDE7;
+      --status-yellow-text: #F57F17;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      font-size: 16px;
+    }
+
+    /* Header y Banner de actualización */
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: 40px;
+      width: auto;
+      max-width: 120px;
+      object-fit: contain;
+    }
+
+    .header-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      line-height: 1.2;
+    }
+
+    .pwa-toast {
+      display: none;
+      background-color: #2196F3;
+      color: white;
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      transition: background-color 0.3s, color 0.3s;
+      word-break: break-word;
+    }
+
+    .status-connected {
+      background-color: var(--bg-green-light);
+      color: var(--primary-color);
+      border-bottom: 1px solid #A5D6A7;
+    }
+
+    .status-connecting {
+      background-color: var(--status-yellow-bg);
+      color: var(--status-yellow-text);
+      border-bottom: 1px solid #FFE082;
+    }
+
+    .status-offline, .status-error {
+      background-color: var(--bg-red-light);
+      color: var(--text-red);
+      border-bottom: 1px solid var(--border-red);
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      background-color: var(--bg-card);
+      border-bottom: 2px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px 8px;
+      border: none;
+      background: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      background-color: rgba(30, 83, 40, 0.04);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--bg-body);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-group label .required {
+      color: var(--text-red);
+    }
+
+    .form-control {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: #FFFFFF;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(30, 83, 40, 0.2);
+    }
+
+    .form-control[readonly] {
+      background-color: var(--disabled-bg);
+      color: #555555;
+    }
+
+    textarea.form-control {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .error-msg {
+      color: var(--text-red);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    /* Option styling */
+    select option.baja-option {
+      color: #888888;
+      background-color: #F0F0F0;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:active {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #E0E0E0;
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Banner Sync Status */
+    .sync-indicator {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+
+    .sync-indicator.active {
+      display: block;
+    }
+
+    .sync-indicator.info {
+      background-color: #E3F2FD;
+      color: #0D47A1;
+    }
+
+    .sync-indicator.success {
+      background-color: var(--bg-green-light);
+      color: var(--primary-color);
+    }
+
+    /* Mis Envíos Table/List */
+    .records-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .record-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .badge-Pendiente {
+      background-color: var(--status-yellow-bg);
+      color: var(--status-yellow-text);
+    }
+
+    .badge-Sincronizado {
+      background-color: var(--bg-green-light);
+      color: var(--primary-color);
+    }
+
+    .badge-Error {
+      background-color: var(--bg-red-light);
+      color: var(--text-red);
+    }
+
+    .record-body {
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .retry-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: var(--text-red);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
 
-  <!-- Encabezado con Logo -->
-  <header class="bg-white shadow-md p-4 text-center sticky top-0 z-50">
-    <div class="flex flex-col items-center justify-center">
-      <img src="ICONO HUARMEY.png" alt="Agrícola Huarmey Logo" class="h-16 mb-1 object-contain" onerror="this.style.display='none'">
-      <h1 class="text-xl font-bold text-agricola-green">Agrícola Huarmey</h1>
-      <p class="text-xs text-gray-500">Sistema de Control de Transporte y Ausentismo</p>
+  <!-- Toast Actualización PWA -->
+  <div id="pwa-toast" class="pwa-toast" onclick="Ui.reloadPwa()">
+    🚀 Nueva versión disponible. Toca aquí para actualizar.
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-container">
+      <img src="./logo.png" alt="Agrícola Huarmey" class="logo-img" onerror="this.style.display='none'">
+      <div class="header-title">Agrícola Huarmey</div>
     </div>
   </header>
 
-  <!-- Indicador de Alerta de Conexión a Google Sheets -->
-  <div id="status-bar" class="bg-green-100 text-green-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-green-300">
-    <div class="flex items-center space-x-2">
-      <span id="status-dot" class="h-3 w-3 rounded-full bg-green-500 inline-block animate-pulse"></span>
-      <span id="status-text">🟢 Conectando a Google Sheets...</span>
-    </div>
-    <span id="queue-count" class="bg-white px-2 py-1 rounded text-xs border border-green-300 font-bold">
-      GUARDANDO EN LA NUBE (0)
-    </span>
+  <!-- Status Bar -->
+  <div id="status-bar" class="status-bar status-connecting">
+    ⏳ Conectando...
   </div>
 
-  <!-- Navegación por Pestañas -->
-  <nav class="flex bg-white shadow border-b">
-    <button id="tab-movilidades-btn" onclick="switchTab('movilidades')" class="flex-1 py-3 text-center font-medium text-gray-600 tab-active">
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="Ui.switchTab('tab-movilidades')">
       🚌 Movilidades
     </button>
-    <button id="tab-ausentismo-btn" onclick="switchTab('ausentismo')" class="flex-1 py-3 text-center font-medium text-gray-600">
+    <button class="tab-btn" onclick="Ui.switchTab('tab-ausentismo')">
       📋 Ausentismo
+    </button>
+    <button class="tab-btn" onclick="Ui.switchTab('tab-envios')">
+      📤 Envíos <span id="pending-badge" class="badge badge-Pendiente" style="display:none;">0</span>
     </button>
   </nav>
 
-  <!-- Contenedor Principal -->
-  <main class="flex-grow p-4 max-w-lg mx-auto w-full">
+  <!-- Main Content -->
+  <main>
+    <div id="sync-banner" class="sync-indicator"></div>
 
-    <!-- SECCIÓN 1: REGISTRO DE MOVILIDADES -->
-    <section id="section-movilidades" class="bg-white rounded-xl shadow-md p-5 space-y-4">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h2 class="text-lg font-bold text-gray-800">Registro de Movilidades</h2>
-        <button type="button" onclick="fetchMaestros(true)" class="bg-gray-100 text-xs text-agricola-green border border-agricola-green px-2 py-1 rounded hover:bg-green-50 font-semibold flex items-center gap-1">
-          🔄 Actualizar Placas y Personal
-        </button>
+    <!-- TAB 1: MOVILIDADES -->
+    <div id="tab-movilidades" class="tab-content active">
+      <div class="card">
+        <div class="card-title">Registro de Movilidades</div>
+        <form id="form-movilidades" onsubmit="Forms.handleMovilidades(event)">
+          
+          <div class="form-group">
+            <label for="mov-placa">PLACA DE UNIDAD <span class="required">*</span></label>
+            <select id="mov-placa" class="form-control" required onchange="Forms.onPlacaChange(this.value, 'mov')">
+              <option value="">-- Seleccione Placa --</option>
+            </select>
+            <div id="err-mov-placa" class="error-msg">Seleccione una placa válida.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="mov-conductor">CONDUCTOR</label>
+            <input type="text" id="mov-conductor" class="form-control" readonly placeholder="Autocompletado">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-tipo">TIPO</label>
+            <input type="text" id="mov-tipo" class="form-control" readonly placeholder="Autocompletado">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-capacidad">CAPACIDAD</label>
+            <input type="number" id="mov-capacidad" class="form-control" readonly placeholder="0">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-ruta">RUTA</label>
+            <input type="text" id="mov-ruta" class="form-control" readonly placeholder="Autocompletado">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-cultivo">CULTIVO</label>
+            <input type="text" id="mov-cultivo" class="form-control" readonly placeholder="Autocompletado">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-pasajeros">N° PASAJEROS <span class="required">*</span></label>
+            <input type="number" id="mov-pasajeros" class="form-control" min="0" required placeholder="Ingrese pasajeros" oninput="Forms.calcAsientosLibres()">
+            <div id="err-mov-pasajeros" class="error-msg">Los pasajeros no pueden exceder la capacidad.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="mov-libres">ASIENTOS LIBRES</label>
+            <input type="number" id="mov-libres" class="form-control" readonly placeholder="0">
+          </div>
+
+          <div class="form-group">
+            <label for="mov-obs">OBSERVACIONES</label>
+            <textarea id="mov-obs" class="form-control" placeholder="Opcional"></textarea>
+          </div>
+
+          <button type="submit" id="btn-save-mov" class="btn btn-primary">
+            💾 GUARDAR REGISTRO
+          </button>
+        </form>
       </div>
 
-      <form id="form-movilidad" onsubmit="handleSaveMovilidad(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">PLACA DE UNIDAD *</label>
-          <select id="mov-placa" onchange="autoFillMovilidad()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-semibold text-gray-800">
-            <option value="">Seleccione una placa...</option>
-          </select>
-        </div>
+      <button class="btn btn-secondary" onclick="Sync.refreshData(true)">
+        🔄 Actualizar placas y personal
+      </button>
+    </div>
 
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CONDUCTOR</label>
-          <input type="text" id="mov-conductor" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
-        </div>
+    <!-- TAB 2: AUSENTISMO -->
+    <div id="tab-ausentismo" class="tab-content">
+      <div class="card">
+        <div class="card-title">Registro de Ausentismo</div>
+        <form id="form-ausentismo" onsubmit="Forms.handleAusentismo(event)">
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">TIPO</label>
-            <input type="text" id="mov-tipo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CAPACIDAD</label>
-            <input type="number" id="mov-capacidad" readonly placeholder="0" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RUTA</label>
-            <input type="text" id="mov-ruta" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">CULTIVO</label>
-            <input type="text" id="mov-cultivo" readonly placeholder="---" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">N° PASAJEROS *</label>
-          <input type="number" id="mov-pasajeros" min="0" oninput="calculateSeats()" required placeholder="Ej. 15" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ASIENTOS LIBRES</label>
-          <input type="number" id="mov-asientos" readonly placeholder="0" class="w-full p-3 bg-green-50 border border-green-300 text-agricola-green font-bold rounded-lg text-lg">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">OBSERVACIONES</label>
-          <textarea id="mov-observaciones" rows="2" placeholder="Opcional..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
-          GUARDAR REGISTROS
-        </button>
-      </form>
-    </section>
-
-    <!-- SECCIÓN 2: REGISTRO DE AUSENTISMO -->
-    <section id="section-ausentismo" class="bg-white rounded-xl shadow-md p-5 space-y-4 hidden">
-      <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Registro de Ausentismo</h2>
-
-      <form id="form-ausentismo" onsubmit="handleSaveAusentismo(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">PLACA *</label>
-          <select id="aus-placa" onchange="autoFillAusentismoPlaca()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-semibold text-gray-800">
-            <option value="">Seleccione Placa...</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RUTA</label>
-          <input type="text" id="aus-ruta" readonly placeholder="Se autocompleta con la placa" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI PERSONAL *</label>
-          <input type="text" id="aus-dni" maxlength="8" pattern="\d{8}" oninput="searchDNI(this.value)" required placeholder="8 dígitos (Ej. 41573851)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green font-mono text-base">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">APELLIDOS Y NOMBRES</label>
-          <input type="text" id="aus-nombres" readonly placeholder="Muestra apellidos y nombres al digitar DNI..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-bold">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">FECHA DE FALTA *</label>
-          <input type="date" id="aus-fechafalta" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">MOTIVO DE AUSENCIA *</label>
-          <select id="aus-motivo" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="">Seleccione...</option>
-            <option value="Ninguno">Ninguno</option>
-            <option value="Descanso médico (Absentismo)">Descanso médico (Absentismo)</option>
-            <option value="Permiso con papeleta (Absentismo)">Permiso con papeleta (Absentismo)</option>
-            <option value="Enfermedad">Enfermedad</option>
-            <option value="Problemas familiares">Problemas familiares</option>
-            <option value="Transporte (Especificar en observaciones)">Transporte (Especificar en observaciones)</option>
-            <option value="Otro trabajo (Especificar en observaciones)">Otro trabajo (Especificar en observaciones)</option>
-            <option value="Desmotivación">Desmotivación</option>
-            <option value="Sacar tarjeta">Sacar tarjeta</option>
-            <option value="Pago">Pago</option>
-            <option value="Horario">Horario</option>
-            <option value="Alimentación">Alimentación</option>
-            <option value="Campamento">Campamento</option>
-            <option value="Ambiente laboral">Ambiente laboral</option>
-            <option value="Renuncia (Especificar en observaciones)">Renuncia (Especificar en observaciones)</option>
-            <option value="Problemas con el caporal (Especificar en observaciones)">Problemas con el caporal (Especificar en observaciones)</option>
-            <option value="Estudios">Estudios</option>
-            <option value="Viaje">Viaje</option>
-            <option value="Accidente">Accidente</option>
-            <option value="No desea continuar (Especificar en observaciones)">No desea continuar (Especificar en observaciones)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">OBSERVACIONES</label>
-          <textarea id="aus-observaciones" rows="2" placeholder="Detalle observaciones adicionales..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">¿VAS A REGRESAR? *</label>
-          <select id="aus-regresar" onchange="toggleRetornoSection()" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-            <option value="Lo está pensando">Lo está pensando</option>
-          </select>
-        </div>
-
-        <div id="container-retorno" class="space-y-3">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">RETORNO</label>
-            <select id="aus-retornotipo" onchange="toggleFechaRetornoInput()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-              <option value="Inmediato">Inmediato</option>
-              <option value="Especificar fecha">Especificar fecha</option>
+          <div class="form-group">
+            <label for="aus-placa">PLACA <span class="required">*</span></label>
+            <select id="aus-placa" class="form-control" required onchange="Forms.onPlacaChange(this.value, 'aus')">
+              <option value="">-- Seleccione Placa --</option>
             </select>
           </div>
-          <div id="container-fecharetorno" class="hidden">
-            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">FECHA DE RETORNO</label>
-            <input type="date" id="aus-fecharetorno" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-agricola-green">
-          </div>
-        </div>
 
-        <button type="submit" class="w-full bg-agricola-green text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-800 transition text-lg">
-          GUARDAR REGISTRO
-        </button>
-      </form>
-    </section>
+          <div class="form-group">
+            <label for="aus-ruta">RUTA</label>
+            <input type="text" id="aus-ruta" class="form-control" readonly placeholder="Autocompletado">
+          </div>
+
+          <div class="form-group">
+            <label for="aus-dni">DNI <span class="required">*</span></label>
+            <input type="text" id="aus-dni" class="form-control" inputmode="numeric" maxlength="8" required placeholder="8 dígitos" oninput="Forms.onDniInput(this.value)">
+            <div id="err-aus-dni" class="error-msg">DNI no encontrado en el padrón.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="aus-nombres">APELLIDOS Y NOMBRES</label>
+            <input type="text" id="aus-nombres" class="form-control" readonly placeholder="Se autocompleta al ingresar DNI">
+          </div>
+
+          <div class="form-group">
+            <label for="aus-fecha-falta">FECHA DE FALTA <span class="required">*</span></label>
+            <input type="date" id="aus-fecha-falta" class="form-control" required onchange="Forms.validateFechaFalta(this)">
+            <div id="err-aus-fecha-falta" class="error-msg">La fecha no puede ser futura.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="aus-motivo">MOTIVO DE AUSENCIA <span class="required">*</span></label>
+            <select id="aus-motivo" class="form-control" required onchange="Forms.onMotivoChange(this.value)">
+              <option value="">-- Seleccione Motivo --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="aus-obs">OBSERVACIONES <span id="lbl-obs-req" class="required hidden">*</span></label>
+            <textarea id="aus-obs" class="form-control" placeholder="Especifique si el motivo lo requiere"></textarea>
+            <div id="err-aus-obs" class="error-msg">Las observaciones son obligatorias para el motivo seleccionado.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="aus-regresa">¿VAS A REGRESAR? <span class="required">*</span></label>
+            <select id="aus-regresa" class="form-control" required onchange="Forms.onRegresaChange(this.value)">
+              <option value="" selected disabled>-- Seleccione opción --</option>
+              <option value="SI">SI</option>
+              <option value="NO">NO</option>
+              <option value="Lo está pensando">Lo está pensando</option>
+            </select>
+          </div>
+
+          <!-- Subsección Fecha Retorno -->
+          <div id="sec-retorno" class="hidden">
+            <div class="form-group">
+              <label for="aus-retorno-tipo">FECHA DE RETORNO <span class="required">*</span></label>
+              <select id="aus-retorno-tipo" class="form-control" onchange="Forms.onRetornoTipoChange(this.value)">
+                <option value="Inmediato">Inmediato</option>
+                <option value="Ingrese la fecha">Ingrese la fecha</option>
+              </select>
+            </div>
+
+            <div id="sec-retorno-fecha" class="form-group hidden">
+              <label for="aus-fecha-retorno">ESPECIFIQUE FECHA RETORNO <span class="required">*</span></label>
+              <input type="date" id="aus-fecha-retorno" class="form-control">
+              <div id="err-aus-fecha-retorno" class="error-msg">La fecha de retorno no puede ser anterior a la fecha de falta.</div>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-save-aus" class="btn btn-primary">
+            💾 GUARDAR AUSENTISMO
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 3: MIS ENVÍOS -->
+    <div id="tab-envios" class="tab-content">
+      <div class="card">
+        <div class="card-title">Mis Envíos Locales</div>
+        <div id="list-envios" class="records-list">
+          <p style="color: var(--text-muted); text-align: center;">Cargando registros...</p>
+        </div>
+      </div>
+    </div>
 
   </main>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3cG8w8ajzDRhihO-WdmXS2aiFd6Hbj9E40YM-SB6jgTlGjpmxlG6eajBBqAF07TtE/exec';
-
-    const DEFAULT_MAESTROS = [
-      { placa: 'A9Z-969', conductor: 'MUÑOZ SILVA MANUEL', tipo: 'MINIBUS', capacidad: 32, ruta: 'INSCULAS - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' },
-      { placa: 'W4M-851', conductor: 'TORRES CHINCHAY NELVER', tipo: 'COMBI', capacidad: 15, ruta: 'LA PILCA - SEDE OLMOS', cultivo: 'SERVICIOS GENERALES' }
-    ];
-
-    const DEFAULT_PERSONAL = [
-      { dni: '41573851', nombres: 'GRACIELA TORO DÍAZ' },
-      { dni: '42073638', nombres: 'HENRY ARTURO ALVAREZ LIZAMA' },
-      { dni: '43246877', nombres: 'JOSÉ WILMER CHÁVEZ TAPIA' }
-    ];
-
-    let db;
-    let maestrosData = DEFAULT_MAESTROS;
-    let personalData = DEFAULT_PERSONAL;
-
-    const request = indexedDB.open('AgricolaHuarmeyDB', 1);
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-      if (!db.objectStoreNames.contains('movilidades')) db.createObjectStore('movilidades', { keyPath: 'id', autoIncrement: true });
-      if (!db.objectStoreNames.contains('ausentismos')) db.createObjectStore('ausentismos', { keyPath: 'id', autoIncrement: true });
-      if (!db.objectStoreNames.contains('maestros')) db.createObjectStore('maestros', { keyPath: 'key' });
+    /* ==========================================================================
+       CONFIGURACIÓN Y CONSTANTES
+       ========================================================================== */
+    const Config = {
+      // URL del script de Google Apps Script de producción
+      SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzzV6p9_HUARMEY_SCRIPT_ID_AQUI/exec',
+      API_KEY: 'HUARMEY_SECRET_KEY_2026',
+      AUTO_SYNC_INTERVAL: 60000, // 60 segundos
+      MOTIVOS_AUSENCIA: [
+        "Ninguno",
+        "Descanso médico (Absentismo)",
+        "Permiso con papeleta (Absentismo)",
+        "Enfermedad",
+        "Problemas familiares",
+        "Transporte (Especificar en observaciones)",
+        "Otro trabajo (Especificar en observaciones)",
+        "Desmotivación",
+        "Sacar tarjeta",
+        "Pago",
+        "Horario",
+        "Alimentación",
+        "Campamento",
+        "Ambiente laboral",
+        "Renuncia (Especificar en observaciones)",
+        "Problemas con el caporal (Especificar en observaciones)",
+        "Estudios",
+        "Viaje",
+        "Accidente",
+        "No desea continuar (Especificar en observaciones)"
+      ]
     };
 
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      loadLocalMaestros();
-      updateQueueCount();
+    /* ==========================================================================
+       BASE DE DATOS LOCAL (IndexedDB)
+       ========================================================================== */
+    const Db = {
+      dbPromise: null,
+
+      init() {
+        if (this.dbPromise) return this.dbPromise;
+        this.dbPromise = new Promise((resolve, reject) => {
+          const req = indexedDB.open('HuarmeyDB', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('movilidades')) {
+              db.createObjectStore('movilidades', { keyPath: 'clientId' });
+            }
+            if (!db.objectStoreNames.contains('ausentismos')) {
+              db.createObjectStore('ausentismos', { keyPath: 'clientId' });
+            }
+            if (!db.objectStoreNames.contains('cache')) {
+              db.createObjectStore('cache', { keyPath: 'key' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+        return this.dbPromise;
+      },
+
+      async getStore(storeName, mode = 'readonly') {
+        const db = await this.init();
+        const tx = db.transaction(storeName, mode);
+        return tx.objectStore(storeName);
+      },
+
+      async saveItem(storeName, item) {
+        const store = await this.getStore(storeName, 'readwrite');
+        return new Promise((resolve, reject) => {
+          const req = store.put(item);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      },
+
+      async getAll(storeName) {
+        const store = await this.getStore(storeName, 'readonly');
+        return new Promise((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      },
+
+      async getItem(storeName, key) {
+        const store = await this.getStore(storeName, 'readonly');
+        return new Promise((resolve, reject) => {
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
     };
 
-    function updateConnectionStatus(isConnected, message) {
-      const statusDot = document.getElementById('status-dot');
-      const statusText = document.getElementById('status-text');
-      const statusBar = document.getElementById('status-bar');
+    /* ==========================================================================
+       MÓDULO DE CLIENTE DE RED Y API (JSONP / FETCH)
+       ========================================================================== */
+    const Api = {
+      // Lectura mediante JSONP para evitar bloqueos CORS
+      fetchDataJSONP() {
+        return new Promise((resolve, reject) => {
+          const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+          const script = document.createElement('script');
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Tiempo de espera agotado al conectar con Google Sheets'));
+          }, 15000);
 
-      if (isConnected) {
-        statusDot.className = "h-3 w-3 rounded-full bg-green-500 inline-block animate-pulse";
-        statusBar.className = "bg-green-100 text-green-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-green-300";
-        statusText.innerText = message || "🟢 Conectado a Google Sheets";
-      } else {
-        statusDot.className = "h-3 w-3 rounded-full bg-red-500 inline-block";
-        statusBar.className = "bg-red-100 text-red-900 px-4 py-2 text-xs font-semibold flex justify-between items-center border-b border-red-300";
-        statusText.innerText = message || "🔴 Sin conexión a Google Sheets (Modo Local)";
-      }
-    }
-
-    function switchTab(tab) {
-      document.getElementById('section-movilidades').classList.toggle('hidden', tab !== 'movilidades');
-      document.getElementById('section-ausentismo').classList.toggle('hidden', tab !== 'ausentismo');
-      document.getElementById('tab-movilidades-btn').classList.toggle('tab-active', tab === 'movilidades');
-      document.getElementById('tab-ausentismo-btn').classList.toggle('tab-active', tab === 'ausentismo');
-    }
-
-    // JSONP como método ÚNICO y principal: fetch() contra Apps Script suele
-    // fallar por el redirect a googleusercontent.com (CORS), así que JSONP
-    // (carga por <script>) es el método confiable para esta plataforma.
-    function fetchMaestros(forceUser = false) {
-      if (!navigator.onLine) {
-        updateConnectionStatus(false, "🔴 Modo Offline - Sin conexión a internet");
-        if (forceUser) alert('Modo Offline: Usando datos locales del dispositivo.');
-        return;
-      }
-
-      updateConnectionStatus(false, "🟡 Conectando con Google Sheets...");
-
-      const callbackName = 'cb_' + Math.round(Math.random() * 1000000);
-      let isProcessed = false;
-
-      window[callbackName] = function(data) {
-        isProcessed = true;
-        delete window[callbackName];
-        handleFetchResult(data, forceUser);
-      };
-
-      const script = document.createElement('script');
-      script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&_ts=${Date.now()}`;
-      script.onerror = () => {
-        delete window[callbackName];
-        updateConnectionStatus(false, "🔴 Error de red al conectar con Google Sheets");
-        if (forceUser) alert('❌ No se pudo conectar. Revisa tu conexión a internet o la URL del Apps Script (APPS_SCRIPT_URL).');
-        populatePlacas();
-      };
-
-      document.body.appendChild(script);
-
-      setTimeout(() => {
-        if (!isProcessed) {
-          delete window[callbackName];
-          updateConnectionStatus(false, "🔴 Sin respuesta del servidor");
-          if (forceUser) {
-            alert('❌ Tiempo de espera agotado.\n\nVerifica en Apps Script:\n1. Implementar > Nueva implementación (después de cada cambio de código).\n2. "Quién tiene acceso": Cualquier usuario.\n3. Que la URL de APPS_SCRIPT_URL en este HTML sea la más reciente.');
+          function cleanup() {
+            clearTimeout(timeout);
+            if (window[callbackName]) delete window[callbackName];
+            if (script.parentNode) script.parentNode.removeChild(script);
           }
-        }
-        if (script.parentNode) document.body.removeChild(script);
-      }, 15000);
-    }
 
-    function handleFetchResult(response, forceUser) {
-      // El backend ahora reporta errores reales en vez de esconderlos.
-      if (!response || response.status === 'error') {
-        const msg = (response && response.message) ? response.message : 'Respuesta inválida o vacía del servidor.';
-        updateConnectionStatus(false, `🔴 Error del servidor: ${msg}`);
-        if (forceUser) alert(`❌ Error reportado por Google Apps Script:\n\n${msg}`);
-        populatePlacas();
-        return;
-      }
+          window[callbackName] = function(data) {
+            cleanup();
+            if (data && data.status === 'success') {
+              resolve(data);
+            } else {
+              reject(new Error(data ? data.message : 'Error desconocido en respuesta del servidor'));
+            }
+          };
 
-      maestrosData = Array.isArray(response.maestros) ? response.maestros : [];
-      personalData = Array.isArray(response.personal) ? response.personal : [];
+          script.onerror = function() {
+            cleanup();
+            reject(new Error('Fallo de red al solicitar datos JSONP'));
+          };
 
-      if (db) {
-        const tx = db.transaction('maestros', 'readwrite');
-        tx.objectStore('maestros').put({ key: 'maestros', value: maestrosData });
-        tx.objectStore('maestros').put({ key: 'personal', value: personalData });
-      }
+          const url = `${Config.SCRIPT_URL}?api_key=${encodeURIComponent(Config.API_KEY)}&callback=${callbackName}&_t=${Date.now()}`;
+          script.src = url;
+          document.body.appendChild(script);
+        });
+      },
 
-      populatePlacas();
-
-      if (maestrosData.length === 0 || personalData.length === 0) {
-        // Conectó bien, pero el Sheet devolvió 0 filas: avisamos en vez de fallar en silencio.
-        updateConnectionStatus(false, `🟠 Conectado, pero Sheets devolvió ${maestrosData.length} placas / ${personalData.length} personas`);
-        if (forceUser) alert(`⚠️ Conexión OK, pero no se encontraron datos.\n\nPlacas: ${maestrosData.length}\nPersonal: ${personalData.length}\n\nRevisa que las hojas se llamen exactamente "maestros" y "personal".`);
-      } else {
-        updateConnectionStatus(true, `🟢 Conectado a Google Sheets (${maestrosData.length} Placas / ${personalData.length} Personas)`);
-        if (forceUser) {
-          alert(`✅ ¡Conexión Exitosa con Google Sheets!\n\nPlacas cargadas: ${maestrosData.length}\nPersonal registrado: ${personalData.length}`);
-        }
-      }
-    }
-
-    function loadLocalMaestros() {
-      populatePlacas();
-      if (!db) return;
-
-      const tx = db.transaction('maestros', 'readonly');
-      const reqM = tx.objectStore('maestros').get('maestros');
-      reqM.onsuccess = () => {
-        if (reqM.result && reqM.result.value.length > 0) {
-          maestrosData = reqM.result.value;
-          populatePlacas();
-        }
-      };
-
-      const reqP = tx.objectStore('maestros').get('personal');
-      reqP.onsuccess = () => {
-        if (reqP.result && reqP.result.value.length > 0) {
-          personalData = reqP.result.value;
-        }
-      };
-
-      if (navigator.onLine) fetchMaestros();
-    }
-
-    function populatePlacas() {
-      const movSelect = document.getElementById('mov-placa');
-      const ausSelect = document.getElementById('aus-placa');
-
-      const currentMovVal = movSelect.value;
-      const currentAusVal = ausSelect.value;
-
-      movSelect.innerHTML = '<option value="">Seleccione una placa...</option>';
-      ausSelect.innerHTML = '<option value="">Seleccione Placa...</option>';
-
-      const uniquePlacasMap = new Map();
-      (maestrosData || []).forEach(m => {
-        const placaKey = String(m && m.placa || '').trim().toUpperCase();
-        if (placaKey && !uniquePlacasMap.has(placaKey)) {
-          uniquePlacasMap.set(placaKey, m);
-        }
-      });
-
-      const sortedPlacas = Array.from(uniquePlacasMap.values()).sort((a, b) => String(a.placa).localeCompare(String(b.placa)));
-
-      sortedPlacas.forEach(m => {
-        movSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
-        ausSelect.innerHTML += `<option value="${m.placa}">${m.placa}</option>`;
-      });
-
-      if (currentMovVal) movSelect.value = currentMovVal;
-      if (currentAusVal) ausSelect.value = currentAusVal;
-    }
-
-    function autoFillMovilidad() {
-      const placa = document.getElementById('mov-placa').value;
-      const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
-
-      if (item) {
-        document.getElementById('mov-conductor').value = item.conductor || '';
-        document.getElementById('mov-tipo').value = item.tipo || '';
-        document.getElementById('mov-capacidad').value = item.capacidad || 0;
-        document.getElementById('mov-ruta').value = item.ruta || '';
-        document.getElementById('mov-cultivo').value = item.cultivo || '';
-        calculateSeats();
-      } else {
-        document.getElementById('mov-conductor').value = '';
-        document.getElementById('mov-tipo').value = '';
-        document.getElementById('mov-capacidad').value = '';
-        document.getElementById('mov-ruta').value = '';
-        document.getElementById('mov-cultivo').value = '';
-        document.getElementById('mov-asientos').value = '';
-      }
-    }
-
-    function calculateSeats() {
-      const cap = parseInt(document.getElementById('mov-capacidad').value) || 0;
-      const pas = parseInt(document.getElementById('mov-pasajeros').value) || 0;
-      document.getElementById('mov-asientos').value = Math.max(0, cap - pas);
-    }
-
-    function autoFillAusentismoPlaca() {
-      const placa = document.getElementById('aus-placa').value;
-      const item = maestrosData.find(m => String(m.placa).trim().toUpperCase() === String(placa).trim().toUpperCase());
-      if (item) {
-        document.getElementById('aus-ruta').value = item.ruta || '';
-      } else {
-        document.getElementById('aus-ruta').value = '';
-      }
-    }
-
-    function searchDNI(val) {
-      val = val.trim();
-      if (val.length === 8) {
-        let cleanInputDNI = val;
-        while (cleanInputDNI.length < 8) cleanInputDNI = '0' + cleanInputDNI;
-
-        const p = personalData.find(item => {
-          let cleanDni = String(item.dni).trim();
-          while (cleanDni.length < 8) cleanDni = '0' + cleanDni;
-          return cleanDni === cleanInputDNI;
+      // Escritura mediante Fetch POST text/plain
+      async sendPost(tipo, payload, clientId) {
+        const bodyData = JSON.stringify({
+          api_key: Config.API_KEY,
+          tipo: tipo,
+          clientId: clientId,
+          payload: payload
         });
 
-        if (p) {
-          document.getElementById('aus-nombres').value = p.nombres;
-        } else {
-          document.getElementById('aus-nombres').value = '⚠️ DNI NO ENCONTRADO EN PADRÓN';
+        const response = await fetch(Config.SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: bodyData
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error del servidor (${response.status})`);
         }
-      } else {
-        document.getElementById('aus-nombres').value = '';
+
+        const resJson = await response.json();
+        if (resJson.status !== 'success') {
+          throw new Error(resJson.message || 'Error reportado por Apps Script');
+        }
+
+        return resJson;
       }
-    }
+    };
 
-    function toggleRetornoSection() {
-      const reg = document.getElementById('aus-regresar').value;
-      document.getElementById('container-retorno').classList.toggle('hidden', reg !== 'SI');
-    }
+    /* ==========================================================================
+       ESTADO GLOBAL DE LA APLICACIÓN
+       ========================================================================== */
+    const State = {
+      maestrosMap: new Map(), // Placa -> Objeto Maestro
+      uniquePlacas: [],      // Lista ordenada de placas únicas
+      personalMap: new Map(), // DNI (8 dígitos) -> Objeto Personal
+      counts: { totalMaestros: 0, totalPlacas: 0, totalPersonal: 0 },
+      isOnline: false
+    };
 
-    function toggleFechaRetornoInput() {
-      const tipo = document.getElementById('aus-retornotipo').value;
-      document.getElementById('container-fecharetorno').classList.toggle('hidden', tipo !== 'Especificar fecha');
-    }
+    /* ==========================================================================
+       MÓDULO DE SINCRONIZACIÓN
+       ========================================================================== */
+    const Sync = {
+      isSyncing: false,
 
-    function handleSaveMovilidad(e) {
-      e.preventDefault();
-      const record = {
-        fechaRegistro: new Date().toLocaleString('es-PE'),
-        placa: document.getElementById('mov-placa').value,
-        conductor: document.getElementById('mov-conductor').value,
-        tipo: document.getElementById('mov-tipo').value,
-        capacidad: document.getElementById('mov-capacidad').value,
-        ruta: document.getElementById('mov-ruta').value,
-        cultivo: document.getElementById('mov-cultivo').value,
-        pasajeros: document.getElementById('mov-pasajeros').value,
-        asientosLibres: document.getElementById('mov-asientos').value,
-        observaciones: document.getElementById('mov-observaciones').value,
-        status: 'Pendiente'
-      };
+      async init() {
+        // Cargar caché local de inmediato
+        await this.loadLocalCache();
+        
+        // Listener de eventos online/offline
+        window.addEventListener('online', () => this.checkConnectionAndSync());
+        window.addEventListener('offline', () => this.updateOnlineStatus(false));
 
-      saveRecord('movilidades', record, () => {
-        document.getElementById('form-movilidad').reset();
-        document.getElementById('mov-asientos').value = '';
-        alert('✅ Registro de Movilidad guardado localmente.');
-      });
-    }
+        // Verificación inicial de conexión y sincronización periódica
+        this.checkConnectionAndSync();
+        setInterval(() => this.checkConnectionAndSync(), Config.AUTO_SYNC_INTERVAL);
+      },
 
-    function handleSaveAusentismo(e) {
-      e.preventDefault();
-      const reg = document.getElementById('aus-regresar').value;
-      const tipoR = document.getElementById('aus-retornotipo').value;
-      const fechaR = (reg === 'SI' && tipoR === 'Especificar fecha') ? document.getElementById('aus-fecharetorno').value : (reg === 'SI' ? tipoR : 'N/A');
+      async loadLocalCache() {
+        try {
+          const cacheMaestros = await Db.getItem('cache', 'maestros');
+          const cachePersonal = await Db.getItem('cache', 'personal');
 
-      const record = {
-        fechaRegistro: new Date().toLocaleString('es-PE'),
-        placa: document.getElementById('aus-placa').value,
-        ruta: document.getElementById('aus-ruta').value,
-        dni: document.getElementById('aus-dni').value,
-        nombres: document.getElementById('aus-nombres').value,
-        fechaFalta: document.getElementById('aus-fechafalta').value,
-        motivo: document.getElementById('aus-motivo').value,
-        observaciones: document.getElementById('aus-observaciones').value,
-        vasARegresar: reg,
-        fechaRetorno: fechaR,
-        status: 'Pendiente'
-      };
-
-      saveRecord('ausentismos', record, () => {
-        document.getElementById('form-ausentismo').reset();
-        alert('✅ Registro de Ausentismo guardado localmente.');
-      });
-    }
-
-    function saveRecord(storeName, record, callback) {
-      if (!db) return;
-      const tx = db.transaction(storeName, 'readwrite');
-      tx.objectStore(storeName).add(record);
-      tx.oncomplete = () => {
-        updateQueueCount();
-        syncPendingData();
-        callback();
-      };
-    }
-
-    function updateQueueCount() {
-      let count = 0;
-      if (!db) return;
-      const tx = db.transaction(['movilidades', 'ausentismos'], 'readonly');
-      tx.objectStore('movilidades').openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) { if (cursor.value.status === 'Pendiente') count++; cursor.continue(); }
-      };
-      tx.objectStore('ausentismos').openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) { if (cursor.value.status === 'Pendiente') count++; cursor.continue(); }
-        else {
-          document.getElementById('queue-count').innerText = `GUARDANDO EN LA NUBE (${count})`;
-        }
-      };
-    }
-
-    async function syncPendingData() {
-      if (!navigator.onLine || !db) return;
-
-      const syncStore = (storeName, typeName) => {
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        store.openCursor().onsuccess = async (e) => {
-          const cursor = e.target.result;
-          if (cursor) {
-            if (cursor.value.status === 'Pendiente') {
-              const item = cursor.value;
-              try {
-                await fetch(APPS_SCRIPT_URL, {
-                  method: 'POST',
-                  mode: 'no-cors',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ type: typeName, data: item })
-                });
-                item.status = 'Sincronizado';
-                cursor.update(item);
-                updateQueueCount();
-              } catch (err) { }
-            }
-            cursor.continue();
+          if (cacheMaestros && cacheMaestros.data) {
+            this.processMaestrosData(cacheMaestros.data);
           }
-        };
-      };
+          if (cachePersonal && cachePersonal.data) {
+            this.processPersonalData(cachePersonal.data);
+          }
 
-      syncStore('movilidades', 'movilidad');
-      syncStore('ausentismos', 'ausentismo');
-    }
+          Ui.populateDropdowns();
+          Ui.updateStatusBar();
+        } catch (e) {
+          console.error('[Sync] Error al cargar caché local:', e);
+        }
+      },
 
-    window.addEventListener('online', () => {
-      fetchMaestros();
-      syncPendingData();
+      processMaestrosData(rawMaestros) {
+        State.maestrosMap.clear();
+        const placasSeen = new Set();
+        const listActivos = [];
+        const listBaja = [];
+
+        // Si se repite placa, se usa la última fila (regla 3.1)
+        rawMaestros.forEach(item => {
+          if (!item.placa) return;
+          State.maestrosMap.set(item.placa, item);
+        });
+
+        // Separar únicas preservando orden y estado
+        State.maestrosMap.forEach((item, placa) => {
+          if (item.estado === 'BAJA') {
+            listBaja.push(placa);
+          } else {
+            listActivos.push(placa);
+          }
+        });
+
+        State.uniquePlacas = [...listActivos, ...listBaja];
+        State.counts.totalMaestros = rawMaestros.length;
+        State.counts.totalPlacas = State.uniquePlacas.length;
+      },
+
+      processPersonalData(rawPersonal) {
+        State.personalMap.clear();
+        rawPersonal.forEach(item => {
+          if (!item.dni) return;
+          // Normalizar DNI a 8 dígitos con relleno de ceros
+          const cleanDni = String(item.dni).replace(/\D/g, '').padStart(8, '0');
+          if (!State.personalMap.has(cleanDni)) {
+            State.personalMap.set(cleanDni, item.nombres);
+          }
+        });
+        State.counts.totalPersonal = rawPersonal.length;
+      },
+
+      async checkConnectionAndSync() {
+        try {
+          // Intentar descargar datos actualizados
+          const response = await Api.fetchDataJSONP();
+          this.updateOnlineStatus(true);
+
+          if (response.maestros && response.personal) {
+            this.processMaestrosData(response.maestros);
+            this.processPersonalData(response.personal);
+
+            // Guardar en caché IndexedDB
+            await Db.saveItem('cache', { key: 'maestros', data: response.maestros, updatedAt: Date.now() });
+            await Db.saveItem('cache', { key: 'personal', data: response.personal, updatedAt: Date.now() });
+
+            Ui.populateDropdowns();
+            Ui.updateStatusBar();
+          }
+
+          // Iniciar sincronización de registros pendientes
+          await this.syncPendingRecords();
+
+        } catch (err) {
+          console.warn('[Sync] Sin conexión o fallo de lectura:', err.message);
+          this.updateOnlineStatus(false, err.message);
+        }
+      },
+
+      async refreshData(userTriggered = false) {
+        if (userTriggered) Ui.showSyncBanner('Cargando datos desde Google Sheets...', 'info');
+        try {
+          const response = await Api.fetchDataJSONP();
+          this.updateOnlineStatus(true);
+
+          this.processMaestrosData(response.maestros);
+          this.processPersonalData(response.personal);
+
+          await Db.saveItem('cache', { key: 'maestros', data: response.maestros, updatedAt: Date.now() });
+          await Db.saveItem('cache', { key: 'personal', data: response.personal, updatedAt: Date.now() });
+
+          Ui.populateDropdowns();
+          Ui.updateStatusBar();
+
+          if (userTriggered) {
+            Ui.showSyncBanner(`Actualizado: ${State.counts.totalPlacas} placas y ${State.counts.totalPersonal} personas.`, 'success');
+          }
+        } catch (e) {
+          if (userTriggered) {
+            Ui.showSyncBanner(`Error al actualizar: ${e.message}`, 'error');
+          }
+          this.updateOnlineStatus(false, e.message);
+        }
+      },
+
+      updateOnlineStatus(isOnline, errorMessage = '') {
+        State.isOnline = isOnline;
+        Ui.updateStatusBar(errorMessage);
+      },
+
+      async syncPendingRecords() {
+        if (this.isSyncing || !State.isOnline) return;
+        this.isSyncing = true;
+
+        try {
+          const pendingMov = (await Db.getAll('movilidades')).filter(r => r.status === 'Pendiente' || r.status === 'Error');
+          const pendingAus = (await Db.getAll('ausentismos')).filter(r => r.status === 'Pendiente' || r.status === 'Error');
+
+          const total = pendingMov.length + pendingAus.length;
+          if (total === 0) {
+            Ui.updatePendingBadge(0);
+            this.isSyncing = false;
+            return;
+          }
+
+          Ui.showSyncBanner(`Enviando ${total} registro(s)...`, 'info');
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          // Procesar Movilidades
+          for (const item of pendingMov) {
+            if (item.attempts >= 5) continue; // Máximo 5 reintentos
+            try {
+              item.attempts = (item.attempts || 0) + 1;
+              await Api.sendPost('movilidades', item.payload, item.clientId);
+              item.status = 'Sincronizado';
+              item.errorMessage = '';
+              await Db.saveItem('movilidades', item);
+              successCount++;
+            } catch (err) {
+              item.status = 'Error';
+              item.errorMessage = err.message;
+              await Db.saveItem('movilidades', item);
+              errorCount++;
+            }
+          }
+
+          // Procesar Ausentismos
+          for (const item of pendingAus) {
+            if (item.attempts >= 5) continue;
+            try {
+              item.attempts = (item.attempts || 0) + 1;
+              await Api.sendPost('ausentismos', item.payload, item.clientId);
+              item.status = 'Sincronizado';
+              item.errorMessage = '';
+              await Db.saveItem('ausentismos', item);
+              successCount++;
+            } catch (err) {
+              item.status = 'Error';
+              item.errorMessage = err.message;
+              await Db.saveItem('ausentismos', item);
+              errorCount++;
+            }
+          }
+
+          if (errorCount > 0) {
+            Ui.showSyncBanner(`Sincronización terminada: ${successCount} enviados, ${errorCount} con error.`, 'error');
+          } else if (successCount > 0) {
+            Ui.showSyncBanner(`¡${successCount} registro(s) sincronizado(s) exitosamente!`, 'success');
+          }
+
+          Ui.renderEnviosList();
+
+        } catch (e) {
+          console.error('[Sync] Error general durante la sincronización:', e);
+        } finally {
+          this.isSyncing = false;
+        }
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO DE INTERFAZ DE USUARIO (UI)
+       ========================================================================== */
+    const Ui = {
+      switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+
+        if (tabId === 'tab-envios') {
+          this.renderEnviosList();
+        }
+      },
+
+      updateStatusBar(errorMessage = '') {
+        const sb = document.getElementById('status-bar');
+        sb.className = 'status-bar';
+
+        if (State.isOnline) {
+          sb.classList.add('status-connected');
+          if (State.counts.totalMaestros > 0) {
+            sb.textContent = `🟢 Conectado a Google Sheets (${State.counts.totalMaestros} registros / ${State.counts.totalPlacas} placas / ${State.counts.totalPersonal} personas)`;
+          } else {
+            sb.textContent = `🟢 Conectado a Google Sheets`;
+          }
+        } else {
+          sb.classList.add('status-error');
+          if (errorMessage) {
+            sb.textContent = `🔴 Sin conexión: ${errorMessage}`;
+          } else {
+            sb.textContent = `🔴 Sin conexión (modo offline)`;
+          }
+        }
+      },
+
+      populateDropdowns() {
+        const selectMov = document.getElementById('mov-placa');
+        const selectAus = document.getElementById('aus-placa');
+        const selectMotivo = document.getElementById('aus-motivo');
+
+        const valMov = selectMov.value;
+        const valAus = selectAus.value;
+
+        // Fragmente para optimizar renderizado
+        const fragMov = document.createDocumentFragment();
+        const fragAus = document.createDocumentFragment();
+
+        const optDef1 = document.createElement('option');
+        optDef1.value = '';
+        optDef1.textContent = '-- Seleccione Placa --';
+        fragMov.appendChild(optDef1);
+
+        const optDef2 = document.createElement('option');
+        optDef2.value = '';
+        optDef2.textContent = '-- Seleccione Placa --';
+        fragAus.appendChild(optDef2);
+
+        State.uniquePlacas.forEach(placa => {
+          const item = State.maestrosMap.get(placa);
+          const isBaja = item && item.estado === 'BAJA';
+
+          const opt1 = document.createElement('option');
+          opt1.value = placa;
+          opt1.textContent = isBaja ? `${placa} (BAJA)` : placa;
+          if (isBaja) opt1.className = 'baja-option';
+
+          const opt2 = opt1.cloneNode(true);
+
+          fragMov.appendChild(opt1);
+          fragAus.appendChild(opt2);
+        });
+
+        selectMov.innerHTML = '';
+        selectMov.appendChild(fragMov);
+        selectMov.value = valMov;
+
+        selectAus.innerHTML = '';
+        selectAus.appendChild(fragAus);
+        selectAus.value = valAus;
+
+        // Llenar motivos de ausencia
+        if (selectMotivo.options.length <= 1) {
+          const fragMotivo = document.createDocumentFragment();
+          const optDefM = document.createElement('option');
+          optDefM.value = '';
+          optDefM.textContent = '-- Seleccione Motivo --';
+          fragMotivo.appendChild(optDefM);
+
+          Config.MOTIVOS_AUSENCIA.forEach(motivo => {
+            const opt = document.createElement('option');
+            opt.value = motivo;
+            opt.textContent = motivo;
+            fragMotivo.appendChild(opt);
+          });
+          selectMotivo.innerHTML = '';
+          selectMotivo.appendChild(fragMotivo);
+        }
+      },
+
+      showSyncBanner(msg, type = 'info') {
+        const banner = document.getElementById('sync-banner');
+        banner.className = `sync-indicator active ${type}`;
+        banner.textContent = msg;
+        if (type === 'success') {
+          setTimeout(() => {
+            banner.classList.remove('active');
+          }, 4000);
+        }
+      },
+
+      updatePendingBadge(count) {
+        const badge = document.getElementById('pending-badge');
+        if (count > 0) {
+          badge.textContent = count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      },
+
+      async renderEnviosList() {
+        const container = document.getElementById('list-envios');
+        const listMov = await Db.getAll('movilidades');
+        const listAus = await Db.getAll('ausentismos');
+
+        const all = [
+          ...listMov.map(i => ({ ...i, category: 'Movilidad' })),
+          ...listAus.map(i => ({ ...i, category: 'Ausentismo' }))
+        ].sort((a, b) => b.createdAt - a.createdAt);
+
+        const pendingCount = all.filter(r => r.status !== 'Sincronizado').length;
+        this.updatePendingBadge(pendingCount);
+
+        if (all.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No hay envíos registrados localmente.</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+        all.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'record-item';
+
+          const title = item.category === 'Movilidad' 
+            ? `Movilidad: ${item.payload.placa} (${item.payload.pasajeros} pas.)`
+            : `Ausentismo: DNI ${item.payload.dni} - ${item.payload.nombres}`;
+
+          div.innerHTML = `
+            <div class="record-header">
+              <span>${this.escapeHtml(title)}</span>
+              <span class="badge badge-${item.status}">${item.status}</span>
+            </div>
+            <div class="record-body">
+              <div>Fecha: ${new Date(item.createdAt).toLocaleString('es-PE')}</div>
+              ${item.errorMessage ? `<div style="color: var(--text-red);">Error: ${this.escapeHtml(item.errorMessage)}</div>` : ''}
+              ${item.status === 'Error' ? `<button class="retry-btn" onclick="Forms.retryItem('${item.category === 'Movilidad' ? 'movilidades' : 'ausentismos'}', '${item.clientId}')">Reintentar</button>` : ''}
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      },
+
+      escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      },
+
+      reloadPwa() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg && reg.waiting) {
+              reg.waiting.postMessage({ action: 'skipWaiting' });
+            }
+          });
+        }
+        window.location.reload();
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO DE FORMULARIOS Y EVENTOS
+       ========================================================================== */
+    const Forms = {
+      onPlacaChange(placa, prefix) {
+        const item = State.maestrosMap.get(placa);
+        if (prefix === 'mov') {
+          document.getElementById('mov-conductor').value = item ? item.conductor : '';
+          document.getElementById('mov-tipo').value = item ? item.tipo : '';
+          document.getElementById('mov-capacidad').value = item ? item.capacidad : '';
+          document.getElementById('mov-ruta').value = item ? item.ruta : '';
+          document.getElementById('mov-cultivo').value = item ? item.cultivo : '';
+          this.calcAsientosLibres();
+        } else if (prefix === 'aus') {
+          document.getElementById('aus-ruta').value = item ? item.ruta : '';
+        }
+      },
+
+      calcAsientosLibres() {
+        const cap = parseInt(document.getElementById('mov-capacidad').value, 10) || 0;
+        const pasInput = document.getElementById('mov-pasajeros');
+        const pas = parseInt(pasInput.value, 10) || 0;
+        const errPas = document.getElementById('err-mov-pasajeros');
+
+        if (pas > cap) {
+          errPas.classList.add('visible');
+          pasInput.setCustomValidity('Excede la capacidad');
+        } else {
+          errPas.classList.remove('visible');
+          pasInput.setCustomValidity('');
+        }
+
+        const libres = Math.max(0, cap - pas);
+        document.getElementById('mov-libres').value = isNaN(libres) ? 0 : libres;
+      },
+
+      onDniInput(val) {
+        // Relleno de ceros a la izquierda y solo números
+        const cleanVal = val.replace(/\D/g, '');
+        const inputDni = document.getElementById('aus-dni');
+        const errDni = document.getElementById('err-aus-dni');
+        const nameInput = document.getElementById('aus-nombres');
+
+        inputDni.value = cleanVal;
+
+        if (cleanVal.length === 8) {
+          const paddedDni = cleanVal.padStart(8, '0');
+          if (State.personalMap.has(paddedDni)) {
+            nameInput.value = State.personalMap.get(paddedDni);
+            errDni.classList.remove('visible');
+            inputDni.setCustomValidity('');
+          } else {
+            nameInput.value = '';
+            errDni.classList.add('visible');
+            inputDni.setCustomValidity('DNI no encontrado');
+          }
+        } else {
+          nameInput.value = '';
+          errDni.classList.remove('visible');
+          inputDni.setCustomValidity('');
+        }
+      },
+
+      validateFechaFalta(input) {
+        const err = document.getElementById('err-aus-fecha-falta');
+        if (!input.value) return;
+
+        const selected = new Date(input.value + 'T00:00:00');
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+
+        if (selected > today) {
+          err.classList.add('visible');
+          input.setCustomValidity('Fecha futura no permitida');
+        } else {
+          err.classList.remove('visible');
+          input.setCustomValidity('');
+        }
+      },
+
+      onMotivoChange(motivo) {
+        const lblReq = document.getElementById('lbl-obs-req');
+        const obsInput = document.getElementById('aus-obs');
+        const isRequired = motivo.includes('(Especificar en observaciones)');
+
+        if (isRequired) {
+          lblReq.classList.remove('hidden');
+          obsInput.required = true;
+        } else {
+          lblReq.classList.add('hidden');
+          obsInput.required = false;
+        }
+      },
+
+      onRegresaChange(val) {
+        const secRetorno = document.getElementById('sec-retorno');
+        if (val === 'SI') {
+          secRetorno.classList.remove('hidden');
+        } else {
+          secRetorno.classList.add('hidden');
+          document.getElementById('aus-retorno-tipo').value = 'Inmediato';
+          this.onRetornoTipoChange('Inmediato');
+        }
+      },
+
+      onRetornoTipoChange(val) {
+        const secFecha = document.getElementById('sec-retorno-fecha');
+        const inputFecha = document.getElementById('aus-fecha-retorno');
+        if (val === 'Ingrese la fecha') {
+          secFecha.classList.remove('hidden');
+          inputFecha.required = true;
+        } else {
+          secFecha.classList.add('hidden');
+          inputFecha.required = false;
+          inputFecha.value = '';
+        }
+      },
+
+      async handleMovilidades(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-mov');
+        btn.disabled = true;
+
+        try {
+          const cap = parseInt(document.getElementById('mov-capacidad').value, 10) || 0;
+          const pas = parseInt(document.getElementById('mov-pasajeros').value, 10) || 0;
+
+          if (pas > cap) {
+            alert('El número de pasajeros no puede exceder la capacidad.');
+            btn.disabled = false;
+            return;
+          }
+
+          const record = {
+            clientId: crypto.randomUUID(),
+            createdAt: Date.now(),
+            status: 'Pendiente',
+            attempts: 0,
+            errorMessage: '',
+            payload: {
+              placa: document.getElementById('mov-placa').value,
+              conductor: document.getElementById('mov-conductor').value,
+              tipo: document.getElementById('mov-tipo').value,
+              capacidad: cap,
+              ruta: document.getElementById('mov-ruta').value,
+              cultivo: document.getElementById('mov-cultivo').value,
+              pasajeros: pas,
+              libres: parseInt(document.getElementById('mov-libres').value, 10) || 0,
+              observaciones: document.getElementById('mov-obs').value
+            }
+          };
+
+          await Db.saveItem('movilidades', record);
+
+          document.getElementById('form-movilidades').reset();
+          document.getElementById('mov-libres').value = '0';
+          Ui.showSyncBanner('Movilidad guardada en memoria local.', 'success');
+
+          // Intentar sincronización inmediata
+          Sync.syncPendingRecords();
+
+        } catch (err) {
+          alert('Error al guardar registro local: ' + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      },
+
+      async handleAusentismo(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-aus');
+        btn.disabled = true;
+
+        try {
+          const dniInput = document.getElementById('aus-dni').value.padStart(8, '0');
+          if (!State.personalMap.has(dniInput)) {
+            alert('El DNI ingresado no existe en el padrón de personal.');
+            btn.disabled = false;
+            return;
+          }
+
+          const motivo = document.getElementById('aus-motivo').value;
+          const obs = document.getElementById('aus-obs').value;
+
+          if (motivo.includes('(Especificar en observaciones)') && !obs.trim()) {
+            document.getElementById('err-aus-obs').classList.add('visible');
+            btn.disabled = false;
+            return;
+          } else {
+            document.getElementById('err-aus-obs').classList.remove('visible');
+          }
+
+          const regresa = document.getElementById('aus-regresa').value;
+          let fechaRetorno = 'N/A';
+
+          if (regresa === 'SI') {
+            const retornoTipo = document.getElementById('aus-retorno-tipo').value;
+            if (retornoTipo === 'Inmediato') {
+              fechaRetorno = 'Inmediato';
+            } else {
+              fechaRetorno = document.getElementById('aus-fecha-retorno').value;
+              const faltaDate = document.getElementById('aus-fecha-falta').value;
+              if (fechaRetorno < faltaDate) {
+                document.getElementById('err-aus-fecha-retorno').classList.add('visible');
+                btn.disabled = false;
+                return;
+              } else {
+                document.getElementById('err-aus-fecha-retorno').classList.remove('visible');
+              }
+            }
+          }
+
+          const record = {
+            clientId: crypto.randomUUID(),
+            createdAt: Date.now(),
+            status: 'Pendiente',
+            attempts: 0,
+            errorMessage: '',
+            payload: {
+              placa: document.getElementById('aus-placa').value,
+              ruta: document.getElementById('aus-ruta').value,
+              dni: dniInput,
+              nombres: document.getElementById('aus-nombres').value,
+              fechaFalta: document.getElementById('aus-fecha-falta').value,
+              motivo: motivo,
+              observaciones: obs,
+              regresa: regresa,
+              fechaRetorno: fechaRetorno
+            }
+          };
+
+          await Db.saveItem('ausentismos', record);
+
+          document.getElementById('form-ausentismo').reset();
+          document.getElementById('sec-retorno').classList.add('hidden');
+          document.getElementById('sec-retorno-fecha').classList.add('hidden');
+          document.getElementById('lbl-obs-req').classList.add('hidden');
+
+          Ui.showSyncBanner('Ausentismo guardado en memoria local.', 'success');
+
+          Sync.syncPendingRecords();
+
+        } catch (err) {
+          alert('Error al guardar registro local: ' + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      },
+
+      async retryItem(storeName, clientId) {
+        const item = await Db.getItem(storeName, clientId);
+        if (item) {
+          item.status = 'Pendiente';
+          item.attempts = 0;
+          await Db.saveItem(storeName, item);
+          Ui.renderEnviosList();
+          Sync.syncPendingRecords();
+        }
+      }
+    };
+
+    /* ==========================================================================
+       INICIALIZACIÓN DE LA PWA Y SERVICE WORKER
+       ========================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Establecer fecha máxima de falta como el día de hoy
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('aus-fecha-falta').setAttribute('max', todayStr);
+
+      // Iniciar DB y Motor de Sync
+      Sync.init();
+
+      // Registro de Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+          .then((reg) => {
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  document.getElementById('pwa-toast').style.display = 'block';
+                }
+              });
+            });
+          })
+          .catch((err) => console.warn('[SW] Error al registrar Service Worker:', err));
+      }
     });
-
-    window.addEventListener('offline', () => {
-      updateConnectionStatus(false, "🔴 Modo Offline (Guardando localmente)");
-    });
-
-    populatePlacas();
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
   </script>
 </body>
 </html>
