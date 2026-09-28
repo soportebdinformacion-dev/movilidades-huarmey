@@ -1,76 +1,52 @@
-const CACHE_NAME = 'huarmey-pwa-v1';
-const ASSETS = [
-  './index.html',
-  './manifest.json',
-  './logo.png'
-];
+// Service worker: shell offline (cache-first). Nunca intercepta llamadas a Google.
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = 'huarmey-shell-' + CACHE_VERSION;
+const PRECACHE = ['./', './index.html', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 
-// Instalación del Service Worker con manejo individual de errores en precache
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      for (const asset of ASSETS) {
-        try {
-          await cache.add(asset);
-        } catch (err) {
-          console.warn(`[SW] Advertencia: No se pudo precachear ${asset}:`, err);
-        }
-      }
-      return self.skipWaiting();
-    })
-  );
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Cada archivo por separado: si uno falla, los demás igual se guardan
+    await Promise.all(PRECACHE.map(async (url) => {
+      try { await cache.add(url); } catch (err) { console.warn('[SW] No se pudo precachear', url, err); }
+    }));
+  })());
 });
 
-// Activación y limpieza de cachés antiguos
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k.startsWith('huarmey-shell-') && k !== CACHE_NAME).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Estrategia Cache-First sin interceptar llamadas a Apps Script
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
-
-  // REGLA CRÍTICA: NUNCA interceptar ni cachear llamadas a Apps Script de Google
-  if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
-    return; // Permite paso directo a la red sin ser gestionado por el SW
-  }
-
-  e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(e.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, responseToCache);
-        });
-        return networkResponse;
-      }).catch(() => {
-        if (e.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
-    })
-  );
-});
-
-// Actualización activa mediante mensaje
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.hostname.endsWith('script.google.com') || url.hostname.endsWith('googleusercontent.com')) return; // directo a la red
+  if (url.origin !== self.location.origin) return;
+  event.respondWith((async () => {
+    const cached = await caches.match(req, { ignoreSearch: true });
+    if (cached) return cached;
+    try {
+      const res = await fetch(req);
+      if (res && res.ok) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, copy)).catch(() => {});
+      }
+      return res;
+    } catch (err) {
+      if (req.mode === 'navigate') {
+        const shell = await caches.match('./index.html');
+        if (shell) return shell;
+      }
+      return new Response('Sin conexión', { status: 503, statusText: 'Offline' });
+    }
+  })());
 });
