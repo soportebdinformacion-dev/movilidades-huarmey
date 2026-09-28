@@ -44,7 +44,6 @@
       font-size: 16px;
     }
 
-    /* Header y Banner de actualización */
     header {
       background-color: var(--bg-card);
       border-bottom: 1px solid var(--border-color);
@@ -75,6 +74,15 @@
       line-height: 1.2;
     }
 
+    .config-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
     .pwa-toast {
       display: none;
       background-color: #2196F3;
@@ -86,7 +94,6 @@
       cursor: pointer;
     }
 
-    /* Status Bar */
     .status-bar {
       padding: 8px 16px;
       font-size: 0.85rem;
@@ -114,7 +121,6 @@
       border-bottom: 1px solid var(--border-red);
     }
 
-    /* Tabs */
     .tabs-nav {
       display: flex;
       background-color: var(--bg-card);
@@ -147,7 +153,6 @@
       background-color: rgba(30, 83, 40, 0.04);
     }
 
-    /* Main Container */
     main {
       flex: 1;
       max-width: 600px;
@@ -181,7 +186,6 @@
       border-bottom: 1px solid var(--bg-body);
     }
 
-    /* Form Fields */
     .form-group {
       margin-bottom: 16px;
     }
@@ -238,13 +242,11 @@
       display: block;
     }
 
-    /* Option styling */
     select option.baja-option {
       color: #888888;
       background-color: #F0F0F0;
     }
 
-    /* Buttons */
     .btn {
       width: 100%;
       min-height: 48px;
@@ -281,7 +283,6 @@
       cursor: not-allowed;
     }
 
-    /* Banner Sync Status */
     .sync-indicator {
       margin-bottom: 12px;
       padding: 10px;
@@ -306,7 +307,11 @@
       color: var(--primary-color);
     }
 
-    /* Mis Envíos Table/List */
+    .sync-indicator.error {
+      background-color: var(--bg-red-light);
+      color: var(--text-red);
+    }
+
     .records-list {
       display: flex;
       flex-direction: column;
@@ -367,6 +372,29 @@
       font-size: 0.8rem;
     }
 
+    .modal-overlay {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -374,25 +402,22 @@
 </head>
 <body>
 
-  <!-- Toast Actualización PWA -->
   <div id="pwa-toast" class="pwa-toast" onclick="Ui.reloadPwa()">
     🚀 Nueva versión disponible. Toca aquí para actualizar.
   </div>
 
-  <!-- Header -->
   <header>
     <div class="brand-container">
       <img src="./logo.png" alt="Agrícola Huarmey" class="logo-img" onerror="this.style.display='none'">
       <div class="header-title">Agrícola Huarmey</div>
     </div>
+    <button class="config-btn" onclick="Ui.toggleConfigModal()" title="Configuración de URL">⚙️</button>
   </header>
 
-  <!-- Status Bar -->
   <div id="status-bar" class="status-bar status-connecting">
     ⏳ Conectando...
   </div>
 
-  <!-- Tabs Navigation -->
   <nav class="tabs-nav">
     <button class="tab-btn active" onclick="Ui.switchTab('tab-movilidades')">
       🚌 Movilidades
@@ -405,7 +430,6 @@
     </button>
   </nav>
 
-  <!-- Main Content -->
   <main>
     <div id="sync-banner" class="sync-indicator"></div>
 
@@ -414,13 +438,11 @@
       <div class="card">
         <div class="card-title">Registro de Movilidades</div>
         <form id="form-movilidades" onsubmit="Forms.handleMovilidades(event)">
-          
           <div class="form-group">
             <label for="mov-placa">PLACA DE UNIDAD <span class="required">*</span></label>
             <select id="mov-placa" class="form-control" required onchange="Forms.onPlacaChange(this.value, 'mov')">
               <option value="">-- Seleccione Placa --</option>
             </select>
-            <div id="err-mov-placa" class="error-msg">Seleccione una placa válida.</div>
           </div>
 
           <div class="form-group">
@@ -480,7 +502,6 @@
       <div class="card">
         <div class="card-title">Registro de Ausentismo</div>
         <form id="form-ausentismo" onsubmit="Forms.handleAusentismo(event)">
-
           <div class="form-group">
             <label for="aus-placa">PLACA <span class="required">*</span></label>
             <select id="aus-placa" class="form-control" required onchange="Forms.onPlacaChange(this.value, 'aus')">
@@ -533,7 +554,6 @@
             </select>
           </div>
 
-          <!-- Subsección Fecha Retorno -->
           <div id="sec-retorno" class="hidden">
             <div class="form-group">
               <label for="aus-retorno-tipo">FECHA DE RETORNO <span class="required">*</span></label>
@@ -566,18 +586,31 @@
         </div>
       </div>
     </div>
-
   </main>
 
+  <!-- MODAL CONFIGURACIÓN DE URL -->
+  <div id="config-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="color: var(--primary-color); margin-bottom: 12px;">⚙️ Configurar URL Backend</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Pega aquí la URL Web App generada desde tu implementación de Google Apps Script:
+      </p>
+      <div class="form-group">
+        <input type="url" id="cfg-script-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary" onclick="Ui.saveConfigUrl()">💾 Guardar y Probar</button>
+        <button class="btn btn-secondary" style="margin-top:0;" onclick="Ui.toggleConfigModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    /* ==========================================================================
-       CONFIGURACIÓN Y CONSTANTES
-       ========================================================================== */
     const Config = {
-      // URL del script de Google Apps Script de producción
-      SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzs6K_3Iylstnhjp_Ll9iOfMvwQPab9SxFnt-bF0pyvAwUrnu_ujQkk34Q_UH3oqHaU/exec',
+      // URL de respaldo predeterminada
+      SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxPW0slh_5UL-yrSjT3UYbkRJZUMkV5AdNA457_G-AKw6SMNQ04O0eapkiF3-dr6aBg/exec',
       API_KEY: 'HUARMEY_SECRET_KEY_2026',
-      AUTO_SYNC_INTERVAL: 60000, // 60 segundos
+      AUTO_SYNC_INTERVAL: 60000,
       MOTIVOS_AUSENCIA: [
         "Ninguno",
         "Descanso médico (Absentismo)",
@@ -599,12 +632,12 @@
         "Viaje",
         "Accidente",
         "No desea continuar (Especificar en observaciones)"
-      ]
+      ],
+      getScriptUrl() {
+        return localStorage.getItem('HUARMEY_SCRIPT_URL') || this.SCRIPT_URL;
+      }
     };
 
-    /* ==========================================================================
-       BASE DE DATOS LOCAL (IndexedDB)
-       ========================================================================== */
     const Db = {
       dbPromise: null,
 
@@ -664,19 +697,41 @@
       }
     };
 
-    /* ==========================================================================
-       MÓDULO DE CLIENTE DE RED Y API (JSONP / FETCH)
-       ========================================================================== */
     const Api = {
-      // Lectura mediante JSONP para evitar bloqueos CORS
-      fetchDataJSONP() {
+      async fetchData() {
+        const baseUrl = Config.getScriptUrl();
+        if (!baseUrl || baseUrl.includes('HUARMEY_SCRIPT_ID_AQUI')) {
+          throw new Error('Debes configurar la URL de tu Web App desplegada en Apps Script (presiona ⚙️ arriba).');
+        }
+
+        // Método 1: Intentar mediante fetch GET directo
+        try {
+          const fetchUrl = `${baseUrl}?api_key=${encodeURIComponent(Config.API_KEY)}&_t=${Date.now()}`;
+          const res = await fetch(fetchUrl, { redirect: 'follow' });
+          if (res.ok) {
+            const text = await res.text();
+            if (text.trim().startsWith('<')) {
+              throw new Error('Apps Script devolvió HTML (Asegúrate que "Quién tiene acceso" esté en "Cualquier usuario").');
+            }
+            const data = JSON.parse(text);
+            if (data.status === 'success') return data;
+            throw new Error(data.message || 'Error retornado por servidor');
+          }
+        } catch (fetchErr) {
+          console.warn('[Api] Fetch falló o requirió JSONP:', fetchErr.message);
+          if (fetchErr.message.includes('Cualquier usuario') || fetchErr.message.includes('configurar la URL')) {
+            throw fetchErr;
+          }
+        }
+
+        // Método 2: Fallback a JSONP por script injection
         return new Promise((resolve, reject) => {
           const callbackName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
           const script = document.createElement('script');
           const timeout = setTimeout(() => {
             cleanup();
-            reject(new Error('Tiempo de espera agotado al conectar con Google Sheets'));
-          }, 15000);
+            reject(new Error('Tiempo de espera agotado (Verifica conectividad y URL de Apps Script)'));
+          }, 12000);
 
           function cleanup() {
             clearTimeout(timeout);
@@ -689,23 +744,23 @@
             if (data && data.status === 'success') {
               resolve(data);
             } else {
-              reject(new Error(data ? data.message : 'Error desconocido en respuesta del servidor'));
+              reject(new Error(data ? data.message : 'Error en respuesta JSONP'));
             }
           };
 
           script.onerror = function() {
             cleanup();
-            reject(new Error('Fallo de red al solicitar datos JSONP'));
+            reject(new Error('Fallo de red/servidor al solicitar datos. Revisa la URL en ⚙️.'));
           };
 
-          const url = `${Config.SCRIPT_URL}?api_key=${encodeURIComponent(Config.API_KEY)}&callback=${callbackName}&_t=${Date.now()}`;
-          script.src = url;
+          const jsonpUrl = `${baseUrl}?api_key=${encodeURIComponent(Config.API_KEY)}&callback=${callbackName}&_t=${Date.now()}`;
+          script.src = jsonpUrl;
           document.body.appendChild(script);
         });
       },
 
-      // Escritura mediante Fetch POST text/plain
       async sendPost(tipo, payload, clientId) {
+        const baseUrl = Config.getScriptUrl();
         const bodyData = JSON.stringify({
           api_key: Config.API_KEY,
           tipo: tipo,
@@ -713,7 +768,7 @@
           payload: payload
         });
 
-        const response = await fetch(Config.SCRIPT_URL, {
+        const response = await fetch(baseUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: bodyData
@@ -725,39 +780,29 @@
 
         const resJson = await response.json();
         if (resJson.status !== 'success') {
-          throw new Error(resJson.message || 'Error reportado por Apps Script');
+          throw new Error(resJson.message || 'Error en guardado remoto');
         }
 
         return resJson;
       }
     };
 
-    /* ==========================================================================
-       ESTADO GLOBAL DE LA APLICACIÓN
-       ========================================================================== */
     const State = {
-      maestrosMap: new Map(), // Placa -> Objeto Maestro
-      uniquePlacas: [],      // Lista ordenada de placas únicas
-      personalMap: new Map(), // DNI (8 dígitos) -> Objeto Personal
+      maestrosMap: new Map(),
+      uniquePlacas: [],
+      personalMap: new Map(),
       counts: { totalMaestros: 0, totalPlacas: 0, totalPersonal: 0 },
       isOnline: false
     };
 
-    /* ==========================================================================
-       MÓDULO DE SINCRONIZACIÓN
-       ========================================================================== */
     const Sync = {
       isSyncing: false,
 
       async init() {
-        // Cargar caché local de inmediato
         await this.loadLocalCache();
-        
-        // Listener de eventos online/offline
         window.addEventListener('online', () => this.checkConnectionAndSync());
         window.addEventListener('offline', () => this.updateOnlineStatus(false));
 
-        // Verificación inicial de conexión y sincronización periódica
         this.checkConnectionAndSync();
         setInterval(() => this.checkConnectionAndSync(), Config.AUTO_SYNC_INTERVAL);
       },
@@ -783,17 +828,14 @@
 
       processMaestrosData(rawMaestros) {
         State.maestrosMap.clear();
-        const placasSeen = new Set();
         const listActivos = [];
         const listBaja = [];
 
-        // Si se repite placa, se usa la última fila (regla 3.1)
         rawMaestros.forEach(item => {
           if (!item.placa) return;
           State.maestrosMap.set(item.placa, item);
         });
 
-        // Separar únicas preservando orden y estado
         State.maestrosMap.forEach((item, placa) => {
           if (item.estado === 'BAJA') {
             listBaja.push(placa);
@@ -811,7 +853,6 @@
         State.personalMap.clear();
         rawPersonal.forEach(item => {
           if (!item.dni) return;
-          // Normalizar DNI a 8 dígitos con relleno de ceros
           const cleanDni = String(item.dni).replace(/\D/g, '').padStart(8, '0');
           if (!State.personalMap.has(cleanDni)) {
             State.personalMap.set(cleanDni, item.nombres);
@@ -822,15 +863,13 @@
 
       async checkConnectionAndSync() {
         try {
-          // Intentar descargar datos actualizados
-          const response = await Api.fetchDataJSONP();
+          const response = await Api.fetchData();
           this.updateOnlineStatus(true);
 
           if (response.maestros && response.personal) {
             this.processMaestrosData(response.maestros);
             this.processPersonalData(response.personal);
 
-            // Guardar en caché IndexedDB
             await Db.saveItem('cache', { key: 'maestros', data: response.maestros, updatedAt: Date.now() });
             await Db.saveItem('cache', { key: 'personal', data: response.personal, updatedAt: Date.now() });
 
@@ -838,11 +877,10 @@
             Ui.updateStatusBar();
           }
 
-          // Iniciar sincronización de registros pendientes
           await this.syncPendingRecords();
 
         } catch (err) {
-          console.warn('[Sync] Sin conexión o fallo de lectura:', err.message);
+          console.warn('[Sync] Fallo al sincronizar:', err.message);
           this.updateOnlineStatus(false, err.message);
         }
       },
@@ -850,7 +888,7 @@
       async refreshData(userTriggered = false) {
         if (userTriggered) Ui.showSyncBanner('Cargando datos desde Google Sheets...', 'info');
         try {
-          const response = await Api.fetchDataJSONP();
+          const response = await Api.fetchData();
           this.updateOnlineStatus(true);
 
           this.processMaestrosData(response.maestros);
@@ -898,9 +936,8 @@
           let successCount = 0;
           let errorCount = 0;
 
-          // Procesar Movilidades
           for (const item of pendingMov) {
-            if (item.attempts >= 5) continue; // Máximo 5 reintentos
+            if (item.attempts >= 5) continue;
             try {
               item.attempts = (item.attempts || 0) + 1;
               await Api.sendPost('movilidades', item.payload, item.clientId);
@@ -916,7 +953,6 @@
             }
           }
 
-          // Procesar Ausentismos
           for (const item of pendingAus) {
             if (item.attempts >= 5) continue;
             try {
@@ -935,7 +971,7 @@
           }
 
           if (errorCount > 0) {
-            Ui.showSyncBanner(`Sincronización terminada: ${successCount} enviados, ${errorCount} con error.`, 'error');
+            Ui.showSyncBanner(`Sincronización: ${successCount} enviados, ${errorCount} con error.`, 'error');
           } else if (successCount > 0) {
             Ui.showSyncBanner(`¡${successCount} registro(s) sincronizado(s) exitosamente!`, 'success');
           }
@@ -943,16 +979,13 @@
           Ui.renderEnviosList();
 
         } catch (e) {
-          console.error('[Sync] Error general durante la sincronización:', e);
+          console.error('[Sync] Error general en sync:', e);
         } finally {
           this.isSyncing = false;
         }
       }
     };
 
-    /* ==========================================================================
-       MÓDULO DE INTERFAZ DE USUARIO (UI)
-       ========================================================================== */
     const Ui = {
       switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
@@ -963,6 +996,21 @@
 
         if (tabId === 'tab-envios') {
           this.renderEnviosList();
+        }
+      },
+
+      toggleConfigModal() {
+        const modal = document.getElementById('config-modal');
+        document.getElementById('cfg-script-url').value = Config.getScriptUrl();
+        modal.classList.toggle('active');
+      },
+
+      saveConfigUrl() {
+        const val = document.getElementById('cfg-script-url').value.trim();
+        if (val) {
+          localStorage.setItem('HUARMEY_SCRIPT_URL', val);
+          this.toggleConfigModal();
+          Sync.refreshData(true);
         }
       },
 
@@ -995,7 +1043,6 @@
         const valMov = selectMov.value;
         const valAus = selectAus.value;
 
-        // Fragmente para optimizar renderizado
         const fragMov = document.createDocumentFragment();
         const fragAus = document.createDocumentFragment();
 
@@ -1032,7 +1079,6 @@
         selectAus.appendChild(fragAus);
         selectAus.value = valAus;
 
-        // Llenar motivos de ausencia
         if (selectMotivo.options.length <= 1) {
           const fragMotivo = document.createDocumentFragment();
           const optDefM = document.createElement('option');
@@ -1135,9 +1181,6 @@
       }
     };
 
-    /* ==========================================================================
-       MÓDULO DE FORMULARIOS Y EVENTOS
-       ========================================================================== */
     const Forms = {
       onPlacaChange(placa, prefix) {
         const item = State.maestrosMap.get(placa);
@@ -1172,7 +1215,6 @@
       },
 
       onDniInput(val) {
-        // Relleno de ceros a la izquierda y solo números
         const cleanVal = val.replace(/\D/g, '');
         const inputDni = document.getElementById('aus-dni');
         const errDni = document.getElementById('err-aus-dni');
@@ -1293,7 +1335,6 @@
           document.getElementById('mov-libres').value = '0';
           Ui.showSyncBanner('Movilidad guardada en memoria local.', 'success');
 
-          // Intentar sincronización inmediata
           Sync.syncPendingRecords();
 
         } catch (err) {
@@ -1396,18 +1437,12 @@
       }
     };
 
-    /* ==========================================================================
-       INICIALIZACIÓN DE LA PWA Y SERVICE WORKER
-       ========================================================================== */
     document.addEventListener('DOMContentLoaded', () => {
-      // Establecer fecha máxima de falta como el día de hoy
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('aus-fecha-falta').setAttribute('max', todayStr);
 
-      // Iniciar DB y Motor de Sync
       Sync.init();
 
-      // Registro de Service Worker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./service-worker.js', { scope: './' })
           .then((reg) => {
