@@ -1,21 +1,31 @@
 {
-  "short_name": "HuarmeyApp",
-  "name": "Agrícola Huarmey - Movilidades y Ausentismo",
-  "icons": [
-    {
-      "src": "ICONO HUARMEY.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "ICONO HUARMEY.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
-  "start_url": "./index.html",
-  "background_color": "#ffffff",
-  "theme_color": "#1E5328",
-  "display": "standalone",
-  "orientation": "portrait"
+"name": "Agrícola Huarmey - Movilidades y Ausentismo",
+"short_name": "Huarmey App",
+"start_url": "./index.html",
+"scope": "./",
+"display": "standalone",
+"orientation": "portrait",
+"background_color": "#FFFFFF",
+"theme_color": "#1E5328",
+"description": "Aplicación PWA offline-first para registro de movilidades y ausentismo de personal en Agrícola Huarmey.",
+"icons": [
+{
+"src": "./logo.png",
+"sizes": "192x192",
+"type": "image/png",
+"purpose": "any"
+},
+{
+"src": "./logo.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any"
+},
+{
+"src": "./logo.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "maskable"
+}
+]
 }
