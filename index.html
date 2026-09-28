@@ -204,9 +204,31 @@ const Store = {
 /* ========== Api: lectura JSONP y escritura POST ========== */
 const Api = {
   configurado() { return Config.SCRIPT_URL.indexOf('PEGA_AQUI') !== 0; },
-  read() {
+  AYUDA: 'No se pudo contactar al servidor de Google. Revisa en Apps Script: Implementar > Administrar implementaciones > Aplicación web, "Ejecutar como: Yo" y "Quién tiene acceso: Cualquier persona"; y que SCRIPT_URL sea la URL /exec vigente.',
+  _url() { return Config.SCRIPT_URL + '?key=' + encodeURIComponent(Config.API_KEY) + '&t=' + Date.now(); },
+  // Interpreta el texto devuelto por el servidor; si no es JSON, casi siempre es una página de Google (login/error)
+  _parse(txt) {
+    let d;
+    try { d = JSON.parse(txt); }
+    catch (e) {
+      const er = new Error(/^\s*</.test(txt)
+        ? 'Google devolvió una página web en lugar de datos: la implementación no es pública ("Cualquier persona") o la URL no es la vigente.'
+        : 'Respuesta inválida del servidor.');
+      er.fatal = true; throw er;
+    }
+    if (d && d.status === 'success') return d;
+    const er = new Error((d && d.message) || 'Respuesta inválida del servidor.'); er.fatal = true; throw er;
+  },
+  async _readFetch() {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 30000);
+    try {
+      const r = await fetch(this._url(), { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctl.signal });
+      return this._parse(await r.text());
+    } finally { clearTimeout(t); }
+  },
+  _readJsonp() {
     return new Promise((res, rej) => {
-      if (!this.configurado()) return rej(new Error('Falta configurar SCRIPT_URL en index.html.'));
       const cb = 'jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
       const s = document.createElement('script');
       const fin = () => { clearTimeout(t); delete window[cb]; s.remove(); };
@@ -214,23 +236,33 @@ const Api = {
       window[cb] = (d) => {
         fin();
         if (d && d.status === 'success') res(d);
-        else rej(new Error((d && d.message) || 'Respuesta inválida del servidor.'));
+        else { const er = new Error((d && d.message) || 'Respuesta inválida del servidor.'); er.fatal = true; rej(er); }
       };
-      s.onerror = () => { fin(); rej(new Error('No se pudo contactar al servidor de Google.')); };
-      s.src = Config.SCRIPT_URL + '?callback=' + cb + '&key=' + encodeURIComponent(Config.API_KEY) + '&t=' + Date.now();
+      s.onerror = () => { fin(); rej(new Error(Api.AYUDA)); };
+      s.src = this._url() + '&callback=' + cb;
       document.head.appendChild(s);
     });
   },
+  async read() {
+    if (!this.configurado()) throw new Error('Falta configurar SCRIPT_URL en index.html.');
+    try { return await this._readFetch(); }               // 1.º intento: fetch (mensajes de error claros)
+    catch (e) {
+      if (e.fatal) throw e;                                // el servidor respondió con un error real: mostrarlo
+      console.warn('[Api] fetch falló, se prueba JSONP', e);
+    }
+    return await this._readJsonp();                        // 2.º intento: JSONP
+  },
   async post(rec) {
     if (!this.configurado()) throw new Error('Falta configurar SCRIPT_URL en index.html.');
-    const r = await fetch(Config.SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ key: Config.API_KEY, type: rec.tipo, clientId: rec.clientId, creado: rec.creado, data: rec.data })
-    });
-    let j;
-    try { j = await r.json(); } catch (e) { throw new Error('No se pudo leer la confirmación del servidor.'); }
-    if (!j || j.status !== 'success') throw new Error((j && j.message) || 'El servidor rechazó el registro.');
+    let r;
+    try {
+      r = await fetch(Config.SCRIPT_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ key: Config.API_KEY, type: rec.tipo, clientId: rec.clientId, creado: rec.creado, data: rec.data })
+      });
+    } catch (e) { throw new Error(this.AYUDA); }
+    const j = this._parse(await r.text());
     return j;
   }
 };
