@@ -54,6 +54,7 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
 .b-Pendiente{background:#FFF6D6;color:#7a5b00}.b-Sincronizado{background:var(--verde-bg);color:var(--verde)}.b-Error{background:var(--rojo-bg);color:var(--rojo)}
 .env .btn{min-height:40px;margin-top:6px;width:auto;padding:6px 14px}
 .aviso{background:var(--rojo-bg);color:var(--rojo);padding:10px;border-radius:10px;margin-top:12px;font-size:14px}
+#diag{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -112,6 +113,9 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
   </section>
 
   <button id="btn-actualizar" class="btn sec" type="button">Actualizar placas y personal</button>
+  <button id="btn-diag" class="btn sec" type="button">Diagnóstico de conexión</button>
+  <pre id="diag" class="hidden"></pre>
+  <a id="lnk-prueba" target="_blank" rel="noopener" style="display:block;margin-top:8px;font-size:14px">Abrir URL de prueba en otra pestaña</a>
   <details id="envios">
     <summary>Mis envíos &nbsp;<span id="pend">Pendientes: 0</span></summary>
     <div id="lista-envios"></div>
@@ -130,7 +134,7 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
 /* ========== Config: constantes al inicio ========== */
 const Config = {
   // URL de la implementación web de Apps Script (termina en /exec). Ver guía de despliegue.
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz-3jandHhFQnY02qOYBUy_U2lsjRNzKGiKl3mggY2C0ekZYwPPMuNkQRFKoBBFo8kQ/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxK8XFVPjaK4SHXV0_OuXnz3CyxLEC8iNHI1_mdhbI36qgGrb0SXJCMfbGN0iHiMbqe/exec',
   // Debe ser IGUAL al TOKEN_INICIAL de Code.gs (barrera básica, no un secreto absoluto).
   API_KEY: 'HZ-7f3k9Qm2xR8vLp4Wc6Ns1',
   DB_NAME: 'BDXX_HUARMEY',
@@ -350,9 +354,26 @@ const Sync = {
     } catch (e) {
       console.error('[Sync] Error al leer Sheets', e);
       const off = !navigator.onLine;
-      Ui.status('bad', off ? 'Sin conexión (modo offline)' : 'Error: ' + e.message);
+      Ui.status('bad', off ? 'Sin conexión (modo offline)' : 'Error: ' + e.message + ' (toca "Diagnóstico de conexión" abajo)');
       if (manual) Ui.toast(off ? 'Sin conexión' : e.message, true);
     } finally { this.refrescando = false; }
+  },
+  async diagnostico() {
+    const out = $('diag'); out.classList.remove('hidden'); out.textContent = 'Probando...\n';
+    const log = (t) => { out.textContent += t + '\n'; };
+    log('Página: ' + location.href);
+    log('Internet: ' + (navigator.onLine ? 'sí' : 'NO'));
+    log('URL del script: ' + Config.SCRIPT_URL);
+    for (const p of [['1) Ping (solo comprueba que Google responde)', '&ping=1'], ['2) Lectura completa de hojas', '']]) {
+      try {
+        const r = await fetch(Api._url() + p[1], { redirect: 'follow', cache: 'no-store' });
+        const t = await r.text();
+        log('\n' + p[0] + '\nHTTP ' + r.status + ' · ' + (r.headers.get('content-type') || '?'));
+        log(t.slice(0, 350).replace(/\s+/g, ' '));
+      } catch (e) {
+        log('\n' + p[0] + '\nFALLÓ: ' + e.message + '\n=> Google no deja entrar sin iniciar sesión: la implementación NO es pública, o la URL no es la vigente.');
+      }
+    }
   },
   async pendientes() {
     const t = (await Db.all('movilidades')).concat(await Db.all('ausentismos'));
@@ -532,6 +553,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('t-mov').addEventListener('click', () => Ui.tab('mov'));
   $('t-aus').addEventListener('click', () => Ui.tab('aus'));
   $('btn-actualizar').addEventListener('click', () => Sync.refrescar(true));
+  $('btn-diag').addEventListener('click', () => Sync.diagnostico());
+  $('lnk-prueba').href = Api._url() + '&ping=1';
   Forms.init();
   registrarSW();
   try { await Sync.cargarCache(); await Ui.envios(); } catch (e) { console.error('[Init] Error', e); }
