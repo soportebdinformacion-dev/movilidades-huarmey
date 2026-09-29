@@ -40,7 +40,7 @@ textarea{min-height:84px;resize:vertical}
 .btn:disabled{opacity:.55}
 .btn.sec{background:#fff;color:var(--verde);border:1.5px solid var(--verde);margin-top:10px}
 .hidden{display:none!important}
-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;background:#fff;border-top:2px solid var(--verde);z-index:5}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:2px solid var(--verde);z-index:5}
 nav button{border:0;border-radius:0;min-height:64px;background:#fff;font-weight:700;color:var(--gris);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 nav button span{font-size:22px}
 nav button.on{background:var(--verde-bg);color:var(--verde)}
@@ -55,6 +55,17 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
 .env .btn{min-height:40px;margin-top:6px;width:auto;padding:6px 14px}
 .aviso{background:var(--rojo-bg);color:var(--rojo);padding:10px;border-radius:10px;margin-top:12px;font-size:14px}
 #diag{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px;margin-top:10px}
+main.ancho{max-width:980px}
+#seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#seg button{min-height:44px;padding:6px 4px;font-size:14px;font-weight:700;color:var(--gris)}
+#seg button.on{background:var(--verde);color:#fff;border-color:var(--verde)}
+#dt-info{font-size:13px;color:var(--gris);margin:8px 0}
+.tabla-wrap{overflow-x:auto;background:#fff;border:1px solid var(--borde);border-radius:10px}
+#dt-tabla{border-collapse:collapse;width:100%;font-size:13px}
+#dt-tabla th{background:var(--verde);color:#fff;text-align:left;padding:8px;white-space:nowrap;position:sticky;top:0}
+#dt-tabla td{padding:7px 8px;border-top:1px solid var(--borde);white-space:nowrap}
+#dt-tabla tr:nth-child(even) td{background:#faf9f6}
+#au-info{background:var(--verde-bg);color:var(--verde);border-radius:10px;padding:8px 12px;font-size:14px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -92,6 +103,7 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
     <label for="au-placa">Placa *</label>
     <select id="au-placa"></select><div class="err" id="e-au-placa"></div>
     <label for="au-ruta">Ruta</label><input id="au-ruta" readonly>
+    <div id="au-info" class="hidden"></div>
     <label for="au-dni">DNI *</label>
     <input id="au-dni" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="8 dígitos"><div class="err" id="e-au-dni"></div>
     <label for="au-nombre">Apellidos y nombres</label><input id="au-nombre" readonly>
@@ -112,6 +124,20 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
     <button id="au-guardar" class="btn" type="button">GUARDAR AUSENTISMO</button>
   </section>
 
+  <!-- PÁGINA 3: DATOS DE LAS 4 HOJAS -->
+  <section id="p-dat" class="page" aria-label="Datos de Google Sheets">
+    <div id="seg">
+      <button type="button" data-h="maestros" class="on">Maestros</button>
+      <button type="button" data-h="personal">Personal</button>
+      <button type="button" data-h="registros">Registros</button>
+      <button type="button" data-h="ausentismos">Ausentis.</button>
+    </div>
+    <label for="dt-buscar">Buscar</label>
+    <input id="dt-buscar" type="search" autocomplete="off" placeholder="Placa, DNI, nombre, ruta...">
+    <div id="dt-info" role="status"></div>
+    <div class="tabla-wrap"><table id="dt-tabla"></table></div>
+  </section>
+
   <button id="btn-actualizar" class="btn sec" type="button">Actualizar placas y personal</button>
   <button id="btn-diag" class="btn sec" type="button">Diagnóstico de conexión</button>
   <pre id="diag" class="hidden"></pre>
@@ -126,6 +152,7 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
 <nav>
   <button id="t-mov" class="on" type="button"><span aria-hidden="true">🚌</span>Movilidades</button>
   <button id="t-aus" type="button"><span aria-hidden="true">📋</span>Ausentismo</button>
+  <button id="t-dat" type="button"><span aria-hidden="true">🗂️</span>Datos</button>
 </nav>
 
 <script>
@@ -134,7 +161,7 @@ summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:p
 /* ========== Config: constantes al inicio ========== */
 const Config = {
   // URL de la implementación web de Apps Script (termina en /exec). Ver guía de despliegue.
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxpOq7fLZj7SapLiyhwL9XN6T06EMjaAabDkkop4W7NBVxrn_i7tm5P0R16TmS1lRiK/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxK8XFVPjaK4SHXV0_OuXnz3CyxLEC8iNHI1_mdhbI36qgGrb0SXJCMfbGN0iHiMbqe/exec',
   // Debe ser IGUAL al TOKEN_INICIAL de Code.gs (barrera básica, no un secreto absoluto).
   API_KEY: 'HZ-7f3k9Qm2xR8vLp4Wc6Ns1',
   DB_NAME: 'BDXX_HUARMEY',
@@ -186,9 +213,10 @@ const Db = {
 
 /* ========== Store: datos en memoria (maestros y personal) ========== */
 const Store = {
-  placas: new Map(), lista: [], personal: new Map(),
-  totalMaestros: 0, totalPersonal: 0, fecha: null,
+  placas: new Map(), lista: [], personal: new Map(), datos: null,
+  // d = { maestros, personal, registros:{cols,rows}, ausentismos:{cols,rows}, errores, fecha }
   set(d) {
+    this.datos = d;
     const m = new Map();
     (d.maestros || []).forEach((r) => m.set(r.placa, r));            // placa repetida: gana la última fila
     const todas = Array.from(m.values());
@@ -197,19 +225,19 @@ const Store = {
     const p = new Map();
     (d.personal || []).forEach((r) => { if (!p.has(r[0])) p.set(r[0], r[1]); }); // DNI repetido: gana el primero
     this.personal = p;
-    this.totalMaestros = d.totalMaestros || 0;
-    this.totalPersonal = d.totalPersonal || 0;
-    this.fecha = d.fecha || null;
   },
   vacio() { return this.placas.size === 0 && this.personal.size === 0; },
-  resumen() { return this.totalMaestros + ' registros / ' + this.placas.size + ' placas / ' + this.totalPersonal + ' personas'; }
+  resumen() {
+    const d = this.datos || {};
+    return this.placas.size + ' placas / ' + this.personal.size + ' personas / ' + (((d.registros || {}).rows || []).length) + ' registros';
+  }
 };
 
 /* ========== Api: lectura JSONP y escritura POST ========== */
 const Api = {
   configurado() { return Config.SCRIPT_URL.indexOf('PEGA_AQUI') !== 0; },
   AYUDA: 'No se pudo contactar al servidor de Google. Revisa en Apps Script: Implementar > Administrar implementaciones > Aplicación web, "Ejecutar como: Yo" y "Quién tiene acceso: Cualquier persona"; y que SCRIPT_URL sea la URL /exec vigente.',
-  _url() { return Config.SCRIPT_URL + '?key=' + encodeURIComponent(Config.API_KEY) + '&t=' + Date.now(); },
+  _url() { return Config.SCRIPT_URL + '?key=' + encodeURIComponent(Config.API_KEY) + '&action=todo&t=' + Date.now(); },
   // Interpreta el texto devuelto por el servidor; si no es JSON, casi siempre es una página de Google (login/error)
   _parse(txt) {
     let d;
@@ -297,9 +325,38 @@ const Ui = {
     $('vacio').classList.toggle('hidden', !Store.vacio());
   },
   tab(cual) {
-    $('p-mov').classList.toggle('on', cual === 'mov'); $('p-aus').classList.toggle('on', cual === 'aus');
-    $('t-mov').classList.toggle('on', cual === 'mov'); $('t-aus').classList.toggle('on', cual === 'aus');
+    ['mov', 'aus', 'dat'].forEach((k) => { $('p-' + k).classList.toggle('on', cual === k); $('t-' + k).classList.toggle('on', cual === k); });
+    document.querySelector('main').classList.toggle('ancho', cual === 'dat');
+    if (cual === 'dat') this.datos();
     window.scrollTo(0, 0);
+  },
+  vista: 'maestros',
+  setVista(h) {
+    this.vista = h;
+    document.querySelectorAll('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.h === h));
+    this.datos();
+  },
+  // Muestra en tabla los datos de la hoja elegida (maestros, personal, registros, ausentismos)
+  datos() {
+    const h = this.vista, d = Store.datos || {}, q = $('dt-buscar').value.trim().toUpperCase();
+    let cols = [], rows = [];
+    if (h === 'maestros') { cols = ['PLACA', 'CONDUCTOR', 'TIPO', 'CAPACIDAD', 'RUTA', 'CULTIVO', 'ESTADO']; rows = Store.lista.map((r) => [r.placa, r.conductor, r.tipo, r.capacidad, r.ruta, r.cultivo, r.estado]); }
+    else if (h === 'personal') { cols = ['DNI', 'APELLIDOS Y NOMBRES']; rows = Array.from(Store.personal.entries()); }
+    else { const t = d[h] || { cols: [], rows: [] }; cols = t.cols || []; rows = t.rows || []; }
+    const f = q ? rows.filter((r) => r.some((c) => String(c).toUpperCase().indexOf(q) >= 0)) : rows;
+    const er = (d.errores || {})[h];
+    $('dt-info').textContent = (er ? 'Aviso de la hoja: ' + er + ' · ' : '') + f.length + ' de ' + rows.length + ' filas' + (f.length > 100 ? ' (mostrando 100; usa el buscador)' : '');
+    const tb = $('dt-tabla'); const fr = document.createDocumentFragment();
+    const thead = document.createElement('thead'), trh = document.createElement('tr');
+    cols.forEach((c) => { const th = document.createElement('th'); th.textContent = c; trh.appendChild(th); });
+    thead.appendChild(trh); fr.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    f.slice(0, 100).forEach((r) => {
+      const tr = document.createElement('tr');
+      for (let i = 0; i < cols.length; i++) { const td = document.createElement('td'); td.textContent = r[i] == null ? '' : r[i]; tr.appendChild(td); }
+      tbody.appendChild(tr);
+    });
+    fr.appendChild(tbody); tb.replaceChildren(fr);
   },
   async envios() {
     const todos = (await Db.all('movilidades')).concat(await Db.all('ausentismos'));
@@ -334,7 +391,7 @@ const Sync = {
   async cargarCache() {
     try {
       const c = await Db.get('cache', 'datos');
-      if (c) { Store.set(c); Ui.fillPlacas(); Ui.status('bad', 'Sin conexión (modo offline) - ' + Store.resumen()); }
+      if (c) { Store.set(c); Ui.fillPlacas(); Ui.datos(); Ui.status('bad', 'Sin conexión (modo offline) - ' + Store.resumen()); }
       else Ui.fillPlacas();
     } catch (e) { console.error('[Sync] Error leyendo caché', e); }
   },
@@ -344,12 +401,22 @@ const Sync = {
     Ui.status('warn', 'Conectando...');
     try {
       const d = await Api.read();
-      d.fecha = new Date().toISOString();
-      Store.set(d);
-      await Db.put('cache', Object.assign({ key: 'datos' }, { maestros: d.maestros, personal: d.personal, totalMaestros: d.totalMaestros, totalPersonal: d.totalPersonal, fecha: d.fecha }));
-      Ui.fillPlacas();
-      Ui.status('ok', 'Conectado a Google Sheets (' + Store.resumen() + ')');
-      if (manual) Ui.toast('Actualizado: ' + Store.resumen());
+      const er = d.errores || {}, prev = Store.datos || {};
+      // Si una hoja falló, se conserva lo último bueno de esa hoja
+      const datos = {
+        maestros: er.maestros ? (prev.maestros || []) : (d.maestros || []),
+        personal: er.personal ? (prev.personal || []) : (d.personal || []),
+        registros: er.registros ? (prev.registros || { cols: [], rows: [] }) : (d.registros || { cols: [], rows: [] }),
+        ausentismos: er.ausentismos ? (prev.ausentismos || { cols: [], rows: [] }) : (d.ausentismos || { cols: [], rows: [] }),
+        errores: er, fecha: new Date().toISOString()
+      };
+      Store.set(datos);
+      await Db.put('cache', Object.assign({ key: 'datos' }, datos));
+      Ui.fillPlacas(); Ui.datos(); Forms.ausPlaca();
+      const claves = Object.keys(er);
+      if (claves.length) Ui.status('warn', 'Conectado con avisos en "' + claves[0] + '": ' + er[claves[0]]);
+      else Ui.status('ok', 'Conectado a Google Sheets (' + Store.resumen() + ')');
+      if (manual) Ui.toast(claves.length ? 'Actualizado con avisos' : 'Actualizado: ' + Store.resumen(), !!claves.length);
       this.run();
     } catch (e) {
       console.error('[Sync] Error al leer Sheets', e);
@@ -410,6 +477,7 @@ const Sync = {
       else if (ok) Ui.send('Sincronizado', false);
       else $('sendbar').className = '';
       Ui.envios().catch(() => {});
+      if (ok) setTimeout(() => Sync.refrescar(false), 800); // trae de la hoja lo recién registrado
     }
   },
   async reintentar(r) {
@@ -435,13 +503,27 @@ const Forms = {
     $('mv-placa').addEventListener('change', () => this.movPlaca());
     $('mv-pas').addEventListener('input', () => this.movLibres());
     $('mv-guardar').addEventListener('click', () => this.guardarMov());
-    $('au-placa').addEventListener('change', () => { const r = Store.placas.get($('au-placa').value); $('au-ruta').value = r ? r.ruta : ''; Ui.err('au-placa'); });
+    $('au-placa').addEventListener('change', () => this.ausPlaca());
+    $('dt-buscar').addEventListener('input', () => Ui.datos());
+    document.querySelectorAll('#seg button').forEach((b) => b.addEventListener('click', () => Ui.setVista(b.dataset.h)));
     $('au-dni').addEventListener('input', () => this.buscarDni());
     $('au-motivo').addEventListener('change', () => this.motivo());
     $('au-regresa').addEventListener('change', () => this.regresa());
     $('au-ret').addEventListener('change', () => { $('au-ret-fecha').classList.toggle('hidden', $('au-ret').value !== 'FECHA'); });
     $('au-falta').addEventListener('change', () => { $('au-ret-fecha').min = $('au-falta').value; });
     $('au-guardar').addEventListener('click', () => this.guardarAus());
+  },
+  // Ausentismo depende de "registros": muestra el último registro de esa placa y toma su ruta
+  ausPlaca() {
+    const pl = $('au-placa').value, r = Store.placas.get(pl), info = $('au-info');
+    Ui.err('au-placa');
+    if (!r) { info.classList.add('hidden'); $('au-ruta').value = ''; return; }
+    const rows = ((Store.datos || {}).registros || {}).rows || [];
+    const u = rows.find((x) => String(x[1]).trim().toUpperCase() === pl.trim().toUpperCase());
+    let ruta = r.ruta;
+    if (u) { ruta = u[4] || ruta; info.textContent = 'Último registro de movilidad: ' + u[0] + ' · ' + u[7] + ' de ' + u[6] + ' pasajeros · Ruta ' + (u[4] || '-'); }
+    else info.textContent = 'Esta placa aún no tiene registros de movilidad.';
+    info.classList.remove('hidden'); $('au-ruta').value = ruta;
   },
   movPlaca() {
     const r = Store.placas.get($('mv-placa').value);
@@ -495,7 +577,7 @@ const Forms = {
   limpiarAus() {
     ['au-ruta','au-dni','au-nombre','au-falta','au-obs','au-ret-fecha'].forEach((i) => { $(i).value = ''; });
     ['au-placa','au-motivo','au-regresa','au-ret'].forEach((i) => { $(i).value = ''; });
-    $('au-ret-box').classList.add('hidden'); $('au-ret-fecha').classList.add('hidden'); $('au-obs-req').textContent = '';
+    $('au-ret-box').classList.add('hidden'); $('au-ret-fecha').classList.add('hidden'); $('au-obs-req').textContent = ''; $('au-info').classList.add('hidden');
   },
   async guardarAus() {
     ['au-placa','au-dni','au-falta','au-motivo','au-obs','au-regresa','au-ret'].forEach((i) => Ui.err(i));
@@ -524,7 +606,7 @@ const Forms = {
     try {
       await Db.put('ausentismos', {
         clientId: uid(), tipo: 'ausentismo', creado: new Date().toISOString(), estado: 'Pendiente', intentos: 0, error: '',
-        data: { placa: r.placa, ruta: r.ruta, dni: dni, nombre: nombre, fechaFalta: falta, motivo: motivo, regresa: reg, fechaRetorno: retorno, observaciones: obs }
+        data: { placa: r.placa, ruta: $('au-ruta').value || r.ruta, dni: dni, nombre: nombre, fechaFalta: falta, motivo: motivo, regresa: reg, fechaRetorno: retorno, observaciones: obs }
       });
       this.limpiarAus(); Ui.toast('Ausentismo guardado. Se enviará automáticamente.');
       await Ui.envios(); Sync.run();
@@ -552,6 +634,7 @@ async function registrarSW() {
 document.addEventListener('DOMContentLoaded', async () => {
   $('t-mov').addEventListener('click', () => Ui.tab('mov'));
   $('t-aus').addEventListener('click', () => Ui.tab('aus'));
+  $('t-dat').addEventListener('click', () => Ui.tab('dat'));
   $('btn-actualizar').addEventListener('click', () => Sync.refrescar(true));
   $('btn-diag').addEventListener('click', () => Sync.diagnostico());
   $('lnk-prueba').href = Api._url() + '&ping=1';
