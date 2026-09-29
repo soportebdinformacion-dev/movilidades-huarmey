@@ -1,5 +1,5 @@
 // Service worker: shell offline (cache-first). Nunca intercepta llamadas a Google.
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'huarmey-shell-' + CACHE_VERSION;
 const PRECACHE = ['./', './index.html', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 
