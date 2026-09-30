@@ -121,9 +121,9 @@ h2{font-size:18px;margin:6px 0 10px;display:flex;justify-content:space-between;a
 "use strict";
 /* ============ CONFIG ============ */
 const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyimYo9r2v3YWGq1e2x17aK-TQWFTFaOrWqWHH9pK82Utm1d92DBK7yjno5zWf64iri/exec",        // URL de la implementación (termina en /exec)
+  API_URL: "https://script.google.com/macros/s/AKfycbwlqL75Yg_idvgVWc3sKat1Gv86VgqGHl28DYAK73fqqNRHN0TVudruWZv0hPfpUbHb/exec",        // URL de la implementación (termina en /exec)
   API_TOKEN: "CONEXION_MOVILIDADES_2026",       // Debe ser IGUAL a API_TOKEN de Code.gs
-  DB_NAME: "BDXX_HUARMEY", DB_VER: 1,
+  DB_NAME: "huarmey_movilidades", DB_VER: 1,
   TIMEOUT_MS: 15000, INTENTOS: 3, RECIENTES: 20,
   urlOk() { return /^https:\/\/script\.google\.com\/.+\/exec$/.test(this.API_URL); }
 };
@@ -190,7 +190,7 @@ const api = {
   async get(action) {
     if (!CONFIG.urlOk()) throw new Error("URL no configurada");
     const j = await api._fetch(`${CONFIG.API_URL}?action=${action}&token=${encodeURIComponent(CONFIG.API_TOKEN)}`);
-    if (!j.ok) throw new Error(j.error || "Error del servidor");
+    if (!j.ok) throw new Error(j.error || j.message || ("Respuesta inesperada del servidor: " + JSON.stringify(j).slice(0, 160) + " (¿versión antigua de Code.gs?)"));
     return j.data;
   },
   // POST como text/plain para evitar preflight CORS
@@ -247,7 +247,7 @@ const sync = {
       try {
         const j = await api.post(reg);
         if (j.ok || (j.data && j.data.duplicado)) { reg.estado = "sincronizado"; reg.error = ""; }
-        else { reg.estado = "error"; reg.error = j.error || "Error del servidor"; }
+        else { reg.estado = "error"; reg.error = j.error || j.message || ("Respuesta inesperada: " + JSON.stringify(j).slice(0, 160)); }
         await db.put("registros", reg); return reg.estado;
       } catch (e) {
         ultimo = e.message;
