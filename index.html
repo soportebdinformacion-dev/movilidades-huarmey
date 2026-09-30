@@ -47,7 +47,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         .touch-btn {
-            min-height: 48px;
+            min-height: 44px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -76,11 +76,11 @@
                 </div>
             </div>
 
-            <!-- Auto Sync Indicator Badge -->
-            <div id="autoSyncBadge" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold">
-                <i id="headerSyncIcon" class="fa-solid fa-cloud-arrow-up text-agri-green"></i>
-                <span>Sincro Auto</span>
-            </div>
+            <!-- Botón Ausentismo (Parte Superior Derecha) -->
+            <button onclick="openAusentismoAndClose()" class="touch-btn bg-agri-red hover:bg-agri-redHover text-white font-bold px-3 py-1.5 rounded-xl border border-red-700 shadow-sm transition-all text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-clipboard-user text-sm"></i>
+                <span>Ausentismo</span>
+            </button>
         </div>
     </header>
 
@@ -112,7 +112,6 @@
             </button>
         </div>
 
-        <!-- View 1: Register Form -->
         <div id="viewRegister" class="bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm flex flex-col gap-4">
             
             <div class="flex items-center justify-between border-b pb-3 border-gray-100">
@@ -120,8 +119,8 @@
                     <i class="fa-solid fa-clipboard-list text-agri-green"></i>
                     Registro de Pasajeros
                 </h2>
-                <button onclick="reloadMasterData()" title="Recargar Maestros desde Google Sheets" class="text-xs text-agri-green hover:underline flex items-center gap-1">
-                    <i class="fa-solid fa-arrows-rotate"></i> Actualizar Placas
+                <button onclick="reloadMasterData()" title="Recargar Maestros desde Google Sheets" class="text-xs text-agri-green hover:underline flex items-center gap-1 font-semibold">
+                    <i id="reloadMasterIcon" class="fa-solid fa-arrows-rotate"></i> Actualizar Placas
                 </button>
             </div>
 
@@ -134,7 +133,7 @@
                     </label>
                     <div class="relative">
                         <select id="placaSelect" required onchange="onPlacaChange()" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-3 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-agri-green focus:border-agri-green transition-all appearance-none">
-                            <option value="">-- Seleccionar Placa --</option>
+                            <option value="">-- Cargando Placas de Google Sheets... --</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
@@ -210,7 +209,6 @@
             </form>
         </div>
 
-        <!-- View 2: History List -->
         <div id="viewHistory" class="hidden bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm flex flex-col gap-4">
             <div class="flex items-center justify-between border-b pb-3 border-gray-100">
                 <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -229,14 +227,12 @@
     </main>
 
     <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-6">
-        <p>© 2026 Agrícola Huarmey - Sistema de Control de Transporte v1.3</p>
+        <p>© 2026 Agrícola Huarmey - Sistema de Control de Transporte v1.4</p>
     </footer>
 
     <script>
-        // Default Google Apps Script URL provided for direct auto synchronization
-        const DEFAULT_AUTO_SYNC_URL = "https://script.google.com/macros/s/AKfycbyFsdWNXOlsUhScwGxDE7AaPjSVk5U_bDJ6qJLQIGvPwyA8VxKFs7WprA07SNI6UrFY/exec";
+        const DEFAULT_AUTO_SYNC_URL = "https://script.google.com/macros/s/AKfycbzg0hbUWf8UzBMDuejhSwnaWzKwxD8qbcijNJuzikAgszYanlCKXteoPljAXHCyr11D/exec";
 
-        // Default Mock Data for Offline Fallback
         const MOCK_MAESTROS = [
             { placa: "ABC-123", conductor: "Juan Pérez", tipo: "Bus", capacidad: 30, ruta: "Ruta A - Huarmey Centro", cultivo: "Arándanos", celular: "987654321", estado: "ACTIVO" },
             { placa: "DEF-456", conductor: "Carlos Gómez", tipo: "Cúster", capacidad: 18, ruta: "Ruta B - Valle Norte", cultivo: "Paltos", celular: "987123456", estado: "ACTIVO" },
@@ -245,7 +241,23 @@
 
         let db = null;
         let masterVehicles = [];
-        let defaultApiUrl = localStorage.getItem('HUARMEY_API_URL') || DEFAULT_AUTO_SYNC_URL;
+        let defaultApiUrl = DEFAULT_AUTO_SYNC_URL;
+
+        function openAusentismoAndClose() {
+            const url = "https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/";
+            const newWin = window.open(url, '_blank');
+            try {
+                if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+                    window.location.href = url;
+                } else {
+                    setTimeout(() => {
+                        window.close();
+                    }, 300);
+                }
+            } catch (e) {
+                window.location.href = url;
+            }
+        }
 
         function initIndexedDB() {
             return new Promise((resolve, reject) => {
@@ -303,7 +315,6 @@
                 networkBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
                 networkDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse";
                 networkText.innerText = "Conectado";
-                // Trigger auto sync on reconnect
                 syncPendingRecords();
             } else {
                 networkBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 font-medium";
@@ -314,7 +325,6 @@
 
         async function loadMasterVehicles() {
             try {
-                // Try reading from IndexedDB first
                 const tx = db.transaction('maestros', 'readonly');
                 const store = tx.objectStore('maestros');
                 const request = store.getAll();
@@ -324,16 +334,14 @@
                     if (records && records.length > 0) {
                         masterVehicles = records;
                         populatePlacaDropdown(masterVehicles);
-                    } else {
-                        // Seed fallback data initially
+                    }
+
+                    if (navigator.onLine && defaultApiUrl) {
+                        await fetchMasterDataFromApi();
+                    } else if (!records || records.length === 0) {
                         await saveMaestrosToDB(MOCK_MAESTROS);
                         masterVehicles = MOCK_MAESTROS;
                         populatePlacaDropdown(masterVehicles);
-                    }
-
-                    // Auto sync fresh data from Google Apps Script Web App
-                    if (navigator.onLine && defaultApiUrl) {
-                        fetchMasterDataFromApi();
                     }
                 };
             } catch (err) {
@@ -349,26 +357,37 @@
 
         async function fetchMasterDataFromApi() {
             if (!defaultApiUrl) return;
+            const reloadIcon = document.getElementById('reloadMasterIcon');
+            if (reloadIcon) reloadIcon.classList.add('fa-spin');
+
             try {
-                const res = await fetch(defaultApiUrl + "?action=getMaestros");
+                const res = await fetch(defaultApiUrl);
                 if (res.ok) {
                     const json = await res.json();
                     if (json && json.status === 'success' && Array.isArray(json.data)) {
-                        const activeList = json.data.filter(v => v.estado === 'ACTIVO');
-                        await saveMaestrosToDB(activeList);
-                        masterVehicles = activeList;
-                        populatePlacaDropdown(masterVehicles);
+                        const activeList = json.data.filter(v => {
+                            if (!v.estado) return true;
+                            const st = String(v.estado).toUpperCase().trim();
+                            return st === 'ACTIVO' || st === 'ACTIVA' || st === '' || st === '1' || st === 'TRUE';
+                        });
+
+                        if (activeList.length > 0) {
+                            await saveMaestrosToDB(activeList);
+                            masterVehicles = activeList;
+                            populatePlacaDropdown(masterVehicles);
+                        }
                     }
                 }
             } catch (e) {
                 console.warn("Could not fetch remote maestros, using local cache:", e);
+            } finally {
+                if (reloadIcon) reloadIcon.classList.remove('fa-spin');
             }
         }
 
-        function reloadMasterData() {
-            if (navigator.onLine && defaultApiUrl) {
-                fetchMasterDataFromApi();
-                alert("Sincronizando lista de placas activas con Google Sheets...");
+        async function reloadMasterData() {
+            if (navigator.onLine) {
+                await fetchMasterDataFromApi();
             } else {
                 alert("Sin conexión. Usando placas guardadas localmente.");
             }
@@ -378,13 +397,16 @@
             const select = document.getElementById('placaSelect');
             select.innerHTML = '<option value="">-- Seleccionar Placa --</option>';
 
+            if (!vehicles || vehicles.length === 0) {
+                select.innerHTML = '<option value="">-- Sin Placas Disponibles --</option>';
+                return;
+            }
+
             vehicles.forEach(v => {
-                if (v.estado === 'ACTIVO' || !v.estado) {
-                    const opt = document.createElement('option');
-                    opt.value = v.placa;
-                    opt.textContent = `${v.placa} - ${v.conductor} (${v.tipo})`;
-                    select.appendChild(opt);
-                }
+                const opt = document.createElement('option');
+                opt.value = v.placa;
+                opt.textContent = `${v.placa} - ${v.conductor} (${v.tipo})`;
+                select.appendChild(opt);
             });
         }
 
@@ -465,20 +487,17 @@
                 createdAt: Date.now()
             };
 
-            // Save record to IndexedDB
             await saveRecordToDB(record);
 
-            // Attempt Immediate Automatic Sync if online
             if (navigator.onLine) {
                 await sendRecordToBackend(record);
             }
 
-            // Reset Form & Update Badge
             document.getElementById('transportForm').reset();
             calculateLibres();
             updatePendingBadge();
             
-            alert(navigator.onLine ? "✅ Registro guardado y auto-sincronizado con Google Sheets." : "📥 Registro guardado localmente (Modo Offline). Se sincronizará automáticamente al conectar.");
+            alert(navigator.onLine ? "✅ Registro guardado y sincronizado con Google Sheets." : "📥 Registro guardado localmente (Modo Offline). Se sincronizará automáticamente.");
         }
 
         function saveRecordToDB(record) {
@@ -515,9 +534,7 @@
 
         async function syncPendingRecords() {
             const syncIcon = document.getElementById('syncIcon');
-            const headerIcon = document.getElementById('headerSyncIcon');
             syncIcon.classList.add('fa-spin');
-            if (headerIcon) headerIcon.classList.add('fa-spin');
 
             const tx = db.transaction('registros', 'readonly');
             const store = tx.objectStore('registros');
@@ -530,7 +547,6 @@
                 if (pending.length === 0) {
                     setTimeout(() => {
                         syncIcon.classList.remove('fa-spin');
-                        if (headerIcon) headerIcon.classList.remove('fa-spin');
                     }, 500);
                     updatePendingBadge();
                     return;
@@ -541,9 +557,8 @@
                 }
 
                 syncIcon.classList.remove('fa-spin');
-                if (headerIcon) headerIcon.classList.remove('fa-spin');
                 updatePendingBadge();
-                if (document.getElementById('viewHistory').classList.contains('hidden') === false) {
+                if (!document.getElementById('viewHistory').classList.contains('hidden')) {
                     renderHistory();
                 }
             };
@@ -655,12 +670,6 @@
             await loadMasterVehicles();
             updatePendingBadge();
 
-            // Automatic Sync Queue trigger on initial boot
-            if (navigator.onLine) {
-                syncPendingRecords();
-            }
-
-            // Register Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                     .then(() => console.log("Service Worker Registrado Exitosamente"))
