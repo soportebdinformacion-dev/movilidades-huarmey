@@ -1,288 +1,417 @@
 <!DOCTYPE html>
-<html lang="es"><head>
+<html lang="es">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#3f8f34">
+<meta name="theme-color" content="#66BB6A">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <title>Movilidades Huarmey</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--v:#3f8f34;--vc:#e2f1dc;--r:#d12e1c;--rc:#fde4df;--bg:#f6f3ea;--t:#2b2f2a;--l:#d9d4c4;--am:#fff3cd}
+:root{--verde:#66BB6A;--verde-cl:#A5D6A7;--verde-os:#1B5E20;--rojo:#EF9A9A;--rojo-os:#7F1D1D;--ambar:#FFE082;--ambar-os:#5D4300;--fondo:#F7F3E9;--tinta:#1F2A1F;--borde:#B9B39F}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--t);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
-header{position:sticky;top:0;z-index:5;background:var(--v);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
-header img{width:42px;height:42px;background:#fff;border-radius:50%;padding:3px}
-header h1{font-size:17px;margin:0;flex:1;line-height:1.15}
-.pill{font-size:13px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--vc);color:#1f5d17}
-.pill.off{background:var(--rc);color:#8f1a0e}
-.badge{background:var(--r);color:#fff;border-radius:99px;min-width:24px;text-align:center;padding:2px 7px;font-size:13px;font-weight:700}
-main{max-width:640px;margin:0 auto;padding:12px}
-section{display:none}section.on{display:block}
-h2{font-size:19px;margin:6px 0 10px}
-label{display:block;font-weight:600;margin:12px 0 4px}
-input,select,textarea{width:100%;font:inherit;padding:12px;border:2px solid var(--l);border-radius:10px;background:#fff;min-height:48px}
-input:focus,select:focus,textarea:focus{outline:3px solid var(--vc);border-color:var(--v)}
-input[readonly]{background:var(--vc);border-color:transparent}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.libres{font-size:22px;font-weight:700;text-align:center}
-button{font:inherit;font-weight:700;border:0;border-radius:12px;min-height:54px;padding:0 18px;cursor:pointer;background:var(--v);color:#fff;width:100%;margin-top:16px}
-button.sec{background:#fff;color:var(--v);border:2px solid var(--v)}
-button.peq{min-height:42px;width:auto;margin:6px 6px 0 0;padding:0 14px;font-size:14px}
-button.rojo{background:var(--rc);color:#8f1a0e}
-button:disabled{opacity:.5}
-.err{background:var(--rc);color:#8f1a0e;border-radius:10px;padding:10px 12px;margin-top:12px;display:none;font-weight:600}
-.hint{font-size:13px;color:#6b6f66;margin-top:4px}
-.ok{color:#1f5d17;font-weight:600}.mal{color:#8f1a0e;font-weight:600}
-.item{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:6px solid var(--am)}
-.item.Sincronizado{border-color:var(--v)}.item.Error{border-color:var(--r)}
-.item small{color:#6b6f66;display:block}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:2px solid var(--l);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav a{flex:1;text-align:center;padding:8px 0 6px;font-size:13px;font-weight:600;color:#6b6f66;position:relative}
-nav a.on{color:var(--v);background:var(--vc)}
-nav svg{display:block;margin:0 auto 2px;width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-nav .badge{position:absolute;top:2px;left:58%}
-#toast{position:fixed;left:12px;right:12px;bottom:96px;background:var(--t);color:#fff;padding:12px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
-#diag{white-space:pre-wrap;background:#fff;border-radius:10px;padding:10px;font:13px/1.4 ui-monospace,monospace;display:none}
-</style></head><body>
+body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+svg{width:24px;height:24px;fill:currentColor;flex:none}
+header{background:var(--verde-cl);padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5;border-bottom:3px solid var(--verde)}
+header img{width:48px;height:48px;border-radius:12px;background:#fff;padding:3px}
+header h1{font-size:18px;margin:0;line-height:1.15;flex:1}
+header small{display:block;font-weight:400;font-size:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-weight:700;font-size:14px;background:var(--rojo);color:var(--rojo-os)}
+.pill::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}
+.pill.on{background:var(--verde);color:#0B2A0E}
+main{max-width:560px;margin:0 auto;padding:12px}
+.aviso{padding:12px;border-radius:12px;font-weight:600;margin-bottom:12px;background:var(--ambar);color:var(--ambar-os)}
+.aviso.err{background:var(--rojo);color:var(--rojo-os)}
+.card{background:#fff;border:2px solid var(--borde);border-radius:16px;padding:14px;margin-bottom:14px}
+label{display:flex;align-items:center;gap:6px;font-weight:700;margin:12px 0 4px}
+input,textarea{width:100%;min-height:48px;font:inherit;font-size:17px;padding:10px 12px;border:2px solid var(--borde);border-radius:12px;background:#fff;color:var(--tinta)}
+input[readonly]{background:#EFEBDD;color:#222}
+input:focus,textarea:focus{outline:3px solid var(--verde);border-color:var(--verde-os)}
+.bad{border-color:#C62828!important}
+.err-msg{color:#B71C1C;font-weight:600;font-size:15px;min-height:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.combo{position:relative}
+.combo ul{position:absolute;left:0;right:0;top:100%;z-index:4;margin:4px 0 0;padding:0;list-style:none;background:#fff;border:2px solid var(--verde-os);border-radius:12px;max-height:260px;overflow:auto;box-shadow:0 6px 16px #0003}
+.combo li{padding:12px;border-bottom:1px solid #E5E0CF;min-height:48px}
+.combo li b{display:block}
+.combo li small{color:#555}
+.combo li.vacio{color:#777}
+.libres{font-size:28px;font-weight:800;text-align:center;background:var(--verde-cl)!important;color:#0B2A0E}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;border:0;border-radius:14px;font:inherit;font-size:18px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:14px}
+.btn.pri{background:var(--verde);color:#0B2A0E;border-bottom:4px solid var(--verde-os)}
+.btn.sec{background:#fff;color:var(--verde-os);border:2px solid var(--verde-os);min-height:52px;font-size:16px}
+.btn.mini{min-height:44px;width:auto;padding:0 14px;font-size:15px;margin:0}
+.btn:disabled{opacity:.6}
+.info{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;margin-top:12px}
+h2{font-size:18px;margin:6px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.cnt{background:var(--ambar);color:var(--ambar-os);padding:4px 10px;border-radius:99px;font-size:14px}
+.reg{border-left:8px solid var(--borde);background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;border-top:1px solid #E5E0CF;border-right:1px solid #E5E0CF;border-bottom:1px solid #E5E0CF}
+.reg.pendiente{border-left-color:#FFB300}.reg.sincronizado{border-left-color:var(--verde)}.reg.error{border-left-color:#E53935}
+.reg .fila{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.reg small{color:#555;display:block}
+.chip{padding:3px 10px;border-radius:99px;font-size:14px;font-weight:700}
+.chip.pendiente{background:var(--ambar);color:var(--ambar-os)}.chip.sincronizado{background:var(--verde-cl);color:#0B2A0E}.chip.error{background:var(--rojo);color:var(--rojo-os)}
+.reg .msg{color:#B71C1C;font-weight:600;font-size:14px;margin:4px 0}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:20;padding:14px;border-radius:14px;font-weight:800;text-align:center;background:var(--verde-os);color:#fff;box-shadow:0 6px 18px #0005}
+#toast.warn{background:#FFB300;color:#3B2A00}#toast.err{background:#C62828}
+#diag{position:fixed;inset:0;background:#000a;z-index:30;display:flex;align-items:center;justify-content:center;padding:14px}
+#diag .box{background:#fff;border-radius:16px;padding:16px;max-width:520px;width:100%;max-height:90vh;overflow:auto}
+#diag pre{white-space:pre-wrap;word-break:break-all;background:#F3F0E4;padding:10px;border-radius:10px;font-size:14px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
 <header>
-  <img src="logo.png" alt="Agrícola Huarmey">
-  <h1>Movilidades<br>Agrícola Huarmey</h1>
-  <span id="net" class="pill">En línea</span><span id="nPend" class="badge" style="display:none">0</span>
+  <img id="logo" src="./icon-192.png" alt="Logo Frusan">
+  <h1>Movilidades Huarmey<small>Reporte de pasajeros</small></h1>
+  <span id="estado" class="pill">Sin conexión</span>
 </header>
+
 <main>
-<section id="p1" class="on">
-  <h2>Registro de movilidades</h2>
-  <label for="r_fecha">Fecha</label><input type="date" id="r_fecha">
-  <label for="r_placa">Placa de unidad</label>
-  <input id="r_placa" list="dl_placas" placeholder="Escribe o elige la placa" autocomplete="off" autocapitalize="characters">
-  <datalist id="dl_placas"></datalist>
-  <label for="r_conductor">Conductor</label><input id="r_conductor" readonly>
-  <div class="g2"><div><label for="r_tipo">Tipo</label><input id="r_tipo" readonly></div><div><label for="r_cap">Capacidad</label><input id="r_cap" readonly></div></div>
-  <label for="r_ruta">Ruta</label><input id="r_ruta" readonly>
-  <label for="r_cultivo">Cultivo</label><input id="r_cultivo" readonly>
-  <div class="g2"><div><label for="r_pas">N° pasajeros</label><input id="r_pas" type="number" inputmode="numeric" min="0"></div>
-  <div><label for="r_libres">Asientos libres</label><input id="r_libres" class="libres" readonly></div></div>
-  <label for="r_obs">Observaciones (opcional)</label><textarea id="r_obs" maxlength="300" rows="2"></textarea>
-  <div id="r_err" class="err"></div>
-  <button id="r_save">Guardar registro</button>
-</section>
-<section id="p2">
-  <h2>Registro de ausentismo</h2>
-  <label for="a_placa">Placa</label>
-  <input id="a_placa" list="dl_placas" placeholder="Escribe o elige la placa" autocomplete="off" autocapitalize="characters">
-  <label for="a_ruta">Ruta</label><input id="a_ruta" readonly>
-  <label for="a_dni">DNI</label><input id="a_dni" inputmode="numeric" maxlength="8" placeholder="8 dígitos">
-  <div id="a_dnimsg" class="hint"></div>
-  <label for="a_nombre">Apellidos y nombres</label><input id="a_nombre" readonly>
-  <label for="a_falta">Fecha de falta</label><input type="date" id="a_falta">
-  <label for="a_motivo">Motivo de ausencia</label><select id="a_motivo"></select>
-  <label for="a_regresa">¿Vas a regresar?</label>
-  <select id="a_regresa"><option value="">Elige…</option><option>SI</option><option>NO</option><option>Lo está pensando</option></select>
-  <div id="b_ret" style="display:none">
-    <label for="a_ret">Fecha de retorno</label>
-    <select id="a_ret"><option>Inmediato</option><option>Ingrese la fecha</option></select>
-    <input type="date" id="a_retf" style="display:none;margin-top:8px">
-  </div>
-  <label for="a_obs">Observaciones <span id="a_obsreq" class="hint"></span></label><textarea id="a_obs" maxlength="300" rows="2"></textarea>
-  <div id="a_err" class="err"></div>
-  <button id="a_save">Guardar ausentismo</button>
-</section>
-<section id="p3">
-  <h2>Pendientes de envío</h2>
-  <button class="sec" id="btnSync" style="margin-top:0">Sincronizar ahora</button>
-  <button class="sec" id="btnCat">Actualizar placas y personal</button>
-  <div id="cola" style="margin-top:14px"></div>
-  <button class="sec" id="btnDiag">Diagnóstico</button>
-  <div id="diag"></div>
-</section>
+  <div id="aviso" class="aviso" hidden></div>
+
+  <section class="card">
+    <h2><span style="display:flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24"><path d="M4 16c0 .9.4 1.7 1 2.2V20a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-1.8c.6-.5 1-1.3 1-2.2V6c0-3.5-3.6-4-8-4S4 2.5 4 6v10zm3.5 1a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm9 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM6 11V6h12v5H6z"/></svg>Registro de movilidad</span><span class="cnt" id="pend">Pendientes: 0</span></h2>
+
+    <label for="placa">Placa</label>
+    <div class="combo">
+      <input id="placa" type="text" autocomplete="off" autocapitalize="characters" placeholder="Escriba para buscar…" role="combobox" aria-expanded="false">
+      <ul id="lista" hidden></ul>
+    </div>
+    <div class="err-msg" id="e-placa"></div>
+
+    <div class="grid">
+      <div><label for="conductor">Conductor</label><input id="conductor" readonly></div>
+      <div><label for="tipo">Tipo</label><input id="tipo" readonly></div>
+      <div><label for="capacidad">Capacidad</label><input id="capacidad" readonly></div>
+      <div><label for="cultivo">Cultivo</label><input id="cultivo" readonly></div>
+    </div>
+    <label for="ruta">Ruta</label><input id="ruta" readonly>
+
+    <label for="pasajeros"><svg viewBox="0 0 24 24"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 2 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z"/></svg>N° de pasajeros</label>
+    <input id="pasajeros" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+    <div class="err-msg" id="e-pasajeros"></div>
+
+    <label for="libres"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4v3zm15-8h3v3h-3v-3zM2 10h3v3H2v-3zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v8z"/></svg>Asientos libres</label>
+    <input id="libres" class="libres" readonly value="—">
+
+    <label for="obs">Observaciones (opcional)</label>
+    <textarea id="obs" rows="2" maxlength="200" placeholder="Máx. 200 caracteres"></textarea>
+    <div class="err-msg" id="e-obs"></div>
+
+    <button id="guardar" class="btn pri" type="button">GUARDAR REGISTRO</button>
+    <a class="btn sec" id="ausentismo" href="https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M19 3h-4.2C14.4 1.8 13.3 1 12 1s-2.4.8-2.8 2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 0a1 1 0 110 2 1 1 0 010-2zm-2 14l-4-4 1.4-1.4L10 14.2l6.6-6.6L18 9l-8 8z"/></svg>AUSENTISMO PERSONAL</a>
+
+    <div class="info"><span id="catInfo">Catálogo: —</span>
+      <button id="btnCat" class="btn sec mini" type="button"><svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6 0 1-.3 2-.7 2.8l1.5 1.5c.8-1.2 1.2-2.7 1.2-4.3 0-4.4-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6 0-1 .3-2 .7-2.8L5.2 7.7C4.4 8.9 4 10.4 4 12c0 4.4 3.6 8 8 8v3l4-4-4-4v3z"/></svg>Actualizar</button></div>
+  </section>
+
+  <h2>Mis registros recientes</h2>
+  <div id="recientes"></div>
 </main>
-<div id="toast"></div>
-<nav>
-  <a href="#p1" class="on" data-t="p1"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M3 11h18M7 20v-4M17 20v-4"/><circle cx="7.5" cy="13.5" r=".6"/><circle cx="16.5" cy="13.5" r=".6"/></svg>Movilidades</a>
-  <a href="#p2" data-t="p2"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M17 4l4 4M21 4l-4 4"/></svg>Ausentismo</a>
-  <a href="#p3" data-t="p3"><svg viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 010-9 6 6 0 0111.5 1.5A3.7 3.7 0 0118 18z"/><path d="M12 11v5m0 0l-2-2m2 2l2-2"/></svg>Pendientes<span id="nPend2" class="badge" style="display:none">0</span></a>
-</nav>
+
+<div id="toast" hidden></div>
+<div id="diag" hidden><div class="box"><h2>Diagnóstico</h2><pre id="diagTxt"></pre>
+  <button class="btn sec" id="dProbar" type="button">Probar conexión</button>
+  <button class="btn sec" id="dCat" type="button">Actualizar catálogo</button>
+  <button class="btn pri" id="dCerrar" type="button">Cerrar</button></div></div>
+
 <script>
 "use strict";
-/* ============ CONFIG (única parte a editar) ============ */
-const CONFIG={
-  API_URL:'https://script.google.com/macros/s/AKfycbxNLNZdAX-sfgvtYyvy_EBc3sXwF1P19XSY5McL95dORzwq6Zf7UglD5t4u2PiokRZT/exec',
-  TOKEN:'Huarmey2026-Frusan-K7x9',
-  MOTIVOS:['Ninguno','Descanso médico (Absentismo)','Permiso con papeleta (Absentismo)','Enfermedad','Problemas familiares','Transporte (Especificar en observaciones)','Otro trabajo (Especificar en observaciones)','Desmotivación','Sacar tarjeta','Pago','Horario','Alimentación','Campamento','Ambiente laboral','Renuncia (Especificar en observaciones)','Problemas con el caporal (Especificar en observaciones)','Estudios','Viaje','Accidente','No desea continuar (Especificar en observaciones)']
+/* ============ CONFIG ============ */
+const CONFIG = {
+  API_URL: "PEGAR_AQUI_URL_WEB_APP",        // URL de la implementación (termina en /exec)
+  API_TOKEN: "CAMBIAR_TOKEN_SECRETO",       // Debe ser IGUAL a API_TOKEN de Code.gs
+  DB_NAME: "huarmey_movilidades", DB_VER: 1,
+  TIMEOUT_MS: 15000, INTENTOS: 3, RECIENTES: 20,
+  urlOk() { return /^https:\/\/script\.google\.com\/.+\/exec$/.test(this.API_URL); }
 };
-const $=id=>document.getElementById(id);
-const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const hoy=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
-const MSG={SIN_RED:'Sin conexión a internet.',TIMEOUT:'El servidor tardó demasiado en responder.',
- TOKEN_INVALIDO:'El token es incorrecto. Revisa CONFIG.TOKEN y el token guardado en el script.',
- TOKEN_NO_CONFIGURADO:'Falta configurar el token en Apps Script (ejecuta configurarToken).',
- RESPUESTA_NO_JSON:'La URL del Web App no es pública o es incorrecta. Debe terminar en /exec y tener acceso "Cualquier persona".',
- CONFIG:'Falta pegar la URL del Web App en CONFIG.API_URL.'};
-let M={},P={},ultimoError='';
+
+/* ============ Utilidades ============ */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = (s) => String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+const isoLocal = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+const fmt = (iso) => iso ? new Date(iso).toLocaleString("es-PE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "nunca";
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); }));
+const errRed = (m) => { const e = new Error(m); e.red = true; return e; }; // error de red (reintentable)
 
 /* ============ DB (IndexedDB) ============ */
-const DB={db:null,
- open(){return new Promise((ok,ko)=>{const r=indexedDB.open('huarmey',1);
-  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('maestros',{keyPath:'placa'});d.createObjectStore('personal',{keyPath:'dni'});d.createObjectStore('cola',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'k'});};
-  r.onsuccess=()=>{DB.db=r.result;ok()};r.onerror=()=>ko(r.error);});},
- tx(s,m,f){return new Promise((ok,ko)=>{const t=DB.db.transaction(s,m);const r=f(t.objectStore(s));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ko(t.error);});},
- all:s=>DB.tx(s,'readonly',st=>st.getAll()),
- get:(s,k)=>DB.tx(s,'readonly',st=>st.get(k)),
- put:(s,v)=>DB.tx(s,'readwrite',st=>st.put(v)),
- del:(s,k)=>DB.tx(s,'readwrite',st=>st.delete(k)),
- replace:(s,a)=>DB.tx(s,'readwrite',st=>{st.clear();a.forEach(v=>st.put(v));})
-};
+const db = (() => {
+  let _db;
+  const open = () => _db ? Promise.resolve(_db) : new Promise((res, rej) => {
+    const r = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VER);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if (!d.objectStoreNames.contains("maestros")) d.createObjectStore("maestros", { keyPath: "placa" });
+      if (!d.objectStoreNames.contains("registros")) d.createObjectStore("registros", { keyPath: "id" });
+      if (!d.objectStoreNames.contains("personal")) d.createObjectStore("personal", { autoIncrement: true });
+      if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta");
+    };
+    r.onsuccess = () => { _db = r.result; res(_db); };
+    r.onerror = () => rej(r.error);
+  });
+  const tx = async (store, modo, fn) => {
+    const d = await open();
+    return new Promise((res, rej) => {
+      const t = d.transaction(store, modo); let out;
+      const rq = fn(t.objectStore(store));
+      if (rq) rq.onsuccess = () => { out = rq.result; };
+      t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  };
+  return {
+    all: (s) => tx(s, "readonly", (o) => o.getAll()),
+    get: (s, k) => tx(s, "readonly", (o) => o.get(k)),
+    put: (s, v) => tx(s, "readwrite", (o) => o.put(v)),
+    replaceAll: (s, arr) => tx(s, "readwrite", (o) => { o.clear(); arr.forEach((v) => o.put(v)); }),
+    setMeta: (k, v) => tx("meta", "readwrite", (o) => o.put(v, k)),
+    getMeta: (k) => tx("meta", "readonly", (o) => o.get(k))
+  };
+})();
 
 /* ============ API (Apps Script) ============ */
-function apiErr(code){const e=new Error(MSG[code]||code);e.code=code;return e;}
-async function api(method,params,body){
-  if(CONFIG.API_URL.includes('PEGA_AQUI'))throw apiErr('CONFIG');
-  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),25000);
-  try{
-    let url=CONFIG.API_URL;const opt={redirect:'follow',signal:ctl.signal};
-    if(method==='GET')url+='?'+new URLSearchParams({...params,token:CONFIG.TOKEN});
-    else{opt.method='POST';opt.headers={'Content-Type':'text/plain;charset=utf-8'};opt.body=JSON.stringify({...body,token:CONFIG.TOKEN});}
-    let r;try{r=await fetch(url,opt);}catch(e){throw apiErr(e.name==='AbortError'?'TIMEOUT':'SIN_RED');}
-    const txt=await r.text();let j;try{j=JSON.parse(txt);}catch(e){throw apiErr('RESPUESTA_NO_JSON');}
-    if(j.ok===undefined)throw apiErr('El servidor respondió algo distinto a lo esperado (probablemente código antiguo de Apps Script): '+txt.slice(0,120));
-    if(!j.ok)throw apiErr((j.error||'ERROR_SERVIDOR').split(':')[0]==='HOJA_NO_ENCONTRADA'?'Falta la hoja: '+j.error.split(':')[1]:(j.error||'ERROR_SERVIDOR'));
+const api = {
+  async _fetch(url, opts) {
+    const c = new AbortController(), t = setTimeout(() => c.abort(), CONFIG.TIMEOUT_MS);
+    try {
+      const r = await fetch(url, { ...opts, signal: c.signal, redirect: "follow", cache: "no-store" });
+      const txt = await r.text();
+      try { return JSON.parse(txt); }
+      catch { throw new Error('Respuesta no válida del servidor (revise que el acceso sea "Cualquier persona" y la URL termine en /exec)'); }
+    } catch (e) {
+      if (e.name === "AbortError") throw errRed("Tiempo de espera agotado");
+      if (e instanceof TypeError) throw errRed("No se pudo contactar al servidor de Google");
+      throw e;
+    } finally { clearTimeout(t); }
+  },
+  async get(action) {
+    if (!CONFIG.urlOk()) throw new Error("URL no configurada");
+    const j = await api._fetch(`${CONFIG.API_URL}?action=${action}&token=${encodeURIComponent(CONFIG.API_TOKEN)}`);
+    if (!j.ok) throw new Error(j.error || "Error del servidor");
     return j.data;
-  }finally{clearTimeout(t);}
-}
+  },
+  // POST como text/plain para evitar preflight CORS
+  async post(registro) {
+    if (!CONFIG.urlOk()) throw new Error("URL no configurada");
+    return api._fetch(CONFIG.API_URL, {
+      method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ token: CONFIG.API_TOKEN, action: "registro", registro })
+    });
+  }
+};
 
-/* ============ SYNC ============ */
-let syncing=false;
-async function actualizarCatalogos(manual){
-  try{
-    const d=await api('GET',{action:'bootstrap'});
-    await DB.replace('maestros',d.maestros);await DB.replace('personal',d.personal);
-    await DB.put('meta',{k:'ultima',v:Date.now()});ultimoError='';
-    await cargarListas();if(manual)toast('Listas actualizadas: '+d.maestros.length+' placas, '+d.personal.length+' personas');
-  }catch(e){ultimoError=e.message;if(manual||!Object.keys(M).length)toast(e.message,true);}
-}
-async function enviarPendientes(manual){
-  if(syncing){return;}
-  if(!navigator.onLine){if(manual)toast('Sin conexión. Se enviará al volver el internet.',true);return;}
-  syncing=true;
-  try{
-    const q=(await DB.all('cola')).filter(x=>x.estado==='Pendiente');
-    if(!q.length){if(manual)toast('No hay pendientes.');return;}
-    let res;
-    try{res=await api('POST',{},{items:q.map(x=>({action:x.tipo,id:x.id,data:x.datos}))});}
-    catch(e){ultimoError=e.message;for(const x of q){x.intentos++;x.error=e.message;await DB.put('cola',x);}if(manual)toast(e.message,true);return;}
-    let bien=0;
-    for(const r of res){const x=q.find(i=>i.id===r.id);if(!x)continue;
-      x.estado=r.ok?'Sincronizado':'Error';x.error=r.ok?'':r.error;x.enviado=Date.now();if(r.ok)bien++;await DB.put('cola',x);}
-    ultimoError='';toast(bien+' de '+q.length+' registro(s) enviado(s)',bien<q.length);
-  }finally{syncing=false;await pintarCola();}
-}
+/* ============ Conexión ============ */
+const red = {
+  online: false, prev: false,
+  async check() {
+    let ok = false;
+    if (navigator.onLine) {
+      try {
+        if (CONFIG.urlOk()) await api.get("ping"); else await fetch("./manifest.json?p=" + Date.now(), { cache: "no-store" });
+        ok = true;
+      } catch (e) { ok = !e.red && CONFIG.urlOk() && e.message !== "URL no configurada"; } // error de servidor = hay internet
+    }
+    red.set(ok);
+  },
+  set(v) {
+    red.online = v; ui.pintarEstado();
+    if (v && !red.prev) sync.todo();
+    red.prev = v;
+  }
+};
+
+/* ============ Sincronización ============ */
+const sync = {
+  _p: Promise.resolve(), catErr: "", syncErr: "",
+  async catalogo() {
+    try {
+      const m = (await api.get("maestros")).filter((x) => x.placa);
+      if (!m.length) throw new Error("La hoja 'maestros' no tiene placas activas");
+      await db.replaceAll("maestros", m);
+      let n = 0;
+      try { const p = await api.get("personal"); await db.replaceAll("personal", p); n = p.length; } catch (e) { sync.syncErr = "Personal: " + e.message; }
+      await db.setMeta("ultimaSync", new Date().toISOString()); await db.setMeta("nPersonal", n);
+      sync.catErr = ""; await ui.cargarCatalogo();
+    } catch (e) {
+      sync.catErr = e.message; if (e.red) red.set(false);
+      throw e;
+    } finally { ui.avisos(); }
+  },
+  // Envía un registro con reintentos; deja estado pendiente/sincronizado/error
+  async enviar(reg) {
+    let ultimo = "";
+    for (let i = 1; i <= CONFIG.INTENTOS; i++) {
+      try {
+        const j = await api.post(reg);
+        if (j.ok || (j.data && j.data.duplicado)) { reg.estado = "sincronizado"; reg.error = ""; }
+        else { reg.estado = "error"; reg.error = j.error || "Error del servidor"; }
+        await db.put("registros", reg); return reg.estado;
+      } catch (e) {
+        ultimo = e.message;
+        if (!e.red) { reg.estado = "error"; reg.error = e.message; await db.put("registros", reg); return "error"; }
+        await espera(1000 * i);
+      }
+    }
+    reg.estado = "pendiente"; reg.error = ultimo; await db.put("registros", reg);
+    red.set(false); return "pendiente";
+  },
+  pendientes() { return (sync._p = sync._p.then(() => sync._run()).catch((e) => { sync.syncErr = e.message; })); },
+  async _run() {
+    const lista = (await db.all("registros")).filter((r) => r.estado !== "sincronizado").sort((a, b) => a.creado - b.creado);
+    for (const r of lista) {
+      const est = await sync.enviar(r); await ui.refrescar();
+      if (est === "pendiente") break; // sin red: se detiene
+    }
+  },
+  async todo() {
+    try { await sync.catalogo(); } catch (e) { /* el motivo se muestra en el aviso */ }
+    await sync.pendientes();
+  }
+};
 
 /* ============ UI ============ */
-let tt;function toast(m,mal){const t=$('toast');t.textContent=m;t.style.background=mal?'#8f1a0e':'#2b2f2a';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',4200);}
-function showErr(id,m){const e=$(id);e.textContent=m;e.style.display=m?'block':'none';if(m)e.scrollIntoView({block:'center',behavior:'smooth'});}
-function setNet(){const on=navigator.onLine;$('net').textContent=on?'En línea':'Sin conexión';$('net').className='pill'+(on?'':' off');}
-function tab(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));
-  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.t===id));window.scrollTo(0,0);if(id==='p3')pintarCola();}
-async function cargarListas(){
-  M={};(await DB.all('maestros')).forEach(m=>M[m.placa]=m);
-  P={};(await DB.all('personal')).forEach(p=>P[p.dni]=p.nombre);
-  $('dl_placas').innerHTML=Object.keys(M).sort().map(p=>'<option value="'+esc(p)+'">').join('');
-  if(!Object.keys(M).length)showErr('r_err','Aún no hay placas. Conéctate a internet una vez para descargar las placas y el personal.');
-  else if($('r_err').textContent.startsWith('Aún'))showErr('r_err','');
-  autoPlaca('r');autoPlaca('a');
-}
-function autoPlaca(k){const v=$(k+'_placa').value.trim().toUpperCase(),m=M[v];
-  if(k==='r'){['conductor','tipo','ruta','cultivo'].forEach(f=>$('r_'+f).value=m?m[f]:'');$('r_cap').value=m?m.capacidad:'';libres();}
-  else $('a_ruta').value=m?m.ruta:'';}
-function libres(){const c=+$('r_cap').value,p=$('r_pas').value;$('r_libres').value=(p===''||!c)?'':c-(+p);}
-function buscarDni(){const d=$('a_dni').value=$('a_dni').value.replace(/\D/g,'').slice(0,8);const m=$('a_dnimsg');
-  if(d.length<8){$('a_nombre').value='';m.textContent=d?d.length+' de 8 dígitos':'';m.className='hint';return;}
-  const n=P[d];$('a_nombre').value=n||'';m.textContent=n?'Personal encontrado':'DNI no encontrado en la lista de personal';m.className=n?'hint ok':'hint mal';}
-function reqObs(){const m=$('a_motivo').value;$('a_obsreq').textContent=m.includes('Especificar')?'(obligatorio para este motivo)':'';}
-function cambiaRegresa(){const si=$('a_regresa').value==='SI';$('b_ret').style.display=si?'block':'none';cambiaRet();}
-function cambiaRet(){$('a_retf').style.display=($('a_regresa').value==='SI'&&$('a_ret').value==='Ingrese la fecha')?'block':'none';}
+const ui = {
+  cat: [], sel: null, taps: 0, tapT: 0,
+  toast(msg, tipo) {
+    const t = $("#toast"); t.textContent = msg; t.className = tipo || ""; t.hidden = false;
+    clearTimeout(ui._tt); ui._tt = setTimeout(() => { t.hidden = true; }, 3500);
+  },
+  pintarEstado() { const p = $("#estado"); p.textContent = red.online ? "En línea" : "Sin conexión"; p.className = "pill" + (red.online ? " on" : ""); ui.avisos(); },
+  avisos() {
+    const a = $("#aviso"); let msg = "", tipo = "";
+    if (!CONFIG.urlOk()) { msg = "URL no configurada: edite API_URL en index.html con la URL de la implementación de Apps Script."; tipo = "err"; }
+    else if (sync.catErr) { msg = sync.catErr + (ui.cat.length ? " · Usando datos locales." : ""); tipo = "err"; }
+    else if (!red.online) { msg = ui.cat.length ? "Sin conexión, usando datos locales." : "Sin conexión y sin catálogo local: conéctese a internet al menos una vez."; tipo = ui.cat.length ? "" : "err"; }
+    a.hidden = !msg; a.textContent = msg; a.className = "aviso " + tipo;
+  },
+  async cargarCatalogo() {
+    ui.cat = (await db.all("maestros")).sort((a, b) => a.placa.localeCompare(b.placa));
+    $("#catInfo").textContent = `Catálogo: ${ui.cat.length} placas · ${fmt(await db.getMeta("ultimaSync"))}`;
+  },
+  lista(q) {
+    const ul = $("#lista"), n = norm(q);
+    const its = ui.cat.filter((m) => !n || norm(`${m.placa} ${m.conductor} ${m.ruta}`).includes(n)).slice(0, 60);
+    ul.innerHTML = its.length
+      ? its.map((m) => `<li data-p="${esc(m.placa)}"><b>${esc(m.placa)}</b><small>${esc(m.conductor)} · ${esc(m.ruta)} · cap. ${m.capacidad}</small></li>`).join("")
+      : `<li class="vacio">${ui.cat.length ? "Sin resultados" : "Catálogo vacío"}</li>`;
+    ul.hidden = false; $("#placa").setAttribute("aria-expanded", "true");
+  },
+  ocultarLista() { $("#lista").hidden = true; $("#placa").setAttribute("aria-expanded", "false"); },
+  campos(m) {
+    $("#conductor").value = m ? m.conductor : ""; $("#tipo").value = m ? m.tipo : "";
+    $("#capacidad").value = m ? m.capacidad : ""; $("#ruta").value = m ? m.ruta : ""; $("#cultivo").value = m ? m.cultivo : "";
+    $("#pasajeros").max = m ? m.capacidad : ""; ui.calc();
+  },
+  elegir(placa) {
+    ui.sel = ui.cat.find((m) => m.placa === placa) || null;
+    $("#placa").value = placa; ui.campos(ui.sel); ui.ocultarLista(); ui.error("placa", "");
+  },
+  calc() {
+    const v = $("#pasajeros").value.trim(), cap = ui.sel ? ui.sel.capacidad : NaN, l = $("#libres");
+    l.value = (ui.sel && /^\d+$/.test(v) && +v <= cap) ? cap - (+v) : "—";
+  },
+  error(id, msg) { $("#e-" + id).textContent = msg; const el = $(id === "obs" ? "#obs" : "#" + id); if (el) el.classList.toggle("bad", !!msg); },
+  validar() {
+    let ok = true; const fallo = (id, m) => { ui.error(id, m); ok = false; };
+    ui.error("placa", ""); ui.error("pasajeros", ""); ui.error("obs", "");
+    if (!ui.sel) fallo("placa", "Elija una placa de la lista");
+    else if (!(ui.sel.capacidad > 0)) fallo("placa", "Esta placa no tiene capacidad válida en la hoja maestros");
+    const v = $("#pasajeros").value.trim();
+    if (v === "") fallo("pasajeros", "Ingrese el número de pasajeros");
+    else if (!/^\d+$/.test(v)) fallo("pasajeros", "Solo números enteros, mínimo 0");
+    else if (ui.sel && +v > ui.sel.capacidad) fallo("pasajeros", `No puede superar la capacidad (${ui.sel.capacidad})`);
+    if ($("#obs").value.length > 200) fallo("obs", "Máximo 200 caracteres");
+    return ok;
+  },
+  async guardar() {
+    if (!ui.validar()) return;
+    const m = ui.sel, pas = +$("#pasajeros").value.trim();
+    const reg = { id: uuid(), fecha: isoLocal(), placa: m.placa, conductor: m.conductor, tipo: m.tipo, ruta: m.ruta, cultivo: m.cultivo,
+      capacidad: m.capacidad, pasajeros: pas, libres: m.capacidad - pas, observaciones: $("#obs").value.trim(),
+      estado: "pendiente", error: "", creado: Date.now() };
+    $("#guardar").disabled = true;
+    try {
+      await db.put("registros", reg);                 // 1) SIEMPRE guardar primero en el celular
+      ui.limpiar(); await ui.refrescar();
+      if (red.online) await sync.pendientes();        // 2) luego intentar enviar
+      const f = await db.get("registros", reg.id);
+      if (f.estado === "sincronizado") ui.toast("Guardado y sincronizado");
+      else if (f.estado === "error") ui.toast("Guardado, pero con error: " + f.error, "err");
+      else ui.toast("Guardado. Pendiente de sincronizar", "warn");
+    } catch (e) { ui.toast("No se pudo guardar en el celular: " + e.message, "err"); }
+    finally { $("#guardar").disabled = false; await ui.refrescar(); }
+  },
+  limpiar() { ui.sel = null; $("#placa").value = ""; $("#pasajeros").value = ""; $("#obs").value = ""; ui.campos(null); },
+  async refrescar() {
+    const todos = (await db.all("registros")).sort((a, b) => b.creado - a.creado);
+    $("#pend").textContent = "Pendientes: " + todos.filter((r) => r.estado !== "sincronizado").length;
+    const rot = { pendiente: "Pendiente", sincronizado: "Sincronizado", error: "Error" };
+    $("#recientes").innerHTML = todos.slice(0, CONFIG.RECIENTES).map((r) => `
+      <div class="reg ${r.estado}"><div class="fila"><b>${esc(r.placa)} · ${r.pasajeros}/${r.capacidad} pasajeros</b><span class="chip ${r.estado}">${rot[r.estado]}</span></div>
+      <small>${esc(fmt(r.fecha))} · libres: ${r.libres} · ${esc(r.ruta)}</small>
+      ${r.estado !== "sincronizado" && r.error ? `<div class="msg">${esc(r.error)}</div>` : ""}
+      ${r.estado === "error" ? `<button class="btn sec mini" data-r="${esc(r.id)}" type="button">Reintentar</button>` : ""}</div>`).join("")
+      || '<p>Aún no hay registros.</p>';
+  },
+  async diag(probar) {
+    let extra = "";
+    if (probar) { try { const d = await api.get("ping"); extra = "\nPrueba: OK (" + d.hora + ")"; } catch (e) { extra = "\nPrueba: ERROR · " + e.message; } }
+    const pend = (await db.all("registros")).filter((r) => r.estado !== "sincronizado").length;
+    $("#diagTxt").textContent =
+      `URL: ${CONFIG.API_URL}\nURL válida: ${CONFIG.urlOk() ? "sí" : "NO"}\nToken: ${CONFIG.API_TOKEN === "CAMBIAR_TOKEN_SECRETO" ? "SIN CONFIGURAR" : "configurado"}\n` +
+      `Conexión: ${red.online ? "en línea" : "sin conexión"}\nPlacas cargadas: ${ui.cat.length}\nPersonal local: ${await db.getMeta("nPersonal") ?? 0}\n` +
+      `Última sincronización: ${fmt(await db.getMeta("ultimaSync"))}\nRegistros pendientes/error: ${pend}\n` +
+      `Error catálogo: ${sync.catErr || "ninguno"}\nError sync: ${sync.syncErr || "ninguno"}` + extra;
+    $("#diag").hidden = false;
+  },
+  bind() {
+    const inp = $("#placa");
+    inp.addEventListener("focus", () => ui.lista(inp.value));
+    inp.addEventListener("input", () => { ui.sel = null; ui.campos(null); ui.lista(inp.value); });
+    inp.addEventListener("change", () => { // placa escrita exacta sin tocar la lista
+      const n = norm(inp.value).replace(/[\s-]/g, "");
+      const m = ui.cat.find((x) => norm(x.placa).replace(/[\s-]/g, "") === n);
+      if (m && n) ui.elegir(m.placa);
+    });
+    $("#lista").addEventListener("pointerdown", (ev) => { const li = ev.target.closest("li[data-p]"); if (li) { ev.preventDefault(); ui.elegir(li.dataset.p); } });
+    document.addEventListener("pointerdown", (ev) => { if (!ev.target.closest(".combo")) ui.ocultarLista(); });
+    $("#pasajeros").addEventListener("input", () => { ui.calc(); ui.error("pasajeros", ""); });
+    $("#guardar").addEventListener("click", ui.guardar);
+    $("#btnCat").addEventListener("click", async () => {
+      ui.toast("Actualizando catálogo…", "warn");
+      try { await red.check(); await sync.catalogo(); ui.toast("Catálogo actualizado"); } catch (e) { ui.toast(e.message, "err"); }
+    });
+    $("#recientes").addEventListener("click", async (ev) => {
+      const b = ev.target.closest("button[data-r]"); if (!b) return;
+      const r = await db.get("registros", b.dataset.r); if (!r) return;
+      r.estado = "pendiente"; r.error = ""; await db.put("registros", r); await ui.refrescar();
+      if (red.online) { await sync.pendientes(); await ui.refrescar(); } else ui.toast("Sin conexión: se enviará al volver el internet", "warn");
+    });
+    // Diagnóstico oculto: 5 toques al logo
+    $("#logo").addEventListener("click", () => {
+      const ahora = Date.now(); ui.taps = (ahora - ui.tapT < 1500) ? ui.taps + 1 : 1; ui.tapT = ahora;
+      if (ui.taps >= 5) { ui.taps = 0; ui.diag(false); }
+    });
+    $("#dProbar").addEventListener("click", () => ui.diag(true));
+    $("#dCat").addEventListener("click", async () => { try { await sync.catalogo(); } catch (e) { /* se muestra abajo */ } ui.diag(false); });
+    $("#dCerrar").addEventListener("click", () => { $("#diag").hidden = true; });
+  }
+};
 
-async function encolar(tipo,datos){
-  await DB.put('cola',{id:uid(),tipo,datos,estado:'Pendiente',intentos:0,creado:Date.now(),error:''});
-  await pintarCola();enviarPendientes(false);
-}
-async function guardarRegistro(){
-  const b=$('r_save');showErr('r_err','');
-  const placa=$('r_placa').value.trim().toUpperCase(),m=M[placa],pas=$('r_pas').value,f=$('r_fecha').value;
-  let e='';
-  if(!f)e='Elige la fecha.';else if(!m)e='Elige una placa de la lista.';
-  else if(pas===''||!/^\d+$/.test(pas))e='Escribe el número de pasajeros (entero, mínimo 0).';
-  else if(+pas>m.capacidad)e='Los pasajeros no pueden superar la capacidad de '+m.capacidad+'.';
-  if(e)return showErr('r_err',e);
-  const dup=(await DB.all('cola')).some(x=>x.tipo==='registro'&&x.estado!=='Error'&&x.datos.placa===placa&&x.datos.fecha===f);
-  if(dup&&!confirm('Ya registraste esta placa hoy. ¿Guardar otro registro?'))return;
-  b.disabled=true;
-  try{await encolar('registro',{fecha:f,placa,conductor:m.conductor,tipo:m.tipo,ruta:m.ruta,cultivo:m.cultivo,capacidad:m.capacidad,pasajeros:+pas,libres:m.capacidad-(+pas),observaciones:$('r_obs').value.trim()});
-    $('r_placa').value='';$('r_pas').value='';$('r_obs').value='';autoPlaca('r');toast('Guardado. Se enviará al tener conexión.');}
-  catch(x){showErr('r_err','No se pudo guardar en el teléfono: '+x.message);}finally{b.disabled=false;}
-}
-async function guardarAusentismo(){
-  const b=$('a_save');showErr('a_err','');
-  const placa=$('a_placa').value.trim().toUpperCase(),m=M[placa],dni=$('a_dni').value,nombre=P[dni],falta=$('a_falta').value,
-   motivo=$('a_motivo').value,reg=$('a_regresa').value,obs=$('a_obs').value.trim();
-  let ret='',e='';
-  if(!m)e='Elige una placa de la lista.';
-  else if(!/^\d{8}$/.test(dni))e='El DNI debe tener 8 dígitos.';
-  else if(!nombre)e='DNI no encontrado en la lista de personal.';
-  else if(!falta)e='Elige la fecha de falta.';
-  else if(falta>hoy())e='La fecha de falta no puede ser futura.';
-  else if(!motivo)e='Elige el motivo de ausencia.';
-  else if(motivo.includes('Especificar')&&!obs)e='Este motivo requiere detalle en observaciones.';
-  else if(!reg)e='Indica si va a regresar.';
-  if(!e&&reg==='SI'){ret=$('a_ret').value;
-    if(ret==='Ingrese la fecha'){ret=$('a_retf').value;if(!ret)e='Elige la fecha de retorno.';else if(ret<falta)e='La fecha de retorno no puede ser anterior a la fecha de falta.';}}
-  if(e)return showErr('a_err',e);
-  b.disabled=true;
-  try{await encolar('ausentismo',{placa,ruta:m.ruta,dni,nombre,fechaFalta:falta,motivo,regresa:reg,retorno:ret,observaciones:obs});
-    ['a_dni','a_obs','a_placa'].forEach(i=>$(i).value='');$('a_motivo').value='';$('a_regresa').value='';buscarDni();autoPlaca('a');reqObs();cambiaRegresa();toast('Guardado. Se enviará al tener conexión.');}
-  catch(x){showErr('a_err','No se pudo guardar en el teléfono: '+x.message);}finally{b.disabled=false;}
-}
-async function pintarCola(){
-  const q=(await DB.all('cola')).sort((a,b)=>b.creado-a.creado),n=q.filter(x=>x.estado!=='Sincronizado').length;
-  ['nPend','nPend2'].forEach(i=>{$(i).textContent=n;$(i).style.display=n?'inline-block':'none';});
-  $('cola').innerHTML=q.length?q.map(x=>{const d=x.datos,t=x.tipo==='registro'?'Movilidad · '+esc(d.placa)+' · '+d.pasajeros+' pasajeros':'Ausentismo · '+esc(d.nombre);
-    return '<div class="item '+x.estado+'"><b>'+esc(t)+'</b><small>'+new Date(x.creado).toLocaleString('es-PE')+' · '+x.estado+'</small>'+
-     (x.error?'<small class="mal">'+esc(x.error)+'</small>':'')+
-     (x.estado==='Error'?'<button class="peq" data-a="re" data-id="'+x.id+'">Reintentar</button><button class="peq rojo" data-a="del" data-id="'+x.id+'">Eliminar</button>':'')+'</div>';}).join('')
-   :'<p class="hint">No hay registros guardados todavía.</p>';
-}
-async function diagnostico(){
-  const m=await DB.get('meta','ultima'),q=await DB.all('cola'),d=$('diag');
-  d.style.display='block';
-  d.textContent='URL: '+(CONFIG.API_URL.includes('PEGA_AQUI')?'SIN CONFIGURAR':CONFIG.API_URL.slice(0,60)+'…')+'\nToken: '+(CONFIG.TOKEN.includes('PEGA_AQUI')?'SIN CONFIGURAR':'configurado')+
-   '\nConexión: '+(navigator.onLine?'sí':'no')+'\nPlacas en el teléfono: '+Object.keys(M).length+'\nPersonal en el teléfono: '+Object.keys(P).length+
-   '\nÚltima descarga: '+(m?new Date(m.v).toLocaleString('es-PE'):'nunca')+'\nPendientes: '+q.filter(x=>x.estado==='Pendiente').length+' · Con error: '+q.filter(x=>x.estado==='Error').length+'\nÚltimo error: '+(ultimoError||'ninguno')+'\nPrueba de conexión: ';
-  try{await api('GET',{action:'ping'});d.textContent+='OK';}catch(e){d.textContent+=e.message;}
-}
-
-/* ============ INICIO ============ */
-async function init(){
-  $('r_fecha').value=hoy();$('a_falta').max=hoy();$('a_falta').value=hoy();
-  $('a_motivo').innerHTML='<option value="">Elige el motivo…</option>'+CONFIG.MOTIVOS.map(m=>'<option>'+esc(m)+'</option>').join('');
-  document.querySelectorAll('nav a').forEach(a=>a.onclick=e=>{e.preventDefault();tab(a.dataset.t);});
-  $('r_placa').oninput=()=>autoPlaca('r');$('a_placa').oninput=()=>autoPlaca('a');$('r_pas').oninput=libres;
-  $('a_dni').oninput=buscarDni;$('a_motivo').onchange=reqObs;$('a_regresa').onchange=cambiaRegresa;$('a_ret').onchange=cambiaRet;
-  $('r_save').onclick=guardarRegistro;$('a_save').onclick=guardarAusentismo;
-  $('btnSync').onclick=()=>enviarPendientes(true);$('btnCat').onclick=()=>actualizarCatalogos(true);$('btnDiag').onclick=diagnostico;
-  $('cola').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const x=await DB.get('cola',b.dataset.id);if(!x)return;
-    if(b.dataset.a==='del'){if(confirm('¿Eliminar este registro con error?'))await DB.del('cola',x.id);}
-    else{x.estado='Pendiente';x.error='';await DB.put('cola',x);enviarPendientes(true);}pintarCola();};
-  addEventListener('online',()=>{setNet();enviarPendientes(false);actualizarCatalogos(false);});addEventListener('offline',setNet);setNet();
-  try{await DB.open();}catch(e){toast('Este navegador no permite guardar datos. Usa Chrome.',true);return;}
-  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
-  for(const x of await DB.all('cola'))if(x.estado==='Sincronizado'&&Date.now()-x.enviado>7*864e5)await DB.del('cola',x.id);
-  await cargarListas();await pintarCola();
-  if(navigator.onLine){await actualizarCatalogos(false);await enviarPendientes(false);}
-  setInterval(()=>{if(navigator.onLine)enviarPendientes(false);},60000);
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').then(r=>{
-    r.onupdatefound=()=>{const w=r.installing;w&&(w.onstatechange=()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Nueva versión lista. Cierra y abre la app para actualizar.');});};}).catch(()=>{});
-}
-init();
-</script></body></html>
+/* ============ Inicio ============ */
+(async function init() {
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch((e) => console.warn("SW:", e));
+  ui.bind();
+  try { await ui.cargarCatalogo(); await ui.refrescar(); } catch (e) { ui.toast("Error al abrir la base local: " + e.message, "err"); }
+  ui.pintarEstado();
+  window.addEventListener("online", () => red.check());
+  window.addEventListener("offline", () => red.set(false));
+  await red.check();
+  setInterval(red.check, 30000);
+})();
+</script>
+</body>
+</html>
