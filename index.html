@@ -1,417 +1,1362 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#66BB6A">
-<link rel="manifest" href="./manifest.json">
-<link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<title>Movilidades Huarmey</title>
-<style>
-:root{--verde:#66BB6A;--verde-cl:#A5D6A7;--verde-os:#1B5E20;--rojo:#EF9A9A;--rojo-os:#7F1D1D;--ambar:#FFE082;--ambar-os:#5D4300;--fondo:#F7F3E9;--tinta:#1F2A1F;--borde:#B9B39F}
-*{box-sizing:border-box}
-body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
-svg{width:24px;height:24px;fill:currentColor;flex:none}
-header{background:var(--verde-cl);padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5;border-bottom:3px solid var(--verde)}
-header img{width:48px;height:48px;border-radius:12px;background:#fff;padding:3px}
-header h1{font-size:18px;margin:0;line-height:1.15;flex:1}
-header small{display:block;font-weight:400;font-size:14px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-weight:700;font-size:14px;background:var(--rojo);color:var(--rojo-os)}
-.pill::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}
-.pill.on{background:var(--verde);color:#0B2A0E}
-main{max-width:560px;margin:0 auto;padding:12px}
-.aviso{padding:12px;border-radius:12px;font-weight:600;margin-bottom:12px;background:var(--ambar);color:var(--ambar-os)}
-.aviso.err{background:var(--rojo);color:var(--rojo-os)}
-.card{background:#fff;border:2px solid var(--borde);border-radius:16px;padding:14px;margin-bottom:14px}
-label{display:flex;align-items:center;gap:6px;font-weight:700;margin:12px 0 4px}
-input,textarea{width:100%;min-height:48px;font:inherit;font-size:17px;padding:10px 12px;border:2px solid var(--borde);border-radius:12px;background:#fff;color:var(--tinta)}
-input[readonly]{background:#EFEBDD;color:#222}
-input:focus,textarea:focus{outline:3px solid var(--verde);border-color:var(--verde-os)}
-.bad{border-color:#C62828!important}
-.err-msg{color:#B71C1C;font-weight:600;font-size:15px;min-height:0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-.combo{position:relative}
-.combo ul{position:absolute;left:0;right:0;top:100%;z-index:4;margin:4px 0 0;padding:0;list-style:none;background:#fff;border:2px solid var(--verde-os);border-radius:12px;max-height:260px;overflow:auto;box-shadow:0 6px 16px #0003}
-.combo li{padding:12px;border-bottom:1px solid #E5E0CF;min-height:48px}
-.combo li b{display:block}
-.combo li small{color:#555}
-.combo li.vacio{color:#777}
-.libres{font-size:28px;font-weight:800;text-align:center;background:var(--verde-cl)!important;color:#0B2A0E}
-.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;border:0;border-radius:14px;font:inherit;font-size:18px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:14px}
-.btn.pri{background:var(--verde);color:#0B2A0E;border-bottom:4px solid var(--verde-os)}
-.btn.sec{background:#fff;color:var(--verde-os);border:2px solid var(--verde-os);min-height:52px;font-size:16px}
-.btn.mini{min-height:44px;width:auto;padding:0 14px;font-size:15px;margin:0}
-.btn:disabled{opacity:.6}
-.info{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;margin-top:12px}
-h2{font-size:18px;margin:6px 0 10px;display:flex;justify-content:space-between;align-items:center}
-.cnt{background:var(--ambar);color:var(--ambar-os);padding:4px 10px;border-radius:99px;font-size:14px}
-.reg{border-left:8px solid var(--borde);background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;border-top:1px solid #E5E0CF;border-right:1px solid #E5E0CF;border-bottom:1px solid #E5E0CF}
-.reg.pendiente{border-left-color:#FFB300}.reg.sincronizado{border-left-color:var(--verde)}.reg.error{border-left-color:#E53935}
-.reg .fila{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.reg small{color:#555;display:block}
-.chip{padding:3px 10px;border-radius:99px;font-size:14px;font-weight:700}
-.chip.pendiente{background:var(--ambar);color:var(--ambar-os)}.chip.sincronizado{background:var(--verde-cl);color:#0B2A0E}.chip.error{background:var(--rojo);color:var(--rojo-os)}
-.reg .msg{color:#B71C1C;font-weight:600;font-size:14px;margin:4px 0}
-#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:20;padding:14px;border-radius:14px;font-weight:800;text-align:center;background:var(--verde-os);color:#fff;box-shadow:0 6px 18px #0005}
-#toast.warn{background:#FFB300;color:#3B2A00}#toast.err{background:#C62828}
-#diag{position:fixed;inset:0;background:#000a;z-index:30;display:flex;align-items:center;justify-content:center;padding:14px}
-#diag .box{background:#fff;border-radius:16px;padding:16px;max-width:520px;width:100%;max-height:90vh;overflow:auto}
-#diag pre{white-space:pre-wrap;word-break:break-all;background:#F3F0E4;padding:10px;border-radius:10px;font-size:14px}
-[hidden]{display:none!important}
-</style>
-</head>
-<body>
-<header>
-  <img id="logo" src="./icon-192.png" alt="Logo Frusan">
-  <h1>Movilidades Huarmey<small>Reporte de pasajeros</small></h1>
-  <span id="estado" class="pill">Sin conexión</span>
-</header>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Control de Movilidades — Agrícola Huarmey</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-<main>
-  <div id="aviso" class="aviso" hidden></div>
-
-  <section class="card">
-    <h2><span style="display:flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24"><path d="M4 16c0 .9.4 1.7 1 2.2V20a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-1.8c.6-.5 1-1.3 1-2.2V6c0-3.5-3.6-4-8-4S4 2.5 4 6v10zm3.5 1a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm9 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM6 11V6h12v5H6z"/></svg>Registro de movilidad</span><span class="cnt" id="pend">Pendientes: 0</span></h2>
-
-    <label for="placa">Placa</label>
-    <div class="combo">
-      <input id="placa" type="text" autocomplete="off" autocapitalize="characters" placeholder="Escriba para buscar…" role="combobox" aria-expanded="false">
-      <ul id="lista" hidden></ul>
-    </div>
-    <div class="err-msg" id="e-placa"></div>
-
-    <div class="grid">
-      <div><label for="conductor">Conductor</label><input id="conductor" readonly></div>
-      <div><label for="tipo">Tipo</label><input id="tipo" readonly></div>
-      <div><label for="capacidad">Capacidad</label><input id="capacidad" readonly></div>
-      <div><label for="cultivo">Cultivo</label><input id="cultivo" readonly></div>
-    </div>
-    <label for="ruta">Ruta</label><input id="ruta" readonly>
-
-    <label for="pasajeros"><svg viewBox="0 0 24 24"><path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 2 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z"/></svg>N° de pasajeros</label>
-    <input id="pasajeros" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
-    <div class="err-msg" id="e-pasajeros"></div>
-
-    <label for="libres"><svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-6H4v3zm15-8h3v3h-3v-3zM2 10h3v3H2v-3zm15 3H7V5c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v8z"/></svg>Asientos libres</label>
-    <input id="libres" class="libres" readonly value="—">
-
-    <label for="obs">Observaciones (opcional)</label>
-    <textarea id="obs" rows="2" maxlength="200" placeholder="Máx. 200 caracteres"></textarea>
-    <div class="err-msg" id="e-obs"></div>
-
-    <button id="guardar" class="btn pri" type="button">GUARDAR REGISTRO</button>
-    <a class="btn sec" id="ausentismo" href="https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M19 3h-4.2C14.4 1.8 13.3 1 12 1s-2.4.8-2.8 2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 0a1 1 0 110 2 1 1 0 010-2zm-2 14l-4-4 1.4-1.4L10 14.2l6.6-6.6L18 9l-8 8z"/></svg>AUSENTISMO PERSONAL</a>
-
-    <div class="info"><span id="catInfo">Catálogo: —</span>
-      <button id="btnCat" class="btn sec mini" type="button"><svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6 0 1-.3 2-.7 2.8l1.5 1.5c.8-1.2 1.2-2.7 1.2-4.3 0-4.4-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6 0-1 .3-2 .7-2.8L5.2 7.7C4.4 8.9 4 10.4 4 12c0 4.4 3.6 8 8 8v3l4-4-4-4v3z"/></svg>Actualizar</button></div>
-  </section>
-
-  <h2>Mis registros recientes</h2>
-  <div id="recientes"></div>
-</main>
-
-<div id="toast" hidden></div>
-<div id="diag" hidden><div class="box"><h2>Diagnóstico</h2><pre id="diagTxt"></pre>
-  <button class="btn sec" id="dProbar" type="button">Probar conexión</button>
-  <button class="btn sec" id="dCat" type="button">Actualizar catálogo</button>
-  <button class="btn pri" id="dCerrar" type="button">Cerrar</button></div></div>
-
-<script>
-"use strict";
-/* ============ CONFIG ============ */
-const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbylS1gSrPjm3GPGRGjLVCM_cRaGzAeDF3aDusW8ISzZX-FvqXHfscRdSsIOgIAUxSU/exec",        // URL de la implementación (termina en /exec)
-  API_TOKEN: "CONEXION_MOVILIDADES_2026",       // Debe ser IGUAL a API_TOKEN de Code.gs
-  DB_NAME: "huarmey_movilidades", DB_VER: 1,
-  TIMEOUT_MS: 15000, INTENTOS: 3, RECIENTES: 20,
-  urlOk() { return /^https:\/\/script\.google\.com\/.+\/exec$/.test(this.API_URL); }
-};
-
-/* ============ Utilidades ============ */
-const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const norm = (s) => String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-const isoLocal = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
-const fmt = (iso) => iso ? new Date(iso).toLocaleString("es-PE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "nunca";
-const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); }));
-const errRed = (m) => { const e = new Error(m); e.red = true; return e; }; // error de red (reintentable)
-
-/* ============ DB (IndexedDB) ============ */
-const db = (() => {
-  let _db;
-  const open = () => _db ? Promise.resolve(_db) : new Promise((res, rej) => {
-    const r = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VER);
-    r.onupgradeneeded = () => {
-      const d = r.result;
-      if (!d.objectStoreNames.contains("maestros")) d.createObjectStore("maestros", { keyPath: "placa" });
-      if (!d.objectStoreNames.contains("registros")) d.createObjectStore("registros", { keyPath: "id" });
-      if (!d.objectStoreNames.contains("personal")) d.createObjectStore("personal", { autoIncrement: true });
-      if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta");
-    };
-    r.onsuccess = () => { _db = r.result; res(_db); };
-    r.onerror = () => rej(r.error);
-  });
-  const tx = async (store, modo, fn) => {
-    const d = await open();
-    return new Promise((res, rej) => {
-      const t = d.transaction(store, modo); let out;
-      const rq = fn(t.objectStore(store));
-      if (rq) rq.onsuccess = () => { out = rq.result; };
-      t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
-    });
-  };
-  return {
-    all: (s) => tx(s, "readonly", (o) => o.getAll()),
-    get: (s, k) => tx(s, "readonly", (o) => o.get(k)),
-    put: (s, v) => tx(s, "readwrite", (o) => o.put(v)),
-    replaceAll: (s, arr) => tx(s, "readwrite", (o) => { o.clear(); arr.forEach((v) => o.put(v)); }),
-    setMeta: (k, v) => tx("meta", "readwrite", (o) => o.put(v, k)),
-    getMeta: (k) => tx("meta", "readonly", (o) => o.get(k))
-  };
-})();
-
-/* ============ API (Apps Script) ============ */
-const api = {
-  async _fetch(url, opts) {
-    const c = new AbortController(), t = setTimeout(() => c.abort(), CONFIG.TIMEOUT_MS);
-    try {
-      const r = await fetch(url, { ...opts, signal: c.signal, redirect: "follow", cache: "no-store" });
-      const txt = await r.text();
-      try { return JSON.parse(txt); }
-      catch { throw new Error('Respuesta no válida del servidor (revise que el acceso sea "Cualquier persona" y la URL termine en /exec)'); }
-    } catch (e) {
-      if (e.name === "AbortError") throw errRed("Tiempo de espera agotado");
-      if (e instanceof TypeError) throw errRed("No se pudo contactar al servidor de Google");
-      throw e;
-    } finally { clearTimeout(t); }
-  },
-  async get(action) {
-    if (!CONFIG.urlOk()) throw new Error("URL no configurada");
-    const j = await api._fetch(`${CONFIG.API_URL}?action=${action}&token=${encodeURIComponent(CONFIG.API_TOKEN)}`);
-    if (!j.ok) throw new Error(j.error || j.message || ("Respuesta inesperada del servidor: " + JSON.stringify(j).slice(0, 160) + " (¿versión antigua de Code.gs?)"));
-    return j.data;
-  },
-  // POST como text/plain para evitar preflight CORS
-  async post(registro) {
-    if (!CONFIG.urlOk()) throw new Error("URL no configurada");
-    return api._fetch(CONFIG.API_URL, {
-      method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ token: CONFIG.API_TOKEN, action: "registro", registro })
-    });
-  }
-};
-
-/* ============ Conexión ============ */
-const red = {
-  online: false, prev: false,
-  async check() {
-    let ok = false;
-    if (navigator.onLine) {
-      try {
-        if (CONFIG.urlOk()) await api.get("ping"); else await fetch("./manifest.json?p=" + Date.now(), { cache: "no-store" });
-        ok = true;
-      } catch (e) { ok = !e.red && CONFIG.urlOk() && e.message !== "URL no configurada"; } // error de servidor = hay internet
-    }
-    red.set(ok);
-  },
-  set(v) {
-    red.online = v; ui.pintarEstado();
-    if (v && !red.prev) sync.todo();
-    red.prev = v;
-  }
-};
-
-/* ============ Sincronización ============ */
-const sync = {
-  _p: Promise.resolve(), catErr: "", syncErr: "",
-  async catalogo() {
-    try {
-      const m = (await api.get("maestros")).filter((x) => x.placa);
-      if (!m.length) throw new Error("La hoja 'maestros' no tiene placas activas");
-      await db.replaceAll("maestros", m);
-      let n = 0;
-      try { const p = await api.get("personal"); await db.replaceAll("personal", p); n = p.length; } catch (e) { sync.syncErr = "Personal: " + e.message; }
-      await db.setMeta("ultimaSync", new Date().toISOString()); await db.setMeta("nPersonal", n);
-      sync.catErr = ""; await ui.cargarCatalogo();
-    } catch (e) {
-      sync.catErr = e.message; if (e.red) red.set(false);
-      throw e;
-    } finally { ui.avisos(); }
-  },
-  // Envía un registro con reintentos; deja estado pendiente/sincronizado/error
-  async enviar(reg) {
-    let ultimo = "";
-    for (let i = 1; i <= CONFIG.INTENTOS; i++) {
-      try {
-        const j = await api.post(reg);
-        if (j.ok || (j.data && j.data.duplicado)) { reg.estado = "sincronizado"; reg.error = ""; }
-        else { reg.estado = "error"; reg.error = j.error || j.message || ("Respuesta inesperada: " + JSON.stringify(j).slice(0, 160)); }
-        await db.put("registros", reg); return reg.estado;
-      } catch (e) {
-        ultimo = e.message;
-        if (!e.red) { reg.estado = "error"; reg.error = e.message; await db.put("registros", reg); return "error"; }
-        await espera(1000 * i);
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            huarmey: {
+              red: '#D32F2F',
+              redLight: '#FFEBEE',
+              redHover: '#B71C1C',
+              green: '#2E7D32',
+              greenLight: '#E8F5E9',
+              greenDark: '#1B5E20',
+              accent: '#81C784',
+              bg: '#F8FAF8',
+              card: '#FFFFFF',
+              darkText: '#1F2937'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
       }
     }
-    reg.estado = "pendiente"; reg.error = ultimo; await db.put("registros", reg);
-    red.set(false); return "pendiente";
-  },
-  pendientes() { return (sync._p = sync._p.then(() => sync._run()).catch((e) => { sync.syncErr = e.message; })); },
-  async _run() {
-    const lista = (await db.all("registros")).filter((r) => r.estado !== "sincronizado").sort((a, b) => a.creado - b.creado);
-    for (const r of lista) {
-      const est = await sync.enviar(r); await ui.refrescar();
-      if (est === "pendiente") break; // sin red: se detiene
+  </script>
+
+  <style>
+    /* Custom CSS animations and smooth styling */
+    body {
+      background-color: #F4F7F4;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
-  },
-  async todo() {
-    try { await sync.catalogo(); } catch (e) { /* el motivo se muestra en el aviso */ }
-    await sync.pendientes();
-  }
-};
+    .badge-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-huarmey-greenLight selection:text-huarmey-greenDark">
 
-/* ============ UI ============ */
-const ui = {
-  cat: [], sel: null, taps: 0, tapT: 0,
-  toast(msg, tipo) {
-    const t = $("#toast"); t.textContent = msg; t.className = tipo || ""; t.hidden = false;
-    clearTimeout(ui._tt); ui._tt = setTimeout(() => { t.hidden = true; }, 3500);
-  },
-  pintarEstado() { const p = $("#estado"); p.textContent = red.online ? "En línea" : "Sin conexión"; p.className = "pill" + (red.online ? " on" : ""); ui.avisos(); },
-  avisos() {
-    const a = $("#aviso"); let msg = "", tipo = "";
-    if (!CONFIG.urlOk()) { msg = "URL no configurada: edite API_URL en index.html con la URL de la implementación de Apps Script."; tipo = "err"; }
-    else if (sync.catErr) { msg = sync.catErr + (ui.cat.length ? " · Usando datos locales." : ""); tipo = "err"; }
-    else if (!red.online) { msg = ui.cat.length ? "Sin conexión, usando datos locales." : "Sin conexión y sin catálogo local: conéctese a internet al menos una vez."; tipo = ui.cat.length ? "" : "err"; }
-    a.hidden = !msg; a.textContent = msg; a.className = "aviso " + tipo;
-  },
-  async cargarCatalogo() {
-    ui.cat = (await db.all("maestros")).sort((a, b) => a.placa.localeCompare(b.placa));
-    $("#catInfo").textContent = `Catálogo: ${ui.cat.length} placas · ${fmt(await db.getMeta("ultimaSync"))}`;
-  },
-  lista(q) {
-    const ul = $("#lista"), n = norm(q);
-    const its = ui.cat.filter((m) => !n || norm(`${m.placa} ${m.conductor} ${m.ruta}`).includes(n)).slice(0, 60);
-    ul.innerHTML = its.length
-      ? its.map((m) => `<li data-p="${esc(m.placa)}"><b>${esc(m.placa)}</b><small>${esc(m.conductor)} · ${esc(m.ruta)} · cap. ${m.capacidad}</small></li>`).join("")
-      : `<li class="vacio">${ui.cat.length ? "Sin resultados" : "Catálogo vacío"}</li>`;
-    ul.hidden = false; $("#placa").setAttribute("aria-expanded", "true");
-  },
-  ocultarLista() { $("#lista").hidden = true; $("#placa").setAttribute("aria-expanded", "false"); },
-  campos(m) {
-    $("#conductor").value = m ? m.conductor : ""; $("#tipo").value = m ? m.tipo : "";
-    $("#capacidad").value = m ? m.capacidad : ""; $("#ruta").value = m ? m.ruta : ""; $("#cultivo").value = m ? m.cultivo : "";
-    $("#pasajeros").max = m ? m.capacidad : ""; ui.calc();
-  },
-  elegir(placa) {
-    ui.sel = ui.cat.find((m) => m.placa === placa) || null;
-    $("#placa").value = placa; ui.campos(ui.sel); ui.ocultarLista(); ui.error("placa", "");
-  },
-  calc() {
-    const v = $("#pasajeros").value.trim(), cap = ui.sel ? ui.sel.capacidad : NaN, l = $("#libres");
-    l.value = (ui.sel && /^\d+$/.test(v) && +v <= cap) ? cap - (+v) : "—";
-  },
-  error(id, msg) { $("#e-" + id).textContent = msg; const el = $(id === "obs" ? "#obs" : "#" + id); if (el) el.classList.toggle("bad", !!msg); },
-  validar() {
-    let ok = true; const fallo = (id, m) => { ui.error(id, m); ok = false; };
-    ui.error("placa", ""); ui.error("pasajeros", ""); ui.error("obs", "");
-    if (!ui.sel) fallo("placa", "Elija una placa de la lista");
-    else if (!(ui.sel.capacidad > 0)) fallo("placa", "Esta placa no tiene capacidad válida en la hoja maestros");
-    const v = $("#pasajeros").value.trim();
-    if (v === "") fallo("pasajeros", "Ingrese el número de pasajeros");
-    else if (!/^\d+$/.test(v)) fallo("pasajeros", "Solo números enteros, mínimo 0");
-    else if (ui.sel && +v > ui.sel.capacidad) fallo("pasajeros", `No puede superar la capacidad (${ui.sel.capacidad})`);
-    if ($("#obs").value.length > 200) fallo("obs", "Máximo 200 caracteres");
-    return ok;
-  },
-  async guardar() {
-    if (!ui.validar()) return;
-    const m = ui.sel, pas = +$("#pasajeros").value.trim();
-    const reg = { id: uuid(), fecha: isoLocal(), placa: m.placa, conductor: m.conductor, tipo: m.tipo, ruta: m.ruta, cultivo: m.cultivo,
-      capacidad: m.capacidad, pasajeros: pas, libres: m.capacidad - pas, observaciones: $("#obs").value.trim(),
-      estado: "pendiente", error: "", creado: Date.now() };
-    $("#guardar").disabled = true;
-    try {
-      await db.put("registros", reg);                 // 1) SIEMPRE guardar primero en el celular
-      ui.limpiar(); await ui.refrescar();
-      if (red.online) await sync.pendientes();        // 2) luego intentar enviar
-      const f = await db.get("registros", reg.id);
-      if (f.estado === "sincronizado") ui.toast("Guardado y sincronizado");
-      else if (f.estado === "error") ui.toast("Guardado, pero con error: " + f.error, "err");
-      else ui.toast("Guardado. Pendiente de sincronizar", "warn");
-    } catch (e) { ui.toast("No se pudo guardar en el celular: " + e.message, "err"); }
-    finally { $("#guardar").disabled = false; await ui.refrescar(); }
-  },
-  limpiar() { ui.sel = null; $("#placa").value = ""; $("#pasajeros").value = ""; $("#obs").value = ""; ui.campos(null); },
-  async refrescar() {
-    const todos = (await db.all("registros")).sort((a, b) => b.creado - a.creado);
-    $("#pend").textContent = "Pendientes: " + todos.filter((r) => r.estado !== "sincronizado").length;
-    const rot = { pendiente: "Pendiente", sincronizado: "Sincronizado", error: "Error" };
-    $("#recientes").innerHTML = todos.slice(0, CONFIG.RECIENTES).map((r) => `
-      <div class="reg ${r.estado}"><div class="fila"><b>${esc(r.placa)} · ${r.pasajeros}/${r.capacidad} pasajeros</b><span class="chip ${r.estado}">${rot[r.estado]}</span></div>
-      <small>${esc(fmt(r.fecha))} · libres: ${r.libres} · ${esc(r.ruta)}</small>
-      ${r.estado !== "sincronizado" && r.error ? `<div class="msg">${esc(r.error)}</div>` : ""}
-      ${r.estado === "error" ? `<button class="btn sec mini" data-r="${esc(r.id)}" type="button">Reintentar</button>` : ""}</div>`).join("")
-      || '<p>Aún no hay registros.</p>';
-  },
-  async diag(probar) {
-    let extra = "";
-    if (probar) { try { const d = await api.get("ping"); extra = "\nPrueba: OK (" + d.hora + ")"; } catch (e) { extra = "\nPrueba: ERROR · " + e.message; } }
-    const pend = (await db.all("registros")).filter((r) => r.estado !== "sincronizado").length;
-    $("#diagTxt").textContent =
-      `URL: ${CONFIG.API_URL}\nURL válida: ${CONFIG.urlOk() ? "sí" : "NO"}\nToken: ${CONFIG.API_TOKEN === "CAMBIAR_TOKEN_SECRETO" ? "SIN CONFIGURAR" : "configurado"}\n` +
-      `Conexión: ${red.online ? "en línea" : "sin conexión"}\nPlacas cargadas: ${ui.cat.length}\nPersonal local: ${await db.getMeta("nPersonal") ?? 0}\n` +
-      `Última sincronización: ${fmt(await db.getMeta("ultimaSync"))}\nRegistros pendientes/error: ${pend}\n` +
-      `Error catálogo: ${sync.catErr || "ninguno"}\nError sync: ${sync.syncErr || "ninguno"}` + extra;
-    $("#diag").hidden = false;
-  },
-  bind() {
-    const inp = $("#placa");
-    inp.addEventListener("focus", () => ui.lista(inp.value));
-    inp.addEventListener("input", () => { ui.sel = null; ui.campos(null); ui.lista(inp.value); });
-    inp.addEventListener("change", () => { // placa escrita exacta sin tocar la lista
-      const n = norm(inp.value).replace(/[\s-]/g, "");
-      const m = ui.cat.find((x) => norm(x.placa).replace(/[\s-]/g, "") === n);
-      if (m && n) ui.elegir(m.placa);
-    });
-    $("#lista").addEventListener("pointerdown", (ev) => { const li = ev.target.closest("li[data-p]"); if (li) { ev.preventDefault(); ui.elegir(li.dataset.p); } });
-    document.addEventListener("pointerdown", (ev) => { if (!ev.target.closest(".combo")) ui.ocultarLista(); });
-    $("#pasajeros").addEventListener("input", () => { ui.calc(); ui.error("pasajeros", ""); });
-    $("#guardar").addEventListener("click", ui.guardar);
-    $("#btnCat").addEventListener("click", async () => {
-      ui.toast("Actualizando catálogo…", "warn");
-      try { await red.check(); await sync.catalogo(); ui.toast("Catálogo actualizado"); } catch (e) { ui.toast(e.message, "err"); }
-    });
-    $("#recientes").addEventListener("click", async (ev) => {
-      const b = ev.target.closest("button[data-r]"); if (!b) return;
-      const r = await db.get("registros", b.dataset.r); if (!r) return;
-      r.estado = "pendiente"; r.error = ""; await db.put("registros", r); await ui.refrescar();
-      if (red.online) { await sync.pendientes(); await ui.refrescar(); } else ui.toast("Sin conexión: se enviará al volver el internet", "warn");
-    });
-    // Diagnóstico oculto: 5 toques al logo
-    $("#logo").addEventListener("click", () => {
-      const ahora = Date.now(); ui.taps = (ahora - ui.tapT < 1500) ? ui.taps + 1 : 1; ui.tapT = ahora;
-      if (ui.taps >= 5) { ui.taps = 0; ui.diag(false); }
-    });
-    $("#dProbar").addEventListener("click", () => ui.diag(true));
-    $("#dCat").addEventListener("click", async () => { try { await sync.catalogo(); } catch (e) { /* se muestra abajo */ } ui.diag(false); });
-    $("#dCerrar").addEventListener("click", () => { $("#diag").hidden = true; });
-  }
-};
+  <!-- HEADER & APP BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+      
+      <!-- LOGO & TITLE -->
+      <div class="flex items-center gap-3">
+        <!-- SVG Logo: Agrícola Huarmey stylized globe leaf -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-huarmey-greenLight to-white p-1 flex items-center justify-center border border-huarmey-green/20 shadow-xs flex-shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="M 50,10 C 65,10 80,20 85,35 C 70,35 55,45 45,60 C 40,50 30,40 15,40 C 20,25 35,10 50,10 Z" fill="#2E7D32"/>
+            <path d="M 20,45 C 35,45 50,55 55,70 C 45,80 30,85 15,75 C 10,65 12,55 20,45 Z" fill="#D32F2F"/>
+            <path d="M 60,40 C 75,35 88,45 90,60 C 80,75 65,80 50,75 C 55,60 60,50 60,40 Z" fill="#D32F2F"/>
+            <path d="M 30,70 C 45,65 60,70 70,85 C 55,95 35,92 25,82 C 22,78 25,72 30,70 Z" fill="#2E7D32"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Agrícola Huarmey</h1>
+          <p class="text-xs text-slate-500 font-medium">Control de Movilidades</p>
+        </div>
+      </div>
 
-/* ============ Inicio ============ */
-(async function init() {
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch((e) => console.warn("SW:", e));
-  ui.bind();
-  try { await ui.cargarCatalogo(); await ui.refrescar(); } catch (e) { ui.toast("Error al abrir la base local: " + e.message, "err"); }
-  ui.pintarEstado();
-  window.addEventListener("online", () => red.check());
-  window.addEventListener("offline", () => red.set(false));
-  await red.check();
-  setInterval(red.check, 30000);
-})();
-</script>
+      <!-- RIGHT CONTROLS: AUSENTISMO & ONLINE STATUS -->
+      <div class="flex items-center gap-2">
+        <!-- AUSENTISMO PERSONAL BUTTON -->
+        <a href="https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           title="Registrar Ausentismo Personal"
+           class="flex items-center gap-1.5 bg-huarmey-red hover:bg-huarmey-redHover text-white text-xs font-semibold px-2.5 py-2 rounded-lg shadow-sm transition active:scale-95 text-center">
+          <i class="fa-solid fa-user-xmark text-sm"></i>
+          <span class="hidden sm:inline">AUSENTISMO PERSONAL</span>
+          <span class="sm:hidden text-[10px] leading-none uppercase">Ausentismo</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-80"></i>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- NETWORK & SYNC STATUS STRIP -->
+    <div id="statusStrip" class="bg-slate-800 text-white text-xs px-4 py-1.5 flex justify-between items-center transition-colors duration-300">
+      <div class="max-w-4xl mx-auto w-full flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="netStatusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 badge-pulse"></span>
+          <span id="netStatusText" class="font-medium text-slate-200">En línea</span>
+          <span class="text-slate-500">|</span>
+          <span id="pendingBadge" class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1 hidden">
+            <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i>
+            <span id="pendingCount">0</span> pendientes
+          </span>
+        </div>
+        <button id="btnManualSync" onclick="app.syncPending()" class="text-xs text-emerald-300 hover:text-white flex items-center gap-1 hover:underline active:opacity-75">
+          <i class="fa-solid fa-rotate"></i>
+          <span>Sincronizar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-4xl mx-auto w-full px-3 py-4 flex-grow">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex bg-white p-1 rounded-xl shadow-xs border border-slate-200 mb-4 gap-1 overflow-x-auto custom-scrollbar">
+      <button onclick="app.switchTab('form')" id="tab-btn-form" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition bg-huarmey-green text-white shadow-xs">
+        <i class="fa-solid fa-bus text-sm"></i>
+        <span>Registro</span>
+      </button>
+      <button onclick="app.switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
+        <i class="fa-solid fa-list-check text-sm"></i>
+        <span>Historial</span>
+        <span id="historyBadge" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+      </button>
+      <button onclick="app.switchTab('masters')" id="tab-btn-masters" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
+        <i class="fa-solid fa-database text-sm"></i>
+        <span>Unidades</span>
+      </button>
+      <button onclick="app.switchTab('settings')" id="tab-btn-settings" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
+        <i class="fa-solid fa-sliders text-sm"></i>
+        <span>Configuración</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: FORMULARIO DE REGISTRO -->
+    <section id="tab-form" class="tab-content space-y-4">
+      <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6">
+        
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-huarmey-greenLight text-huarmey-green flex items-center justify-center font-bold">
+              <i class="fa-solid fa-clipboard-user"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-800">Registrar Movilidad</h2>
+              <p class="text-xs text-slate-500">Seleccione la placa e ingrese la cantidad de pasajeros</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span id="livePeruTime" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 block">--:--:--</span>
+            <span class="text-[10px] text-slate-400">Hora Perú (UTC-05)</span>
+          </div>
+        </div>
+
+        <form id="mobilityForm" onsubmit="app.handleFormSubmit(event)" class="space-y-4">
+          
+          <!-- PLACA (SELECT) -->
+          <div>
+            <label for="selectPlaca" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex justify-between">
+              <span>Placa de Unidad <span class="text-huarmey-red">*</span></span>
+              <span id="masterDataSyncTag" class="text-[10px] text-emerald-600 font-normal">Cargando unidades...</span>
+            </label>
+            <div class="relative">
+              <select id="selectPlaca" onchange="app.onPlacaSelect()" required
+                      class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-huarmey-green focus:border-huarmey-green block p-3 pr-10 font-semibold appearance-none transition">
+                <option value="">-- Seleccionar Placa --</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                <i class="fa-solid fa-chevron-down text-xs"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- DATOS AUTOMÁTICOS DE LA UNIDAD (READ ONLY CARD) -->
+          <div id="unitInfoCard" class="hidden bg-gradient-to-br from-slate-50 to-emerald-50/30 rounded-xl p-3.5 border border-slate-200/80 space-y-2">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
+              <span class="text-xs font-bold text-huarmey-greenDark flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> Información de la Unidad
+              </span>
+              <span id="lblTipo" class="text-[11px] font-bold bg-white text-slate-700 px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">--</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+              <div>
+                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Conductor</span>
+                <span id="lblConductor" class="font-semibold text-slate-800 break-words">--</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Ruta</span>
+                <span id="lblRuta" class="font-semibold text-slate-800 break-words">--</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Cultivo</span>
+                <span id="lblCultivo" class="font-semibold text-slate-800 break-words">--</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Capacidad Máx.</span>
+                <span id="lblCapacidad" class="font-bold text-huarmey-green text-sm">0</span> <span class="text-[10px] text-slate-500">pasajeros</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 uppercase font-semibold">Contacto Conductor</span>
+                <span id="lblCelular" class="font-medium text-slate-700">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- INPUT PASAJEROS & CALCULATED LIBRES -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            
+            <!-- CANTIDAD DE PASAJEROS -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+              <label for="inputPasajeros" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Número de Pasajeros <span class="text-huarmey-red">*</span>
+              </label>
+              
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="app.adjustPasajeros(-1)" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-lg active:scale-95 transition">
+                  <i class="fa-solid fa-minus"></i>
+                </button>
+                <input type="number" id="inputPasajeros" min="0" step="1" required placeholder="0" oninput="app.calculateLibres()"
+                       class="w-full text-center bg-slate-50 border border-slate-300 text-slate-900 font-extrabold text-xl rounded-lg p-2 focus:ring-2 focus:ring-huarmey-green focus:border-huarmey-green">
+                <button type="button" onclick="app.adjustPasajeros(1)" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-lg active:scale-95 transition">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <p id="errorPasajeros" class="text-[11px] text-huarmey-red font-semibold hidden flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="errorPasajerosText">Valor no válido</span>
+              </p>
+            </div>
+
+            <!-- ASIENTOS LIBRES (CALCULADO AUTOMÁTICAMENTE) -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div>
+                <span class="block text-xs font-bold uppercase tracking-wider text-slate-500">Asientos Libres</span>
+                <p class="text-[11px] text-slate-400">Fórmula: Capacidad - Pasajeros</p>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <span id="lblLibres" class="text-3xl font-black text-slate-700">0</span>
+                <div id="libresGauge" class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs">
+                  0%
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- OBSERVACIONES -->
+          <div>
+            <label for="inputObservaciones" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Observaciones <span class="text-slate-400 font-normal">(Opcional)</span>
+            </label>
+            <textarea id="inputObservaciones" rows="2" placeholder="Notas sobre el trayecto, tardanzas, novedades..."
+                      class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl p-3 focus:ring-2 focus:ring-huarmey-green focus:border-huarmey-green transition"></textarea>
+          </div>
+
+          <!-- BOTÓN GUARDAR -->
+          <div class="pt-2">
+            <button type="submit" id="btnSave" 
+                    class="w-full bg-huarmey-green hover:bg-huarmey-greenDark text-white font-bold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base">
+              <i class="fa-solid fa-floppy-disk text-lg"></i>
+              <span>GUARDAR REGISTRO</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 2: HISTORIAL DE REGISTROS -->
+    <section id="tab-history" class="tab-content space-y-4 hidden">
+      <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">Historial de Registros</h2>
+            <p class="text-xs text-slate-500">Registros locales almacenados en el dispositivo</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="app.syncPending()" class="bg-huarmey-greenLight text-huarmey-greenDark hover:bg-emerald-100 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Sincronizar Todo</span>
+            </button>
+            <button onclick="app.clearSyncedHistory()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-medium px-2.5 py-1.5 rounded-lg transition" title="Limpiar registros ya sincronizados">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- SEARCH & FILTER STRIP -->
+        <div class="flex flex-col sm:flex-row gap-2 my-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+            <input type="text" id="searchHistory" oninput="app.renderHistory()" placeholder="Buscar por placa, conductor o ruta..." 
+                   class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-huarmey-green">
+          </div>
+          <select id="filterSyncStatus" onchange="app.renderHistory()" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium text-slate-700">
+            <option value="ALL">Todos los Estados</option>
+            <option value="PENDIENTE">PENDIETES</option>
+            <option value="SINCRONIZADO">SINCRONIZADOS</option>
+            <option value="ERROR">CON ERROR</option>
+          </select>
+        </div>
+
+        <!-- HISTORY LIST -->
+        <div id="historyList" class="space-y-2.5 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+          <!-- Dynamically populated -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: INFORMACIÓN MAESTRA DE MOVILIDADES -->
+    <section id="tab-masters" class="tab-content space-y-4 hidden">
+      <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">Flota de Movilidades Maestras</h2>
+            <p class="text-xs text-slate-500">Cargadas desde la hoja 'maestros' de Google Sheets</p>
+          </div>
+          <button onclick="app.fetchMasterData(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Actualizar</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto my-3">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th class="p-2.5 rounded-l-lg">Placa</th>
+                <th class="p-2.5">Conductor</th>
+                <th class="p-2.5">Tipo</th>
+                <th class="p-2.5 text-center">Cap.</th>
+                <th class="p-2.5">Ruta</th>
+                <th class="p-2.5">Cultivo</th>
+                <th class="p-2.5 rounded-r-lg text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="mastersTableBody" class="divide-y divide-slate-100 font-medium">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CONFIGURACIÓN & BACKEND APPS SCRIPT -->
+    <section id="tab-settings" class="tab-content space-y-4 hidden">
+      <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6 space-y-6">
+        
+        <div>
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-link text-huarmey-green"></i> Conexión con Google Sheets
+          </h2>
+          <p class="text-xs text-slate-500">Configure la URL de la API desplegada en Google Apps Script para sincronizar con la base de datos BDXX_HUARMEY.</p>
+        </div>
+
+        <!-- API URL FORM -->
+        <div class="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <label for="apiUrlInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            URL de Google Apps Script Web App
+          </label>
+          <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+                 class="w-full bg-white border border-slate-300 text-slate-800 text-xs rounded-lg p-2.5 focus:ring-2 focus:ring-huarmey-green">
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[11px] text-slate-500">Guarde la URL obtenida al desplegar el Web App.</span>
+            <button onclick="app.saveApiUrl()" class="bg-huarmey-green hover:bg-huarmey-greenDark text-white text-xs font-bold px-4 py-2 rounded-lg shadow-2xs transition">
+              Guardar URL
+            </button>
+          </div>
+        </div>
+
+        <!-- PWA INSTALL PROMPT CARD -->
+        <div id="pwaInstallCard" class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between hidden">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-lg">
+              <i class="fa-solid fa-download"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-emerald-900">Instalar Aplicación PWA</h3>
+              <p class="text-[11px] text-emerald-700">Instale en su pantalla de inicio para trabajar offline sin navegador.</p>
+            </div>
+          </div>
+          <button onclick="app.promptPwaInstall()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-xs">
+            Instalar
+          </button>
+        </div>
+
+        <!-- APPS SCRIPT CODE & SETUP GUIDE -->
+        <div class="border-t border-slate-200 pt-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-code text-slate-600"></i> Código Google Apps Script (codigo.gs)
+            </h3>
+            <button onclick="app.copyGasCode()" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 transition">
+              <i class="fa-solid fa-copy"></i> Copiar Código
+            </button>
+          </div>
+
+          <pre id="gasCodeDisplay" class="bg-slate-900 text-emerald-400 p-3.5 rounded-xl text-[11px] font-mono overflow-x-auto max-h-60 custom-scrollbar border border-slate-800 selection:bg-emerald-900">
+// CÓDIGO PRODUCCIÓN GOOGLE APPS SCRIPT PARA BDXX_HUARMEY
+// Pegar este código en Extensiones > Apps Script de su Google Sheet BDXX_HUARMEY
+
+function doGet(e) {
+  var action = e ? e.parameter.action : '';
+  if (action === 'getMaestros') {
+    return getMaestros();
+  }
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'API Movilidades Huarmey Activa' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    if (data.action === 'syncRegistros') {
+      return syncRegistros(data.records);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Acción no reconocida' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getMaestros() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('maestros');
+  if (!sheet) {
+    return responseJSON({ status: 'error', message: 'No se encontró la hoja maestros' });
+  }
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return responseJSON({ status: 'success', data: [] });
+  }
+  
+  var headers = data[0].map(function(h){ return String(h).trim().toLowerCase(); });
+  var rows = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var item = {};
+    for (var j = 0; j < headers.length; j++) {
+      item[headers[j]] = row[j];
+    }
+    rows.push(item);
+  }
+  
+  return responseJSON({ status: 'success', data: rows });
+}
+
+function syncRegistros(records) {
+  if (!records || !records.length) {
+    return responseJSON({ status: 'success', syncedIds: [] });
+  }
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('registros');
+  if (!sheet) {
+    return responseJSON({ status: 'error', message: 'No se encontró la hoja registros' });
+  }
+  
+  var syncedIds = [];
+  
+  for (var k = 0; k < records.length; k++) {
+    var r = records[k];
+    sheet.appendRow([
+      r.fecha || new Date(),
+      r.placa || '',
+      r.conductor || '',
+      r.tipo || '',
+      r.ruta || '',
+      r.cultivo || '',
+      r.capacidad || 0,
+      r.pasajeros || 0,
+      r.libres || 0,
+      r.observaciones || ''
+    ]);
+    syncedIds.push(r.id);
+  }
+  
+  return responseJSON({ status: 'success', syncedIds: syncedIds });
+}
+
+function responseJSON(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+          </pre>
+
+          <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-800 space-y-1">
+            <p class="font-bold"><i class="fa-solid fa-list-check"></i> Instrucciones de Despliegue en Google Sheets:</p>
+            <ol class="list-decimal list-inside space-y-0.5 text-[11px] text-amber-900">
+              <li>Cree el archivo Google Sheet con nombre <strong>BDXX_HUARMEY</strong>.</li>
+              <li>Cree las pestañas <strong>maestros</strong> y <strong>registros</strong>.</li>
+              <li>En <code>maestros</code> agregue encabezados: <code>placa, conductor, tipo, capacidad, ruta, cultivo, CELULAR, ESTADO</code>.</li>
+              <li>En <code>registros</code> agregue encabezados: <code>fecha, placa, conductor, tipo, ruta, cultivo, capacidad, pasajeros, libres, observaciones</code>.</li>
+              <li>Vaya a <em>Extensiones &gt; Apps Script</em>, pegue el código anterior y haga clic en <strong>Implementar &gt; Nueva implementación</strong>.</li>
+              <li>Seleccione tipo: <strong>Aplicación Web</strong>, Acceso: <strong>Cualquier persona (Anyone)</strong>.</li>
+              <li>Copie la URL generada y péguela arriba en esta pantalla.</li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-96 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">
+      <span>Agrícola Huarmey S.A. © 2026 — Sistema de Transporte y Movilidades</span>
+      <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">Versión 1.0.0 (Offline-First)</span>
+    </div>
+  </footer>
+
+  <script>
+    // DEFAULT MASTER DATA FALLBACK FOR FIELD WORK IF NETWORK IS ABSENT ON FIRST BOOT
+    const INITIAL_FALLBACK_MAESTROS = [
+      { placa: "ABC-123", conductor: "Juan Perez", tipo: "BUS", capacidad: 40, ruta: "Huarmey - Fundo 1", cultivo: "Palto", CELULAR: "987654321", ESTADO: "ACTIVO" },
+      { placa: "XYZ-789", conductor: "Carlos Gomez", tipo: "COUSTER", capacidad: 20, ruta: "Huarmey - Fundo 2", cultivo: "Arándano", CELULAR: "912345678", ESTADO: "ACTIVO" },
+      { placa: "MNO-456", conductor: "Luis Ramirez", tipo: "MINIVAN", capacidad: 12, ruta: "Culebras - Fundo 1", cultivo: "Espárrago", CELULAR: "955443322", ESTADO: "ACTIVO" },
+      { placa: "DEF-321", conductor: "Pedro Morales", tipo: "BUS", capacidad: 45, ruta: "Huarmey - Fundo 3", cultivo: "Palto", CELULAR: "944332211", ESTADO: "ACTIVO" }
+    ];
+
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbx_HUARMEY_DEMO_URL/exec";
+
+    class HuarmeyApp {
+      constructor() {
+        this.db = null;
+        this.maestros = [];
+        this.selectedPlacaData = null;
+        this.deferredPwaPrompt = null;
+        this.apiUrl = localStorage.getItem("huarmey_api_url") || DEFAULT_API_URL;
+
+        this.init();
+      }
+
+      async init() {
+        await this.initIndexedDB();
+        this.setupClock();
+        this.setupNetworkListeners();
+        this.setupPwa();
+        
+        // Load settings inputs
+        const apiInput = document.getElementById("apiUrlInput");
+        if (apiInput) apiInput.value = this.apiUrl;
+
+        // Load masters & history
+        await this.loadLocalMasters();
+        await this.renderHistory();
+
+        // Attempt online sync & master refresh
+        if (navigator.onLine) {
+          this.fetchMasterData();
+          this.syncPending();
+        }
+      }
+
+      // IndexedDB Storage Initialization
+      initIndexedDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open("HuarmeyMovilidadesDB", 1);
+
+          request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            // Store for registros
+            if (!db.objectStoreNames.contains("registros")) {
+              const regStore = db.createObjectStore("registros", { keyPath: "id" });
+              regStore.createIndex("syncStatus", "syncStatus", { unique: false });
+              regStore.createIndex("timestamp", "timestamp", { unique: false });
+            }
+            // Store for maestros
+            if (!db.objectStoreNames.contains("maestros")) {
+              db.createObjectStore("maestros", { keyPath: "placa" });
+            }
+          };
+
+          request.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve();
+          };
+
+          request.onerror = (e) => {
+            console.error("Error al abrir IndexedDB:", e);
+            reject(e);
+          };
+        });
+      }
+
+      setupClock() {
+        const updateClock = () => {
+          const now = new Date();
+          // Peru Time Formatting (UTC-05:00)
+          const options = {
+            timeZone: "America/Lima",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false
+          };
+          const peruTimeString = new Intl.DateTimeFormat("es-PE", options).format(now);
+          const liveClockEl = document.getElementById("livePeruTime");
+          if (liveClockEl) liveClockEl.textContent = peruTimeString;
+        };
+        updateClock();
+        setInterval(updateClock, 1000);
+      }
+
+      setupNetworkListeners() {
+        const updateNetUI = () => {
+          const isOnline = navigator.onLine;
+          const statusText = document.getElementById("netStatusText");
+          const statusIndicator = document.getElementById("netStatusIndicator");
+          const statusStrip = document.getElementById("statusStrip");
+
+          if (isOnline) {
+            statusText.textContent = "En línea";
+            statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 badge-pulse";
+            statusStrip.className = "bg-slate-800 text-white text-xs px-4 py-1.5 flex justify-between items-center transition-colors duration-300";
+            this.syncPending();
+          } else {
+            statusText.textContent = "Modo Offline (Sin Internet)";
+            statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+            statusStrip.className = "bg-amber-900 text-amber-100 text-xs px-4 py-1.5 flex justify-between items-center transition-colors duration-300";
+          }
+        };
+
+        window.addEventListener("online", updateNetUI);
+        window.addEventListener("offline", updateNetUI);
+        updateNetUI();
+      }
+
+      setupPwa() {
+        /* Inline Service Worker Blob Registration */
+        if ('serviceWorker' in navigator) {
+          const swCode = `
+            const CACHE_NAME = 'huarmey-pwa-v1';
+            self.addEventListener('install', e => {
+              self.skipWaiting();
+            });
+            self.addEventListener('activate', e => {
+              e.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', e => {
+              // Network first with offline fallback logic
+              e.respondWith(
+                fetch(e.request).catch(() => caches.match(e.request))
+              );
+            });
+          `;
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(err => console.log('SW error:', err));
+        }
+
+        /* Dynamic PWA Manifest Injection */
+        const manifestObj = {
+          name: "Control de Movilidades — Agrícola Huarmey",
+          short_name: "Huarmey Movilidades",
+          start_url: "./",
+          display: "standalone",
+          background_color: "#F4F7F4",
+          theme_color: "#2E7D32",
+          icons: [
+            {
+              src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232E7D32'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>AH</text></svg>",
+              sizes: "192x192 512x512",
+              type: "image/svg+xml"
+            }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          this.deferredPwaPrompt = e;
+          const installCard = document.getElementById('pwaInstallCard');
+          if (installCard) installCard.classList.remove('hidden');
+        });
+      }
+
+      promptPwaInstall() {
+        if (this.deferredPwaPrompt) {
+          this.deferredPwaPrompt.prompt();
+          this.deferredPwaPrompt.userChoice.then(() => {
+            this.deferredPwaPrompt = null;
+            document.getElementById('pwaInstallCard').classList.add('hidden');
+          });
+        }
+      }
+
+      async loadLocalMasters() {
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("maestros", "readonly");
+          const store = tx.objectStore("maestros");
+          const request = store.getAll();
+
+          request.onsuccess = async () => {
+            let data = request.result;
+            if (!data || data.length === 0) {
+              // Save fallbacks into IndexedDB
+              await this.saveMastersToDb(INITIAL_FALLBACK_MAESTROS);
+              data = INITIAL_FALLBACK_MAESTROS;
+            }
+            this.maestros = data;
+            this.renderPlacaDropdown();
+            this.renderMastersTable();
+            resolve();
+          };
+        });
+      }
+
+      saveMastersToDb(mastersArray) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction("maestros", "readwrite");
+          const store = tx.objectStore("maestros");
+          store.clear();
+          mastersArray.forEach(m => {
+            store.put(m);
+          });
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e);
+        });
+      }
+
+      async fetchMasterData(forceAlert = false) {
+        const syncTag = document.getElementById("masterDataSyncTag");
+        if (syncTag) syncTag.textContent = "Sincronizando maestros...";
+
+        if (!navigator.onLine) {
+          if (syncTag) syncTag.textContent = "Datos locales (Offline)";
+          if (forceAlert) this.showToast("Sin conexión. Usando datos guardados localmente.", "warning");
+          return;
+        }
+
+        try {
+          const url = `${this.apiUrl}?action=getMaestros`;
+          const response = await fetch(url);
+          const json = await response.json();
+
+          if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
+            // Normalize field names
+            const normalized = json.data.map(item => ({
+              placa: String(item.placa || item.PLACA || "").trim().toUpperCase(),
+              conductor: String(item.conductor || item.CONDUCTOR || "").trim(),
+              tipo: String(item.tipo || item.TIPO || "").trim(),
+              capacidad: parseInt(item.capacidad || item.CAPACIDAD || 0, 10),
+              ruta: String(item.ruta || item.RUTA || "").trim(),
+              cultivo: String(item.cultivo || item.CULTIVO || "").trim(),
+              CELULAR: String(item.celular || item.CELULAR || "").trim(),
+              ESTADO: String(item.estado || item.ESTADO || "ACTIVO").trim().toUpperCase()
+            }));
+
+            await this.saveMastersToDb(normalized);
+            this.maestros = normalized;
+            this.renderPlacaDropdown();
+            this.renderMastersTable();
+
+            if (syncTag) syncTag.textContent = "Actualizado con Google Sheets";
+            if (forceAlert) this.showToast("Información maestra actualizada correctamente", "success");
+          } else {
+            if (syncTag) syncTag.textContent = "Datos locales";
+            if (forceAlert) this.showToast("No se obtuvieron registros maestros nuevos", "info");
+          }
+        } catch (err) {
+          console.warn("No se pudo actualizar maestros desde la API:", err);
+          if (syncTag) syncTag.textContent = "Datos locales";
+          if (forceAlert) this.showToast("Error al conectar con la API de Google Sheets", "error");
+        }
+      }
+
+      renderPlacaDropdown() {
+        const select = document.getElementById("selectPlaca");
+        if (!select) return;
+
+        select.innerHTML = '<option value="">-- Seleccionar Placa --</option>';
+
+        // Filter by ESTADO == 'ACTIVO' if applicable
+        const disponibles = this.maestros.filter(m => !m.ESTADO || m.ESTADO === "ACTIVO");
+
+        disponibles.forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m.placa;
+          opt.textContent = `${m.placa} — ${m.conductor} (${m.ruta || 'Sin Ruta'})`;
+          select.appendChild(opt);
+        });
+      }
+
+      renderMastersTable() {
+        const tbody = document.getElementById("mastersTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (this.maestros.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay unidades registradas</td></tr>`;
+          return;
+        }
+
+        this.maestros.forEach(m => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 border-b border-slate-100";
+          tr.innerHTML = `
+            <td class="p-2.5 font-extrabold text-slate-900">${m.placa}</td>
+            <td class="p-2.5">${m.conductor}</td>
+            <td class="p-2.5"><span class="bg-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">${m.tipo}</span></td>
+            <td class="p-2.5 text-center font-bold text-huarmey-green">${m.capacidad}</td>
+            <td class="p-2.5">${m.ruta}</td>
+            <td class="p-2.5">${m.cultivo}</td>
+            <td class="p-2.5 text-center">
+              <span class="${m.ESTADO === 'ACTIVO' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2 py-0.5 rounded-full text-[10px] font-bold">
+                ${m.ESTADO || 'ACTIVO'}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      onPlacaSelect() {
+        const select = document.getElementById("selectPlaca");
+        const placa = select.value;
+        const card = document.getElementById("unitInfoCard");
+
+        if (!placa) {
+          this.selectedPlacaData = null;
+          card.classList.add("hidden");
+          this.resetFormCalculations();
+          return;
+        }
+
+        const data = this.maestros.find(m => m.placa === placa);
+        if (data) {
+          this.selectedPlacaData = data;
+          
+          document.getElementById("lblConductor").textContent = data.conductor || "--";
+          document.getElementById("lblTipo").textContent = data.tipo || "--";
+          document.getElementById("lblCapacidad").textContent = data.capacidad || "0";
+          document.getElementById("lblRuta").textContent = data.ruta || "--";
+          document.getElementById("lblCultivo").textContent = data.cultivo || "--";
+          document.getElementById("lblCelular").textContent = data.CELULAR || "N/A";
+
+          card.classList.remove("hidden");
+          this.calculateLibres();
+        }
+      }
+
+      adjustPasajeros(delta) {
+        const input = document.getElementById("inputPasajeros");
+        let val = parseInt(input.value || 0, 10);
+        val += delta;
+        if (val < 0) val = 0;
+        input.value = val;
+        this.calculateLibres();
+      }
+
+      calculateLibres() {
+        const inputPasajeros = document.getElementById("inputPasajeros");
+        const errorEl = document.getElementById("errorPasajeros");
+        const errorText = document.getElementById("errorPasajerosText");
+        const lblLibres = document.getElementById("lblLibres");
+        const libresGauge = document.getElementById("libresGauge");
+
+        if (!this.selectedPlacaData) {
+          lblLibres.textContent = "0";
+          return;
+        }
+
+        const capacidad = parseInt(this.selectedPlacaData.capacidad, 10) || 0;
+        const rawValue = inputPasajeros.value;
+        const pasajeros = parseInt(rawValue, 10);
+
+        // Validation Rules
+        if (rawValue === "" || isNaN(pasajeros) || pasajeros < 0) {
+          errorText.textContent = "Ingrese un número entero válido mayor o igual a 0";
+          errorEl.classList.remove("hidden");
+          lblLibres.textContent = "--";
+          return;
+        }
+
+        if (pasajeros > capacidad) {
+          errorText.textContent = `Pasajeros (${pasajeros}) no puede superar la capacidad máxima (${capacidad})`;
+          errorEl.classList.remove("hidden");
+          lblLibres.textContent = "EXCEDIDO";
+          lblLibres.className = "text-xl font-extrabold text-huarmey-red";
+          libresGauge.className = "w-10 h-10 rounded-full bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center";
+          libresGauge.textContent = "!ERR";
+          return;
+        }
+
+        // Valid Calculation
+        errorEl.classList.add("hidden");
+        const libres = capacidad - pasajeros;
+        lblLibres.textContent = libres;
+        lblLibres.className = "text-3xl font-black text-slate-800";
+
+        // Visual gauge percentage occupied
+        const occupiedPct = capacidad > 0 ? Math.round((pasajeros / capacidad) * 100) : 0;
+        libresGauge.textContent = `${occupiedPct}%`;
+
+        if (occupiedPct >= 100) {
+          libresGauge.className = "w-10 h-10 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center";
+        } else if (occupiedPct >= 80) {
+          libresGauge.className = "w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center";
+        } else {
+          libresGauge.className = "w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center";
+        }
+      }
+
+      resetFormCalculations() {
+        document.getElementById("inputPasajeros").value = "";
+        document.getElementById("lblLibres").textContent = "0";
+        document.getElementById("errorPasajeros").classList.add("hidden");
+        const libresGauge = document.getElementById("libresGauge");
+        libresGauge.textContent = "0%";
+        libresGauge.className = "w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs";
+      }
+
+      async handleFormSubmit(e) {
+        e.preventDefault();
+
+        if (!this.selectedPlacaData) {
+          this.showToast("Por favor, seleccione una placa de unidad", "error");
+          return;
+        }
+
+        const capacidad = parseInt(this.selectedPlacaData.capacidad, 10);
+        const inputPasajerosVal = document.getElementById("inputPasajeros").value;
+        const pasajeros = parseInt(inputPasajerosVal, 10);
+
+        if (isNaN(pasajeros) || pasajeros < 0) {
+          this.showToast("Ingrese un número válido de pasajeros", "error");
+          return;
+        }
+
+        if (pasajeros > capacidad) {
+          this.showToast("El número de pasajeros excede la capacidad", "error");
+          return;
+        }
+
+        const libres = capacidad - pasajeros;
+        const observaciones = document.getElementById("inputObservaciones").value.trim();
+
+        // Format Peru local timestamp string (UTC-05:00)
+        const now = new Date();
+        const peruFormattedDate = new Intl.DateTimeFormat("sv-SE", {
+          timeZone: "America/Lima",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        }).format(now).replace(" ", "T");
+
+        // Record schema matching Google Sheets columns exactly
+        const newRecord = {
+          id: `REG_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          fecha: peruFormattedDate,
+          timestamp: now.getTime(),
+          placa: this.selectedPlacaData.placa,
+          conductor: this.selectedPlacaData.conductor,
+          tipo: this.selectedPlacaData.tipo,
+          ruta: this.selectedPlacaData.ruta,
+          cultivo: this.selectedPlacaData.cultivo,
+          capacidad: capacidad,
+          pasajeros: pasajeros,
+          libres: libres,
+          observaciones: observaciones,
+          syncStatus: "PENDIENTE",
+          errorMessage: null
+        };
+
+        // 1. Save to IndexedDB immediately (Offline-First)
+        await this.saveRecordToLocal(newRecord);
+
+        // 2. Clear Form
+        document.getElementById("selectPlaca").value = "";
+        document.getElementById("inputObservaciones").value = "";
+        this.selectedPlacaData = null;
+        document.getElementById("unitInfoCard").classList.add("hidden");
+        this.resetFormCalculations();
+
+        this.showToast("Registro guardado localmente (PENDIENTE)", "info");
+
+        // 3. Update History and attempt online sync
+        await this.renderHistory();
+
+        if (navigator.onLine) {
+          this.syncPending();
+        }
+      }
+
+      saveRecordToLocal(record) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction("registros", "readwrite");
+          const store = tx.objectStore("registros");
+          store.put(record);
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e);
+        });
+      }
+
+      async syncPending() {
+        if (!navigator.onLine) {
+          this.showToast("Sin conexión a internet. Los registros permanecen pendientes.", "warning");
+          return;
+        }
+
+        const pendingRecords = await this.getRecordsByStatus(["PENDIENTE", "ERROR"]);
+        if (pendingRecords.length === 0) {
+          this.updatePendingBadge(0);
+          return;
+        }
+
+        const syncBtn = document.getElementById("btnManualSync");
+        if (syncBtn) syncBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando...`;
+
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "syncRegistros",
+              records: pendingRecords
+            })
+          });
+
+          const resJson = await response.json();
+
+          if (resJson.status === "success" && Array.isArray(resJson.syncedIds)) {
+            // Update local records status to SINCRONIZADO
+            const syncedSet = new Set(resJson.syncedIds);
+            for (let r of pendingRecords) {
+              if (syncedSet.has(r.id)) {
+                r.syncStatus = "SINCRONIZADO";
+                r.errorMessage = null;
+                await this.saveRecordToLocal(r);
+              }
+            }
+            this.showToast(`¡${syncedSet.size} registro(s) sincronizados con Google Sheets!`, "success");
+          } else {
+            // Mark errored
+            for (let r of pendingRecords) {
+              r.syncStatus = "ERROR";
+              r.errorMessage = resJson.message || "Error devuelto por el servidor";
+              await this.saveRecordToLocal(r);
+            }
+            this.showToast("Error durante la sincronización. Se reintentará luego.", "error");
+          }
+        } catch (err) {
+          console.error("Sync fetch error:", err);
+          for (let r of pendingRecords) {
+            r.syncStatus = "ERROR";
+            r.errorMessage = "Error de red o CORS";
+            await this.saveRecordToLocal(r);
+          }
+          this.showToast("Fallo de conexión al enviar a Google Sheets", "error");
+        } finally {
+          if (syncBtn) syncBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Sincronizar`;
+          await this.renderHistory();
+        }
+      }
+
+      getRecordsByStatus(statuses) {
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("registros", "readonly");
+          const store = tx.objectStore("registros");
+          const request = store.getAll();
+
+          request.onsuccess = () => {
+            const all = request.result || [];
+            const filtered = all.filter(r => statuses.includes(r.syncStatus));
+            resolve(filtered);
+          };
+        });
+      }
+
+      getAllRecords() {
+        return new Promise((resolve) => {
+          const tx = this.db.transaction("registros", "readonly");
+          const store = tx.objectStore("registros");
+          const request = store.getAll();
+
+          request.onsuccess = () => {
+            const all = request.result || [];
+            all.sort((a, b) => b.timestamp - a.timestamp);
+            resolve(all);
+          };
+        });
+      }
+
+      async renderHistory() {
+        const historyList = document.getElementById("historyList");
+        const historyBadge = document.getElementById("historyBadge");
+        if (!historyList) return;
+
+        const records = await this.getAllRecords();
+        historyBadge.textContent = records.length;
+
+        // Pending count update
+        const pendingCount = records.filter(r => r.syncStatus === "PENDIENTE" || r.syncStatus === "ERROR").length;
+        this.updatePendingBadge(pendingCount);
+
+        // Apply Search and Status Filter
+        const searchVal = (document.getElementById("searchHistory")?.value || "").toLowerCase();
+        const statusVal = document.getElementById("filterSyncStatus")?.value || "ALL";
+
+        const filtered = records.filter(r => {
+          const matchSearch = r.placa.toLowerCase().includes(searchVal) ||
+                              r.conductor.toLowerCase().includes(searchVal) ||
+                              r.ruta.toLowerCase().includes(searchVal);
+          const matchStatus = (statusVal === "ALL") || (r.syncStatus === statusVal);
+          return matchSearch && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+          historyList.innerHTML = `
+            <div class="text-center py-8 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <i class="fa-solid fa-clipboard-list text-2xl mb-1"></i>
+              <p class="text-xs">No se encontraron registros en el historial</p>
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = "";
+        filtered.forEach(r => {
+          const item = document.createElement("div");
+          item.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition space-y-2";
+
+          let statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-200";
+          let statusIcon = "fa-solid fa-clock-rotate-left";
+
+          if (r.syncStatus === "SINCRONIZADO") {
+            statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+            statusIcon = "fa-solid fa-circle-check";
+          } else if (r.syncStatus === "ERROR") {
+            statusBadgeClass = "bg-rose-100 text-rose-800 border-rose-200";
+            statusIcon = "fa-solid fa-circle-xmark";
+          }
+
+          item.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-black text-slate-900">${r.placa}</span>
+                <span class="text-xs text-slate-500 font-medium">(${r.tipo})</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadgeClass} flex items-center gap-1">
+                <i class="${statusIcon}"></i> ${r.syncStatus}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 border-t border-slate-100">
+              <div>
+                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Pasajeros</span>
+                <span class="font-extrabold text-slate-800">${r.pasajeros} / ${r.capacidad}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Libres</span>
+                <span class="font-extrabold text-huarmey-green">${r.libres}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Conductor</span>
+                <span class="font-medium text-slate-700 truncate block">${r.conductor}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] text-slate-400 font-semibold uppercase">Fecha / Hora</span>
+                <span class="font-mono text-[11px] text-slate-600">${r.fecha.replace('T', ' ')}</span>
+              </div>
+            </div>
+
+            ${r.observaciones ? `
+              <div class="text-[11px] bg-slate-50 p-2 rounded-lg text-slate-600 border border-slate-100">
+                <strong class="text-slate-700">Obs:</strong> ${r.observaciones}
+              </div>
+            ` : ''}
+
+            ${r.syncStatus !== "SINCRONIZADO" ? `
+              <div class="flex justify-end pt-1">
+                <button onclick="app.retrySyncRecord('${r.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2.5 py-1 rounded-md transition flex items-center gap-1">
+                  <i class="fa-solid fa-rotate-right text-[10px]"></i> Reintentar
+                </button>
+              </div>
+            ` : ''}
+          `;
+          historyList.appendChild(item);
+        });
+      }
+
+      async retrySyncRecord(id) {
+        const tx = this.db.transaction("registros", "readwrite");
+        const store = tx.objectStore("registros");
+        const req = store.get(id);
+
+        req.onsuccess = async () => {
+          const record = req.result;
+          if (record) {
+            record.syncStatus = "PENDIENTE";
+            await this.saveRecordToLocal(record);
+            await this.renderHistory();
+            this.syncPending();
+          }
+        };
+      }
+
+      async clearSyncedHistory() {
+        const records = await this.getAllRecords();
+        const synced = records.filter(r => r.syncStatus === "SINCRONIZADO");
+
+        if (synced.length === 0) {
+          this.showToast("No hay registros sincronizados para limpiar", "info");
+          return;
+        }
+
+        const tx = this.db.transaction("registros", "readwrite");
+        const store = tx.objectStore("registros");
+        synced.forEach(r => store.delete(r.id));
+
+        tx.oncomplete = async () => {
+          this.showToast(`Se limpiaron ${synced.length} registros sincronizados`, "success");
+          await this.renderHistory();
+        };
+      }
+
+      updatePendingBadge(count) {
+        const badge = document.getElementById("pendingBadge");
+        const countEl = document.getElementById("pendingCount");
+        if (!badge || !countEl) return;
+
+        if (count > 0) {
+          countEl.textContent = count;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      saveApiUrl() {
+        const input = document.getElementById("apiUrlInput");
+        const val = input.value.trim();
+        if (!val) {
+          this.showToast("Ingrese una URL válida para la API", "error");
+          return;
+        }
+        this.apiUrl = val;
+        localStorage.setItem("huarmey_api_url", val);
+        this.showToast("URL de API guardada correctamente", "success");
+      }
+
+      copyGasCode() {
+        const codeText = document.getElementById("gasCodeDisplay").textContent;
+        // iFrame fallback copying method using document.execCommand
+        const textArea = document.createElement("textarea");
+        textArea.value = codeText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          this.showToast("¡Código Google Apps Script copiado al portapapeles!", "success");
+        } catch (err) {
+          this.showToast("No se pudo copiar automáticamente", "error");
+        }
+        document.body.removeChild(textArea);
+      }
+
+      switchTab(tabName) {
+        document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+        document.querySelectorAll(".tab-btn").forEach(el => {
+          el.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100";
+        });
+
+        const activeContent = document.getElementById(`tab-${tabName}`);
+        const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+
+        if (activeContent) activeContent.classList.remove("hidden");
+        if (activeBtn) {
+          activeBtn.className = "tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition bg-huarmey-green text-white shadow-xs";
+        }
+      }
+
+      showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        
+        let bgClass = "bg-slate-900 text-white";
+        let icon = "fa-solid fa-circle-info";
+
+        if (type === "success") {
+          bgClass = "bg-emerald-700 text-white";
+          icon = "fa-solid fa-circle-check";
+        } else if (type === "error") {
+          bgClass = "bg-rose-700 text-white";
+          icon = "fa-solid fa-triangle-exclamation";
+        } else if (type === "warning") {
+          bgClass = "bg-amber-600 text-white";
+          icon = "fa-solid fa-triangle-exclamation";
+        }
+
+        toast.className = `${bgClass} text-xs font-semibold px-4 py-3 rounded-xl shadow-lg flex items-center justify-between gap-3 pointer-events-auto transform transition-all duration-300 translate-y-2 opacity-0`;
+        
+        toast.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="${icon}"></i>
+            <span>${message}</span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="opacity-75 hover:opacity-100">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        `;
+
+        container.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+          toast.classList.remove("translate-y-2", "opacity-0");
+        }, 10);
+
+        // Auto remove after 4s
+        setTimeout(() => {
+          toast.classList.add("opacity-0", "translate-y-2");
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      }
+    }
+
+    window.onload = () => {
+      window.app = new HuarmeyApp();
+    };
+  </script>
 </body>
 </html>
