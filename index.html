@@ -107,8 +107,8 @@ nav .badge{position:absolute;top:2px;left:58%}
 "use strict";
 /* ============ CONFIG (única parte a editar) ============ */
 const CONFIG={
-  API_URL:'https://script.google.com/macros/s/AKfycbwFx5KHXVKje8WLsQzRcjQL3V3vZxckrt0F3wI-YKgxr8rZ8G2p5UtlHclw09tSRd6-/exec',
-  TOKEN:'Huarmey2026-Frusan-K7x9',
+  API_URL:'PEGA_AQUI_LA_URL_DEL_WEB_APP_QUE_TERMINA_EN_/exec',
+  TOKEN:'PEGA_AQUI_TU_TOKEN',
   MOTIVOS:['Ninguno','Descanso médico (Absentismo)','Permiso con papeleta (Absentismo)','Enfermedad','Problemas familiares','Transporte (Especificar en observaciones)','Otro trabajo (Especificar en observaciones)','Desmotivación','Sacar tarjeta','Pago','Horario','Alimentación','Campamento','Ambiente laboral','Renuncia (Especificar en observaciones)','Problemas con el caporal (Especificar en observaciones)','Estudios','Viaje','Accidente','No desea continuar (Especificar en observaciones)']
 };
 const $=id=>document.getElementById(id);
@@ -146,6 +146,7 @@ async function api(method,params,body){
     else{opt.method='POST';opt.headers={'Content-Type':'text/plain;charset=utf-8'};opt.body=JSON.stringify({...body,token:CONFIG.TOKEN});}
     let r;try{r=await fetch(url,opt);}catch(e){throw apiErr(e.name==='AbortError'?'TIMEOUT':'SIN_RED');}
     const txt=await r.text();let j;try{j=JSON.parse(txt);}catch(e){throw apiErr('RESPUESTA_NO_JSON');}
+    if(j.ok===undefined)throw apiErr('El servidor respondió algo distinto a lo esperado (probablemente código antiguo de Apps Script): '+txt.slice(0,120));
     if(!j.ok)throw apiErr((j.error||'ERROR_SERVIDOR').split(':')[0]==='HOJA_NO_ENCONTRADA'?'Falta la hoja: '+j.error.split(':')[1]:(j.error||'ERROR_SERVIDOR'));
     return j.data;
   }finally{clearTimeout(t);}
