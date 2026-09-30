@@ -99,9 +99,6 @@
                     <span>Sincronizar</span>
                     <span id="pendingBadge" class="bg-agri-red text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
                 </button>
-                <button onclick="toggleSettingsModal()" title="Configuración de Enlace" class="w-9 h-9 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 flex items-center justify-center">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
             </div>
         </div>
 
@@ -231,46 +228,13 @@
         </div>
     </main>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between border-b pb-2">
-                <h3 class="font-bold text-gray-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-agri-green"></i> Configuración Backend Apps Script
-                </h3>
-                <button onclick="toggleSettingsModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    URL Web App Sincronizada (Google Apps Script):
-                </label>
-                <input type="url" id="apiUrlInput" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-agri-green">
-                <p class="text-[11px] text-gray-500 mt-1">
-                    Esta URL procesa la auto-sincronización y lectura de la hoja <code class="font-bold">BDXX_HUARMEY</code>.
-                </p>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="toggleSettingsModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200">
-                    Cancelar
-                </button>
-                <button onclick="saveApiUrl()" class="px-4 py-2 rounded-xl text-xs font-bold bg-agri-green text-white hover:bg-agri-greenHover shadow">
-                    Guardar URL
-                </button>
-            </div>
-        </div>
-    </div>
-
     <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-6">
         <p>© 2026 Agrícola Huarmey - Sistema de Control de Transporte v1.3</p>
     </footer>
 
     <script>
         // Default Google Apps Script URL provided for direct auto synchronization
-        const DEFAULT_AUTO_SYNC_URL = "https://script.google.com/macros/s/AKfycbzXO1CZ8S_PdqwpkF_SpxXo1vm1vF0gmZrnzWZb0GcOQgOM7uDd3MwtJ5ImOH_l0oSB/exec";
+        const DEFAULT_AUTO_SYNC_URL = "https://script.google.com/macros/s/AKfycbyFsdWNXOlsUhScwGxDE7AaPjSVk5U_bDJ6qJLQIGvPwyA8VxKFs7WprA07SNI6UrFY/exec";
 
         // Default Mock Data for Offline Fallback
         const MOCK_MAESTROS = [
@@ -680,21 +644,6 @@
                 renderHistory();
                 updatePendingBadge();
             };
-        }
-
-        function toggleSettingsModal() {
-            const modal = document.getElementById('settingsModal');
-            document.getElementById('apiUrlInput').value = defaultApiUrl;
-            modal.classList.toggle('hidden');
-        }
-
-        function saveApiUrl() {
-            const url = document.getElementById('apiUrlInput').value.trim() || DEFAULT_AUTO_SYNC_URL;
-            localStorage.setItem('HUARMEY_API_URL', url);
-            defaultApiUrl = url;
-            toggleSettingsModal();
-            alert("URL Sincronizada configurada. Actualizando datos de unidades...");
-            reloadMasterData();
         }
 
         window.addEventListener('online', updateNetworkStatus);
