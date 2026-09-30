@@ -1,658 +1,287 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<html lang="es"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#1E5328">
-<title>Movilidades y Ausentismo - Huarmey</title>
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<link rel="icon" href="./icon-192.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3f8f34">
+<title>Movilidades Huarmey</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--verde:#1E5328;--verde-bg:#E8F5E9;--rojo:#D32F2F;--rojo-bg:#FDECEA;--hueso:#F7F5F0;--gris:#6b665e;--borde:#cfcac0}
+:root{--v:#3f8f34;--vc:#e2f1dc;--r:#d12e1c;--rc:#fde4df;--bg:#f6f3ea;--t:#2b2f2a;--l:#d9d4c4;--am:#fff3cd}
 *{box-sizing:border-box}
-html,body{margin:0}
-body{font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--hueso);color:#26231f;padding-bottom:84px}
-header{background:var(--verde);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 14px}
-header img{width:44px;height:44px;border-radius:8px;background:#fff;padding:2px}
-header h1{font-size:17px;margin:0;line-height:1.2}
-#status{padding:9px 14px;font-size:14px;font-weight:600;border-bottom:1px solid var(--borde)}
-#status.ok{background:var(--verde-bg);color:var(--verde)}
-#status.warn{background:#FFF6D6;color:#7a5b00}
-#status.bad{background:var(--rojo-bg);color:var(--rojo)}
-#sendbar{display:none;padding:8px 14px;font-size:14px;font-weight:600;background:#fff;border-bottom:1px solid var(--borde)}
-#sendbar.on{display:block}
-#sendbar.busy::after{content:"";display:inline-block;width:12px;height:12px;margin-left:8px;border:2px solid var(--verde);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){#sendbar.busy::after{animation:none}}
-main{padding:14px;max-width:560px;margin:0 auto}
-.page{display:none}.page.on{display:block}
-label{display:block;font-weight:600;margin:14px 0 4px}
-input,select,textarea,button{font:inherit;min-height:48px;width:100%;padding:10px 12px;border:1.5px solid var(--borde);border-radius:10px;background:#fff;color:inherit}
-input[readonly]{background:#eeece6;color:#444}
-textarea{min-height:84px;resize:vertical}
-:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
-.err{color:var(--rojo);font-size:14px;min-height:0;margin-top:4px}
-.err:empty{display:none}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.libres{background:var(--verde-bg);color:var(--verde);font-weight:700;font-size:22px;text-align:center}
-.btn{background:var(--verde);color:#fff;border:0;font-weight:700;margin-top:20px;cursor:pointer}
-.btn:disabled{opacity:.55}
-.btn.sec{background:#fff;color:var(--verde);border:1.5px solid var(--verde);margin-top:10px}
-.hidden{display:none!important}
-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:2px solid var(--verde);z-index:5}
-nav button{border:0;border-radius:0;min-height:64px;background:#fff;font-weight:700;color:var(--gris);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-nav button span{font-size:22px}
-nav button.on{background:var(--verde-bg);color:var(--verde)}
-#toast{position:fixed;left:12px;right:12px;bottom:76px;background:var(--verde);color:#fff;padding:14px;border-radius:12px;font-weight:600;z-index:9;display:none;text-align:center}
-#toast.bad{background:var(--rojo)}
-#upd{display:none;position:fixed;top:0;left:0;right:0;background:#f2b705;color:#000;padding:12px;text-align:center;font-weight:700;z-index:10;cursor:pointer}
-details{margin-top:24px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:8px 12px}
-summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:pointer}
-.env{border-top:1px solid var(--borde);padding:8px 0;font-size:14px}
-.badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700}
-.b-Pendiente{background:#FFF6D6;color:#7a5b00}.b-Sincronizado{background:var(--verde-bg);color:var(--verde)}.b-Error{background:var(--rojo-bg);color:var(--rojo)}
-.env .btn{min-height:40px;margin-top:6px;width:auto;padding:6px 14px}
-.aviso{background:var(--rojo-bg);color:var(--rojo);padding:10px;border-radius:10px;margin-top:12px;font-size:14px}
-#diag{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px;margin-top:10px}
-main.ancho{max-width:980px}
-#seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-#seg button{min-height:44px;padding:6px 4px;font-size:14px;font-weight:700;color:var(--gris)}
-#seg button.on{background:var(--verde);color:#fff;border-color:var(--verde)}
-#dt-info{font-size:13px;color:var(--gris);margin:8px 0}
-.tabla-wrap{overflow-x:auto;background:#fff;border:1px solid var(--borde);border-radius:10px}
-#dt-tabla{border-collapse:collapse;width:100%;font-size:13px}
-#dt-tabla th{background:var(--verde);color:#fff;text-align:left;padding:8px;white-space:nowrap;position:sticky;top:0}
-#dt-tabla td{padding:7px 8px;border-top:1px solid var(--borde);white-space:nowrap}
-#dt-tabla tr:nth-child(even) td{background:#faf9f6}
-#au-info{background:var(--verde-bg);color:var(--verde);border-radius:10px;padding:8px 12px;font-size:14px;margin-top:8px}
-</style>
-</head>
-<body>
-<div id="upd" role="button" tabindex="0">Nueva versión disponible, toca para actualizar</div>
+body{margin:0;background:var(--bg);color:var(--t);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
+header{position:sticky;top:0;z-index:5;background:var(--v);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+header img{width:42px;height:42px;background:#fff;border-radius:50%;padding:3px}
+header h1{font-size:17px;margin:0;flex:1;line-height:1.15}
+.pill{font-size:13px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--vc);color:#1f5d17}
+.pill.off{background:var(--rc);color:#8f1a0e}
+.badge{background:var(--r);color:#fff;border-radius:99px;min-width:24px;text-align:center;padding:2px 7px;font-size:13px;font-weight:700}
+main{max-width:640px;margin:0 auto;padding:12px}
+section{display:none}section.on{display:block}
+h2{font-size:19px;margin:6px 0 10px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:12px;border:2px solid var(--l);border-radius:10px;background:#fff;min-height:48px}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--vc);border-color:var(--v)}
+input[readonly]{background:var(--vc);border-color:transparent}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.libres{font-size:22px;font-weight:700;text-align:center}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;min-height:54px;padding:0 18px;cursor:pointer;background:var(--v);color:#fff;width:100%;margin-top:16px}
+button.sec{background:#fff;color:var(--v);border:2px solid var(--v)}
+button.peq{min-height:42px;width:auto;margin:6px 6px 0 0;padding:0 14px;font-size:14px}
+button.rojo{background:var(--rc);color:#8f1a0e}
+button:disabled{opacity:.5}
+.err{background:var(--rc);color:#8f1a0e;border-radius:10px;padding:10px 12px;margin-top:12px;display:none;font-weight:600}
+.hint{font-size:13px;color:#6b6f66;margin-top:4px}
+.ok{color:#1f5d17;font-weight:600}.mal{color:#8f1a0e;font-weight:600}
+.item{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:6px solid var(--am)}
+.item.Sincronizado{border-color:var(--v)}.item.Error{border-color:var(--r)}
+.item small{color:#6b6f66;display:block}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:2px solid var(--l);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav a{flex:1;text-align:center;padding:8px 0 6px;font-size:13px;font-weight:600;color:#6b6f66;position:relative}
+nav a.on{color:var(--v);background:var(--vc)}
+nav svg{display:block;margin:0 auto 2px;width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav .badge{position:absolute;top:2px;left:58%}
+#toast{position:fixed;left:12px;right:12px;bottom:96px;background:var(--t);color:#fff;padding:12px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
+#diag{white-space:pre-wrap;background:#fff;border-radius:10px;padding:10px;font:13px/1.4 ui-monospace,monospace;display:none}
+</style></head><body>
 <header>
-  <img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
-  <h1>Agrícola Huarmey<br><small style="font-weight:400">Movilidades y ausentismo</small></h1>
+  <img src="logo.png" alt="Agrícola Huarmey">
+  <h1>Movilidades<br>Agrícola Huarmey</h1>
+  <span id="net" class="pill">En línea</span><span id="nPend" class="badge" style="display:none">0</span>
 </header>
-<div id="status" class="warn" role="status">Conectando...</div>
-<div id="sendbar" role="status"></div>
-
 <main>
-  <div id="vacio" class="aviso hidden">Conéctate una vez para descargar las placas y el personal.</div>
-
-  <!-- PÁGINA 1: MOVILIDADES -->
-  <section id="p-mov" class="page on" aria-label="Registro de movilidades">
-    <label for="mv-placa">Placa de unidad *</label>
-    <select id="mv-placa"></select><div class="err" id="e-mv-placa"></div>
-    <label for="mv-conductor">Conductor</label><input id="mv-conductor" readonly>
-    <div class="row">
-      <div><label for="mv-tipo">Tipo</label><input id="mv-tipo" readonly></div>
-      <div><label for="mv-cap">Capacidad</label><input id="mv-cap" readonly></div>
-    </div>
-    <label for="mv-ruta">Ruta</label><input id="mv-ruta" readonly>
-    <label for="mv-cultivo">Cultivo</label><input id="mv-cultivo" readonly>
-    <label for="mv-pas">N° de pasajeros *</label>
-    <input id="mv-pas" type="number" inputmode="numeric" min="0" step="1"><div class="err" id="e-mv-pas"></div>
-    <label for="mv-libres">Asientos libres</label><input id="mv-libres" class="libres" readonly value="-">
-    <label for="mv-obs">Observaciones</label><textarea id="mv-obs" maxlength="500"></textarea>
-    <button id="mv-guardar" class="btn" type="button">GUARDAR REGISTRO</button>
-  </section>
-
-  <!-- PÁGINA 2: AUSENTISMO -->
-  <section id="p-aus" class="page" aria-label="Registro de ausentismo">
-    <label for="au-placa">Placa *</label>
-    <select id="au-placa"></select><div class="err" id="e-au-placa"></div>
-    <label for="au-ruta">Ruta</label><input id="au-ruta" readonly>
-    <div id="au-info" class="hidden"></div>
-    <label for="au-dni">DNI *</label>
-    <input id="au-dni" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="8 dígitos"><div class="err" id="e-au-dni"></div>
-    <label for="au-nombre">Apellidos y nombres</label><input id="au-nombre" readonly>
-    <label for="au-falta">Fecha de falta *</label>
-    <input id="au-falta" type="date"><div class="err" id="e-au-falta"></div>
-    <label for="au-motivo">Motivo de ausencia *</label>
-    <select id="au-motivo"></select><div class="err" id="e-au-motivo"></div>
-    <label for="au-obs">Observaciones <span id="au-obs-req"></span></label>
-    <textarea id="au-obs" maxlength="500"></textarea><div class="err" id="e-au-obs"></div>
-    <label for="au-regresa">¿Vas a regresar? *</label>
-    <select id="au-regresa"></select><div class="err" id="e-au-regresa"></div>
-    <div id="au-ret-box" class="hidden">
-      <label for="au-ret">Fecha de retorno</label>
-      <select id="au-ret"></select>
-      <input id="au-ret-fecha" type="date" class="hidden" style="margin-top:8px" aria-label="Fecha de retorno">
-      <div class="err" id="e-au-ret"></div>
-    </div>
-    <button id="au-guardar" class="btn" type="button">GUARDAR AUSENTISMO</button>
-  </section>
-
-  <!-- PÁGINA 3: DATOS DE LAS 4 HOJAS -->
-  <section id="p-dat" class="page" aria-label="Datos de Google Sheets">
-    <div id="seg">
-      <button type="button" data-h="maestros" class="on">Maestros</button>
-      <button type="button" data-h="personal">Personal</button>
-      <button type="button" data-h="registros">Registros</button>
-      <button type="button" data-h="ausentismos">Ausentis.</button>
-    </div>
-    <label for="dt-buscar">Buscar</label>
-    <input id="dt-buscar" type="search" autocomplete="off" placeholder="Placa, DNI, nombre, ruta...">
-    <div id="dt-info" role="status"></div>
-    <div class="tabla-wrap"><table id="dt-tabla"></table></div>
-  </section>
-
-  <button id="btn-actualizar" class="btn sec" type="button">Actualizar placas y personal</button>
-  <button id="btn-diag" class="btn sec" type="button">Diagnóstico de conexión</button>
-  <pre id="diag" class="hidden"></pre>
-  <a id="lnk-prueba" target="_blank" rel="noopener" style="display:block;margin-top:8px;font-size:14px">Abrir URL de prueba en otra pestaña</a>
-  <details id="envios">
-    <summary>Mis envíos &nbsp;<span id="pend">Pendientes: 0</span></summary>
-    <div id="lista-envios"></div>
-  </details>
+<section id="p1" class="on">
+  <h2>Registro de movilidades</h2>
+  <label for="r_fecha">Fecha</label><input type="date" id="r_fecha">
+  <label for="r_placa">Placa de unidad</label>
+  <input id="r_placa" list="dl_placas" placeholder="Escribe o elige la placa" autocomplete="off" autocapitalize="characters">
+  <datalist id="dl_placas"></datalist>
+  <label for="r_conductor">Conductor</label><input id="r_conductor" readonly>
+  <div class="g2"><div><label for="r_tipo">Tipo</label><input id="r_tipo" readonly></div><div><label for="r_cap">Capacidad</label><input id="r_cap" readonly></div></div>
+  <label for="r_ruta">Ruta</label><input id="r_ruta" readonly>
+  <label for="r_cultivo">Cultivo</label><input id="r_cultivo" readonly>
+  <div class="g2"><div><label for="r_pas">N° pasajeros</label><input id="r_pas" type="number" inputmode="numeric" min="0"></div>
+  <div><label for="r_libres">Asientos libres</label><input id="r_libres" class="libres" readonly></div></div>
+  <label for="r_obs">Observaciones (opcional)</label><textarea id="r_obs" maxlength="300" rows="2"></textarea>
+  <div id="r_err" class="err"></div>
+  <button id="r_save">Guardar registro</button>
+</section>
+<section id="p2">
+  <h2>Registro de ausentismo</h2>
+  <label for="a_placa">Placa</label>
+  <input id="a_placa" list="dl_placas" placeholder="Escribe o elige la placa" autocomplete="off" autocapitalize="characters">
+  <label for="a_ruta">Ruta</label><input id="a_ruta" readonly>
+  <label for="a_dni">DNI</label><input id="a_dni" inputmode="numeric" maxlength="8" placeholder="8 dígitos">
+  <div id="a_dnimsg" class="hint"></div>
+  <label for="a_nombre">Apellidos y nombres</label><input id="a_nombre" readonly>
+  <label for="a_falta">Fecha de falta</label><input type="date" id="a_falta">
+  <label for="a_motivo">Motivo de ausencia</label><select id="a_motivo"></select>
+  <label for="a_regresa">¿Vas a regresar?</label>
+  <select id="a_regresa"><option value="">Elige…</option><option>SI</option><option>NO</option><option>Lo está pensando</option></select>
+  <div id="b_ret" style="display:none">
+    <label for="a_ret">Fecha de retorno</label>
+    <select id="a_ret"><option>Inmediato</option><option>Ingrese la fecha</option></select>
+    <input type="date" id="a_retf" style="display:none;margin-top:8px">
+  </div>
+  <label for="a_obs">Observaciones <span id="a_obsreq" class="hint"></span></label><textarea id="a_obs" maxlength="300" rows="2"></textarea>
+  <div id="a_err" class="err"></div>
+  <button id="a_save">Guardar ausentismo</button>
+</section>
+<section id="p3">
+  <h2>Pendientes de envío</h2>
+  <button class="sec" id="btnSync" style="margin-top:0">Sincronizar ahora</button>
+  <button class="sec" id="btnCat">Actualizar placas y personal</button>
+  <div id="cola" style="margin-top:14px"></div>
+  <button class="sec" id="btnDiag">Diagnóstico</button>
+  <div id="diag"></div>
+</section>
 </main>
-
-<div id="toast" role="status" aria-live="polite"></div>
+<div id="toast"></div>
 <nav>
-  <button id="t-mov" class="on" type="button"><span aria-hidden="true">🚌</span>Movilidades</button>
-  <button id="t-aus" type="button"><span aria-hidden="true">📋</span>Ausentismo</button>
-  <button id="t-dat" type="button"><span aria-hidden="true">🗂️</span>Datos</button>
+  <a href="#p1" class="on" data-t="p1"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M3 11h18M7 20v-4M17 20v-4"/><circle cx="7.5" cy="13.5" r=".6"/><circle cx="16.5" cy="13.5" r=".6"/></svg>Movilidades</a>
+  <a href="#p2" data-t="p2"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M17 4l4 4M21 4l-4 4"/></svg>Ausentismo</a>
+  <a href="#p3" data-t="p3"><svg viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 010-9 6 6 0 0111.5 1.5A3.7 3.7 0 0118 18z"/><path d="M12 11v5m0 0l-2-2m2 2l2-2"/></svg>Pendientes<span id="nPend2" class="badge" style="display:none">0</span></a>
 </nav>
-
 <script>
 "use strict";
-
-/* ========== Config: constantes al inicio ========== */
-const Config = {
-  // URL de la implementación web de Apps Script (termina en /exec). Ver guía de despliegue.
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwYDypNRZ3mQCIaKOrtLxMM2S0T1sWFYetFVKGsfa78F_MlXJ0jEV1pga8N-1FM29Sx/exec',
-  // Debe ser IGUAL al TOKEN_INICIAL de Code.gs (barrera básica, no un secreto absoluto).
-  API_KEY: 'HZ-7f3k9Qm2xR8vLp4Wc6Ns1',
-  DB_NAME: 'BDXX_HUARMEY',
-  MAX_REINTENTOS: 5,
-  MAX_HISTORIAL: 40,
-  MOTIVOS: ['Ninguno','Descanso médico (Absentismo)','Permiso con papeleta (Absentismo)','Enfermedad','Problemas familiares','Transporte (Especificar en observaciones)','Otro trabajo (Especificar en observaciones)','Desmotivación','Sacar tarjeta','Pago','Horario','Alimentación','Campamento','Ambiente laboral','Renuncia (Especificar en observaciones)','Problemas con el caporal (Especificar en observaciones)','Estudios','Viaje','Accidente','No desea continuar (Especificar en observaciones)'],
-  REGRESAR: ['SI','NO','Lo está pensando'],
-  ESPECIFICAR: '(Especificar en observaciones)'
+/* ============ CONFIG (única parte a editar) ============ */
+const CONFIG={
+  API_URL:'PEGA_AQUI_LA_URL_DEL_WEB_APP_QUE_TERMINA_EN_/exec',
+  TOKEN:'PEGA_AQUI_TU_TOKEN',
+  MOTIVOS:['Ninguno','Descanso médico (Absentismo)','Permiso con papeleta (Absentismo)','Enfermedad','Problemas familiares','Transporte (Especificar en observaciones)','Otro trabajo (Especificar en observaciones)','Desmotivación','Sacar tarjeta','Pago','Horario','Alimentación','Campamento','Ambiente laboral','Renuncia (Especificar en observaciones)','Problemas con el caporal (Especificar en observaciones)','Estudios','Viaje','Accidente','No desea continuar (Especificar en observaciones)']
 };
-const $ = (id) => document.getElementById(id);
-const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
-const dni8 = (v) => String(v == null ? '' : v).replace(/\D/g, '').padStart(8, '0');
-const hoyISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoy=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
+const MSG={SIN_RED:'Sin conexión a internet.',TIMEOUT:'El servidor tardó demasiado en responder.',
+ TOKEN_INVALIDO:'El token es incorrecto. Revisa CONFIG.TOKEN y el token guardado en el script.',
+ TOKEN_NO_CONFIGURADO:'Falta configurar el token en Apps Script (ejecuta configurarToken).',
+ RESPUESTA_NO_JSON:'La URL del Web App no es pública o es incorrecta. Debe terminar en /exec y tener acceso "Cualquier persona".',
+ CONFIG:'Falta pegar la URL del Web App en CONFIG.API_URL.'};
+let M={},P={},ultimoError='';
 
-/* ========== Db: IndexedDB (movilidades, ausentismos, cache) ========== */
-const Db = {
-  _p: null,
-  open() {
-    if (!this._p) {
-      this._p = new Promise((res, rej) => {
-        const r = indexedDB.open(Config.DB_NAME, 1);
-        r.onupgradeneeded = () => {
-          const db = r.result;
-          db.createObjectStore('movilidades', { keyPath: 'clientId' });
-          db.createObjectStore('ausentismos', { keyPath: 'clientId' });
-          db.createObjectStore('cache', { keyPath: 'key' });
-        };
-        r.onsuccess = () => res(r.result);
-        r.onerror = () => rej(r.error);
-      });
-    }
-    return this._p;
-  },
-  async run(store, mode, fn) {
-    const db = await this.open();
-    return new Promise((res, rej) => {
-      const t = db.transaction(store, mode);
-      const req = fn(t.objectStore(store));
-      t.oncomplete = () => res(req ? req.result : undefined);
-      t.onerror = () => rej(t.error);
-      t.onabort = () => rej(t.error);
-    });
-  },
-  put(store, v) { return this.run(store, 'readwrite', (o) => o.put(v)); },
-  get(store, k) { return this.run(store, 'readonly', (o) => o.get(k)); },
-  all(store) { return this.run(store, 'readonly', (o) => o.getAll()); },
-  del(store, k) { return this.run(store, 'readwrite', (o) => o.delete(k)); }
+/* ============ DB (IndexedDB) ============ */
+const DB={db:null,
+ open(){return new Promise((ok,ko)=>{const r=indexedDB.open('huarmey',1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('maestros',{keyPath:'placa'});d.createObjectStore('personal',{keyPath:'dni'});d.createObjectStore('cola',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'k'});};
+  r.onsuccess=()=>{DB.db=r.result;ok()};r.onerror=()=>ko(r.error);});},
+ tx(s,m,f){return new Promise((ok,ko)=>{const t=DB.db.transaction(s,m);const r=f(t.objectStore(s));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>ko(t.error);});},
+ all:s=>DB.tx(s,'readonly',st=>st.getAll()),
+ get:(s,k)=>DB.tx(s,'readonly',st=>st.get(k)),
+ put:(s,v)=>DB.tx(s,'readwrite',st=>st.put(v)),
+ del:(s,k)=>DB.tx(s,'readwrite',st=>st.delete(k)),
+ replace:(s,a)=>DB.tx(s,'readwrite',st=>{st.clear();a.forEach(v=>st.put(v));})
 };
 
-/* ========== Store: datos en memoria (maestros y personal) ========== */
-const Store = {
-  placas: new Map(), lista: [], personal: new Map(), datos: null,
-  // d = { maestros, personal, registros:{cols,rows}, ausentismos:{cols,rows}, errores, fecha }
-  set(d) {
-    this.datos = d;
-    const m = new Map();
-    (d.maestros || []).forEach((r) => m.set(r.placa, r));            // placa repetida: gana la última fila
-    const todas = Array.from(m.values());
-    this.lista = todas.filter((r) => r.estado !== 'BAJA').concat(todas.filter((r) => r.estado === 'BAJA'));
-    this.placas = m;
-    const p = new Map();
-    (d.personal || []).forEach((r) => { if (!p.has(r[0])) p.set(r[0], r[1]); }); // DNI repetido: gana el primero
-    this.personal = p;
-  },
-  vacio() { return this.placas.size === 0 && this.personal.size === 0; },
-  resumen() {
-    const d = this.datos || {};
-    return this.placas.size + ' placas / ' + this.personal.size + ' personas / ' + (((d.registros || {}).rows || []).length) + ' registros';
-  }
-};
-
-/* ========== Api: lectura JSONP y escritura POST ========== */
-const Api = {
-  configurado() { return Config.SCRIPT_URL.indexOf('PEGA_AQUI') !== 0; },
-  AYUDA: 'No se pudo contactar al servidor de Google. Revisa en Apps Script: Implementar > Administrar implementaciones > Aplicación web, "Ejecutar como: Yo" y "Quién tiene acceso: Cualquier persona"; y que SCRIPT_URL sea la URL /exec vigente.',
-  _url() { return Config.SCRIPT_URL + '?key=' + encodeURIComponent(Config.API_KEY) + '&action=todo&t=' + Date.now(); },
-  // Interpreta el texto devuelto por el servidor; si no es JSON, casi siempre es una página de Google (login/error)
-  _parse(txt) {
-    let d;
-    try { d = JSON.parse(txt); }
-    catch (e) {
-      const er = new Error(/^\s*</.test(txt)
-        ? 'Google devolvió una página web en lugar de datos: la implementación no es pública ("Cualquier persona") o la URL no es la vigente.'
-        : 'Respuesta inválida del servidor.');
-      er.fatal = true; throw er;
-    }
-    if (d && d.status === 'success') return d;
-    const er = new Error((d && d.message) || 'Respuesta inválida del servidor.'); er.fatal = true; throw er;
-  },
-  async _readFetch() {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 30000);
-    try {
-      const r = await fetch(this._url(), { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctl.signal });
-      return this._parse(await r.text());
-    } finally { clearTimeout(t); }
-  },
-  _readJsonp() {
-    return new Promise((res, rej) => {
-      const cb = 'jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-      const s = document.createElement('script');
-      const fin = () => { clearTimeout(t); delete window[cb]; s.remove(); };
-      const t = setTimeout(() => { fin(); rej(new Error('El servidor tardó demasiado en responder.')); }, 30000);
-      window[cb] = (d) => {
-        fin();
-        if (d && d.status === 'success') res(d);
-        else { const er = new Error((d && d.message) || 'Respuesta inválida del servidor.'); er.fatal = true; rej(er); }
-      };
-      s.onerror = () => { fin(); rej(new Error(Api.AYUDA)); };
-      s.src = this._url() + '&callback=' + cb;
-      document.head.appendChild(s);
-    });
-  },
-  async read() {
-    if (!this.configurado()) throw new Error('Falta configurar SCRIPT_URL en index.html.');
-    try { return await this._readFetch(); }               // 1.º intento: fetch (mensajes de error claros)
-    catch (e) {
-      if (e.fatal) throw e;                                // el servidor respondió con un error real: mostrarlo
-      console.warn('[Api] fetch falló, se prueba JSONP', e);
-    }
-    return await this._readJsonp();                        // 2.º intento: JSONP
-  },
-  async post(rec) {
-    if (!this.configurado()) throw new Error('Falta configurar SCRIPT_URL en index.html.');
-    let r;
-    try {
-      r = await fetch(Config.SCRIPT_URL, {
-        method: 'POST', redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ key: Config.API_KEY, type: rec.tipo, clientId: rec.clientId, creado: rec.creado, data: rec.data })
-      });
-    } catch (e) { throw new Error(this.AYUDA); }
-    const j = this._parse(await r.text());
-    return j;
-  }
-};
-
-/* ========== Ui: pantalla, estado, avisos ========== */
-const Ui = {
-  status(kind, txt) { const s = $('status'); s.className = kind; s.textContent = txt; },
-  toast(txt, bad) {
-    const t = $('toast'); t.textContent = txt; t.className = bad ? 'bad' : ''; t.style.display = 'block';
-    clearTimeout(this._t); this._t = setTimeout(() => { t.style.display = 'none'; }, 3500);
-  },
-  err(id, msg) { $('e-' + id).textContent = msg || ''; },
-  send(txt, busy) { const b = $('sendbar'); b.textContent = txt; b.className = 'on' + (busy ? ' busy' : ''); },
-  fillSelect(sel, items, first) {
-    const cur = sel.value; const f = document.createDocumentFragment();
-    const o0 = document.createElement('option'); o0.value = ''; o0.textContent = first; f.appendChild(o0);
-    items.forEach((it) => {
-      const o = document.createElement('option'); o.value = it.value; o.textContent = it.label;
-      if (it.gris) o.style.color = '#8a857c';
-      f.appendChild(o);
-    });
-    sel.replaceChildren(f);
-    if (cur && items.some((i) => i.value === cur)) sel.value = cur;
-  },
-  fillPlacas() {
-    const items = Store.lista.map((r) => ({ value: r.placa, label: r.placa + (r.estado === 'BAJA' ? ' (BAJA)' : ''), gris: r.estado === 'BAJA' }));
-    ['mv-placa', 'au-placa'].forEach((id) => Ui.fillSelect($(id), items, 'Selecciona una placa'));
-    $('vacio').classList.toggle('hidden', !Store.vacio());
-  },
-  tab(cual) {
-    ['mov', 'aus', 'dat'].forEach((k) => { $('p-' + k).classList.toggle('on', cual === k); $('t-' + k).classList.toggle('on', cual === k); });
-    document.querySelector('main').classList.toggle('ancho', cual === 'dat');
-    if (cual === 'dat') this.datos();
-    window.scrollTo(0, 0);
-  },
-  vista: 'maestros',
-  setVista(h) {
-    this.vista = h;
-    document.querySelectorAll('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.h === h));
-    this.datos();
-  },
-  // Muestra en tabla los datos de la hoja elegida (maestros, personal, registros, ausentismos)
-  datos() {
-    const h = this.vista, d = Store.datos || {}, q = $('dt-buscar').value.trim().toUpperCase();
-    let cols = [], rows = [];
-    if (h === 'maestros') { cols = ['PLACA', 'CONDUCTOR', 'TIPO', 'CAPACIDAD', 'RUTA', 'CULTIVO', 'ESTADO']; rows = Store.lista.map((r) => [r.placa, r.conductor, r.tipo, r.capacidad, r.ruta, r.cultivo, r.estado]); }
-    else if (h === 'personal') { cols = ['DNI', 'APELLIDOS Y NOMBRES']; rows = Array.from(Store.personal.entries()); }
-    else { const t = d[h] || { cols: [], rows: [] }; cols = t.cols || []; rows = t.rows || []; }
-    const f = q ? rows.filter((r) => r.some((c) => String(c).toUpperCase().indexOf(q) >= 0)) : rows;
-    const er = (d.errores || {})[h];
-    $('dt-info').textContent = (er ? 'Aviso de la hoja: ' + er + ' · ' : '') + f.length + ' de ' + rows.length + ' filas' + (f.length > 100 ? ' (mostrando 100; usa el buscador)' : '');
-    const tb = $('dt-tabla'); const fr = document.createDocumentFragment();
-    const thead = document.createElement('thead'), trh = document.createElement('tr');
-    cols.forEach((c) => { const th = document.createElement('th'); th.textContent = c; trh.appendChild(th); });
-    thead.appendChild(trh); fr.appendChild(thead);
-    const tbody = document.createElement('tbody');
-    f.slice(0, 100).forEach((r) => {
-      const tr = document.createElement('tr');
-      for (let i = 0; i < cols.length; i++) { const td = document.createElement('td'); td.textContent = r[i] == null ? '' : r[i]; tr.appendChild(td); }
-      tbody.appendChild(tr);
-    });
-    fr.appendChild(tbody); tb.replaceChildren(fr);
-  },
-  async envios() {
-    const todos = (await Db.all('movilidades')).concat(await Db.all('ausentismos'));
-    const pend = todos.filter((r) => r.estado !== 'Sincronizado').length;
-    $('pend').textContent = 'Pendientes: ' + pend;
-    todos.sort((a, b) => (a.creado < b.creado ? 1 : -1));
-    const f = document.createDocumentFragment();
-    todos.slice(0, 30).forEach((r) => {
-      const d = document.createElement('div'); d.className = 'env';
-      const cab = document.createElement('div');
-      const quien = r.tipo === 'movilidad' ? '🚌 ' + r.data.placa + ' · ' + r.data.pasajeros + ' pasajeros' : '📋 ' + r.data.nombre + ' · ' + r.data.fechaFalta;
-      cab.textContent = quien + ' ';
-      const b = document.createElement('span'); b.className = 'badge b-' + r.estado; b.textContent = r.estado; cab.appendChild(b);
-      d.appendChild(cab);
-      const fh = document.createElement('div'); fh.style.color = 'var(--gris)'; fh.textContent = new Date(r.creado).toLocaleString('es-PE'); d.appendChild(fh);
-      if (r.estado === 'Error') {
-        const m = document.createElement('div'); m.style.color = 'var(--rojo)'; m.textContent = (r.error || 'Error') + ' (intentos: ' + r.intentos + ')'; d.appendChild(m);
-        const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'btn'; bt.textContent = 'Reintentar';
-        bt.addEventListener('click', () => Sync.reintentar(r));
-        d.appendChild(bt);
-      }
-      f.appendChild(d);
-    });
-    if (!todos.length) { const p = document.createElement('div'); p.className = 'env'; p.textContent = 'Todavía no hay envíos.'; f.appendChild(p); }
-    $('lista-envios').replaceChildren(f);
-  }
-};
-
-/* ========== Sync: datos maestros y cola de envío ========== */
-const Sync = {
-  corriendo: false, refrescando: false,
-  async cargarCache() {
-    try {
-      const c = await Db.get('cache', 'datos');
-      if (c) { Store.set(c); Ui.fillPlacas(); Ui.datos(); Ui.status('bad', 'Sin conexión (modo offline) - ' + Store.resumen()); }
-      else Ui.fillPlacas();
-    } catch (e) { console.error('[Sync] Error leyendo caché', e); }
-  },
-  async refrescar(manual) {
-    if (this.refrescando) return;
-    this.refrescando = true;
-    Ui.status('warn', 'Conectando...');
-    try {
-      const d = await Api.read();
-      const er = d.errores || {}, prev = Store.datos || {};
-      // Si una hoja falló, se conserva lo último bueno de esa hoja
-      const datos = {
-        maestros: er.maestros ? (prev.maestros || []) : (d.maestros || []),
-        personal: er.personal ? (prev.personal || []) : (d.personal || []),
-        registros: er.registros ? (prev.registros || { cols: [], rows: [] }) : (d.registros || { cols: [], rows: [] }),
-        ausentismos: er.ausentismos ? (prev.ausentismos || { cols: [], rows: [] }) : (d.ausentismos || { cols: [], rows: [] }),
-        errores: er, fecha: new Date().toISOString()
-      };
-      Store.set(datos);
-      await Db.put('cache', Object.assign({ key: 'datos' }, datos));
-      Ui.fillPlacas(); Ui.datos(); Forms.ausPlaca();
-      const claves = Object.keys(er);
-      if (claves.length) Ui.status('warn', 'Conectado con avisos en "' + claves[0] + '": ' + er[claves[0]]);
-      else Ui.status('ok', 'Conectado a Google Sheets (' + Store.resumen() + ')');
-      if (manual) Ui.toast(claves.length ? 'Actualizado con avisos' : 'Actualizado: ' + Store.resumen(), !!claves.length);
-      this.run();
-    } catch (e) {
-      console.error('[Sync] Error al leer Sheets', e);
-      const off = !navigator.onLine;
-      Ui.status('bad', off ? 'Sin conexión (modo offline)' : 'Error: ' + e.message + ' (toca "Diagnóstico de conexión" abajo)');
-      if (manual) Ui.toast(off ? 'Sin conexión' : e.message, true);
-    } finally { this.refrescando = false; }
-  },
-  async diagnostico() {
-    const out = $('diag'); out.classList.remove('hidden'); out.textContent = 'Probando...\n';
-    const log = (t) => { out.textContent += t + '\n'; };
-    log('Página: ' + location.href);
-    log('Internet: ' + (navigator.onLine ? 'sí' : 'NO'));
-    log('URL del script: ' + Config.SCRIPT_URL);
-    for (const p of [['1) Ping (solo comprueba que Google responde)', '&ping=1'], ['2) Lectura completa de hojas', '']]) {
-      try {
-        const r = await fetch(Api._url() + p[1], { redirect: 'follow', cache: 'no-store' });
-        const t = await r.text();
-        log('\n' + p[0] + '\nHTTP ' + r.status + ' · ' + (r.headers.get('content-type') || '?'));
-        log(t.slice(0, 350).replace(/\s+/g, ' '));
-      } catch (e) {
-        log('\n' + p[0] + '\nFALLÓ: ' + e.message + '\n=> Google no deja entrar sin iniciar sesión: la implementación NO es pública, o la URL no es la vigente.');
-      }
-    }
-  },
-  async pendientes() {
-    const t = (await Db.all('movilidades')).concat(await Db.all('ausentismos'));
-    return t.filter((r) => r.estado === 'Pendiente' || (r.estado === 'Error' && r.intentos < Config.MAX_REINTENTOS))
-      .sort((a, b) => (a.creado < b.creado ? -1 : 1));
-  },
-  async run() {
-    if (this.corriendo || !navigator.onLine) return;
-    this.corriendo = true;
-    let ok = 0, mal = 0;
-    try {
-      const cola = await this.pendientes();
-      let n = cola.length;
-      for (const r of cola) {
-        const espera = Math.min(5000 * Math.pow(2, r.intentos || 0), 300000);
-        if (r.estado === 'Error' && Date.now() - (r.ultimo || 0) < espera) { n--; continue; }
-        Ui.send('Enviando ' + n + ' registro(s)...', true);
-        const store = r.tipo === 'movilidad' ? 'movilidades' : 'ausentismos';
-        try {
-          await Api.post(r);
-          r.estado = 'Sincronizado'; r.error = ''; ok++;
-        } catch (e) {
-          r.estado = 'Error'; r.error = e.message; r.intentos = (r.intentos || 0) + 1; r.ultimo = Date.now(); mal++;
-          console.error('[Sync] Error al enviar', r.clientId, e);
-        }
-        await Db.put(store, r);
-        n--;
-      }
-      await this.limpiar();
-    } catch (e) { console.error('[Sync] Error en la cola', e); }
-    finally {
-      this.corriendo = false;
-      if (mal) Ui.send(mal + ' con error', false);
-      else if (ok) Ui.send('Sincronizado', false);
-      else $('sendbar').className = '';
-      Ui.envios().catch(() => {});
-      if (ok) setTimeout(() => Sync.refrescar(false), 800); // trae de la hoja lo recién registrado
-    }
-  },
-  async reintentar(r) {
-    r.estado = 'Pendiente'; r.intentos = 0; r.ultimo = 0;
-    await Db.put(r.tipo === 'movilidad' ? 'movilidades' : 'ausentismos', r);
-    await Ui.envios(); this.run();
-  },
-  async limpiar() { // conserva solo los últimos sincronizados
-    for (const s of ['movilidades', 'ausentismos']) {
-      const ok = (await Db.all(s)).filter((r) => r.estado === 'Sincronizado').sort((a, b) => (a.creado < b.creado ? 1 : -1));
-      for (const r of ok.slice(Config.MAX_HISTORIAL)) await Db.del(s, r.clientId);
-    }
-  }
-};
-
-/* ========== Forms: formularios y validación ========== */
-const Forms = {
-  init() {
-    Ui.fillSelect($('au-motivo'), Config.MOTIVOS.map((m) => ({ value: m, label: m })), 'Selecciona el motivo');
-    Ui.fillSelect($('au-regresa'), Config.REGRESAR.map((m) => ({ value: m, label: m })), 'Selecciona');
-    Ui.fillSelect($('au-ret'), [{ value: 'Inmediato', label: 'Inmediato' }, { value: 'FECHA', label: 'Ingrese la fecha' }], 'Selecciona');
-    $('au-falta').max = hoyISO();
-    $('mv-placa').addEventListener('change', () => this.movPlaca());
-    $('mv-pas').addEventListener('input', () => this.movLibres());
-    $('mv-guardar').addEventListener('click', () => this.guardarMov());
-    $('au-placa').addEventListener('change', () => this.ausPlaca());
-    $('dt-buscar').addEventListener('input', () => Ui.datos());
-    document.querySelectorAll('#seg button').forEach((b) => b.addEventListener('click', () => Ui.setVista(b.dataset.h)));
-    $('au-dni').addEventListener('input', () => this.buscarDni());
-    $('au-motivo').addEventListener('change', () => this.motivo());
-    $('au-regresa').addEventListener('change', () => this.regresa());
-    $('au-ret').addEventListener('change', () => { $('au-ret-fecha').classList.toggle('hidden', $('au-ret').value !== 'FECHA'); });
-    $('au-falta').addEventListener('change', () => { $('au-ret-fecha').min = $('au-falta').value; });
-    $('au-guardar').addEventListener('click', () => this.guardarAus());
-  },
-  // Ausentismo depende de "registros": muestra el último registro de esa placa y toma su ruta
-  ausPlaca() {
-    const pl = $('au-placa').value, r = Store.placas.get(pl), info = $('au-info');
-    Ui.err('au-placa');
-    if (!r) { info.classList.add('hidden'); $('au-ruta').value = ''; return; }
-    const rows = ((Store.datos || {}).registros || {}).rows || [];
-    const u = rows.find((x) => String(x[1]).trim().toUpperCase() === pl.trim().toUpperCase());
-    let ruta = r.ruta;
-    if (u) { ruta = u[4] || ruta; info.textContent = 'Último registro de movilidad: ' + u[0] + ' · ' + u[7] + ' de ' + u[6] + ' pasajeros · Ruta ' + (u[4] || '-'); }
-    else info.textContent = 'Esta placa aún no tiene registros de movilidad.';
-    info.classList.remove('hidden'); $('au-ruta').value = ruta;
-  },
-  movPlaca() {
-    const r = Store.placas.get($('mv-placa').value);
-    $('mv-conductor').value = r ? r.conductor : ''; $('mv-tipo').value = r ? r.tipo : '';
-    $('mv-cap').value = r ? r.capacidad : ''; $('mv-ruta').value = r ? r.ruta : ''; $('mv-cultivo').value = r ? r.cultivo : '';
-    $('mv-pas').max = r ? r.capacidad : ''; Ui.err('mv-placa'); this.movLibres();
-  },
-  movLibres() {
-    const cap = Number($('mv-cap').value), v = $('mv-pas').value;
-    if (!$('mv-cap').value || v === '') { $('mv-libres').value = '-'; Ui.err('mv-pas'); return; }
-    const p = Number(v);
-    $('mv-libres').value = cap - p;
-    Ui.err('mv-pas', p > cap ? 'No puede superar la capacidad (' + cap + ').' : '');
-  },
-  limpiarMov() { ['mv-conductor','mv-tipo','mv-cap','mv-ruta','mv-cultivo','mv-pas','mv-obs'].forEach((i) => { $(i).value = ''; }); $('mv-placa').value = ''; $('mv-libres').value = '-'; },
-  async guardarMov() {
-    const placa = $('mv-placa').value, r = Store.placas.get(placa), v = $('mv-pas').value, p = Number(v);
-    let bad = false;
-    if (!r) { Ui.err('mv-placa', 'Elige una placa.'); bad = true; }
-    if (v === '' || !Number.isInteger(p) || p < 0) { Ui.err('mv-pas', 'Ingresa un número entero desde 0.'); bad = true; }
-    else if (r && p > r.capacidad) { Ui.err('mv-pas', 'No puede superar la capacidad (' + r.capacidad + ').'); bad = true; }
-    if (bad) return;
-    const btn = $('mv-guardar'); btn.disabled = true;
-    try {
-      await Db.put('movilidades', {
-        clientId: uid(), tipo: 'movilidad', creado: new Date().toISOString(), estado: 'Pendiente', intentos: 0, error: '',
-        data: { placa: r.placa, conductor: r.conductor, tipo: r.tipo, ruta: r.ruta, cultivo: r.cultivo, capacidad: r.capacidad, pasajeros: p, observaciones: $('mv-obs').value.trim() }
-      });
-      this.limpiarMov(); Ui.toast('Registro guardado. Se enviará automáticamente.');
-      await Ui.envios(); Sync.run();
-    } catch (e) { console.error('[Forms] Error guardando movilidad', e); Ui.toast('No se pudo guardar: ' + e.message, true); }
-    finally { btn.disabled = false; }
-  },
-  buscarDni() {
-    const i = $('au-dni'); i.value = i.value.replace(/\D/g, '').slice(0, 8);
-    $('au-nombre').value = ''; Ui.err('au-dni');
-    if (i.value.length < 8) return;
-    const n = Store.personal.get(dni8(i.value));
-    if (n) $('au-nombre').value = n; else Ui.err('au-dni', 'DNI no encontrado en el padrón');
-  },
-  motivo() {
-    const esp = $('au-motivo').value.indexOf(Config.ESPECIFICAR) >= 0;
-    $('au-obs-req').textContent = esp ? '* (obligatorio)' : ''; Ui.err('au-motivo'); Ui.err('au-obs');
-  },
-  regresa() {
-    const si = $('au-regresa').value === 'SI';
-    $('au-ret-box').classList.toggle('hidden', !si);
-    if (!si) { $('au-ret').value = ''; $('au-ret-fecha').value = ''; $('au-ret-fecha').classList.add('hidden'); }
-    Ui.err('au-regresa');
-  },
-  limpiarAus() {
-    ['au-ruta','au-dni','au-nombre','au-falta','au-obs','au-ret-fecha'].forEach((i) => { $(i).value = ''; });
-    ['au-placa','au-motivo','au-regresa','au-ret'].forEach((i) => { $(i).value = ''; });
-    $('au-ret-box').classList.add('hidden'); $('au-ret-fecha').classList.add('hidden'); $('au-obs-req').textContent = ''; $('au-info').classList.add('hidden');
-  },
-  async guardarAus() {
-    ['au-placa','au-dni','au-falta','au-motivo','au-obs','au-regresa','au-ret'].forEach((i) => Ui.err(i));
-    const placa = $('au-placa').value, r = Store.placas.get(placa), dni = $('au-dni').value, nombre = $('au-nombre').value;
-    const falta = $('au-falta').value, motivo = $('au-motivo').value, obs = $('au-obs').value.trim(), reg = $('au-regresa').value;
-    let bad = false;
-    const e = (id, m) => { Ui.err(id, m); bad = true; };
-    if (!r) e('au-placa', 'Elige una placa.');
-    if (dni.length !== 8) e('au-dni', 'El DNI debe tener 8 dígitos.'); else if (!nombre) e('au-dni', 'DNI no encontrado en el padrón');
-    if (!falta) e('au-falta', 'Elige la fecha de falta.'); else if (falta > hoyISO()) e('au-falta', 'No puede ser una fecha futura.');
-    if (!motivo) e('au-motivo', 'Elige el motivo.');
-    if (motivo.indexOf(Config.ESPECIFICAR) >= 0 && !obs) e('au-obs', 'Explica el motivo en observaciones.');
-    if (!reg) e('au-regresa', 'Elige una opción.');
-    let retorno = 'N/A';
-    if (reg === 'SI') {
-      const s = $('au-ret').value;
-      if (!s) e('au-ret', 'Elige cuándo regresa.');
-      else if (s === 'Inmediato') retorno = 'Inmediato';
-      else {
-        const f = $('au-ret-fecha').value;
-        if (!f) e('au-ret', 'Ingresa la fecha de retorno.'); else if (falta && f < falta) e('au-ret', 'No puede ser anterior a la fecha de falta.'); else retorno = f;
-      }
-    }
-    if (bad) return;
-    const btn = $('au-guardar'); btn.disabled = true;
-    try {
-      await Db.put('ausentismos', {
-        clientId: uid(), tipo: 'ausentismo', creado: new Date().toISOString(), estado: 'Pendiente', intentos: 0, error: '',
-        data: { placa: r.placa, ruta: $('au-ruta').value || r.ruta, dni: dni, nombre: nombre, fechaFalta: falta, motivo: motivo, regresa: reg, fechaRetorno: retorno, observaciones: obs }
-      });
-      this.limpiarAus(); Ui.toast('Ausentismo guardado. Se enviará automáticamente.');
-      await Ui.envios(); Sync.run();
-    } catch (x) { console.error('[Forms] Error guardando ausentismo', x); Ui.toast('No se pudo guardar: ' + x.message, true); }
-    finally { btn.disabled = false; }
-  }
-};
-
-/* ========== Arranque ========== */
-async function registrarSW() {
-  if (!('serviceWorker' in navigator)) return;
-  try {
-    const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
-    const aviso = () => { const u = $('upd'); u.style.display = 'block'; u.onclick = () => { if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING'); }; };
-    if (reg.waiting && navigator.serviceWorker.controller) aviso();
-    reg.addEventListener('updatefound', () => {
-      const w = reg.installing;
-      if (w) w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) aviso(); });
-    });
-    let recargado = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!recargado) { recargado = true; location.reload(); } });
-  } catch (e) { console.error('[SW] No se pudo registrar', e); }
+/* ============ API (Apps Script) ============ */
+function apiErr(code){const e=new Error(MSG[code]||code);e.code=code;return e;}
+async function api(method,params,body){
+  if(CONFIG.API_URL.includes('PEGA_AQUI'))throw apiErr('CONFIG');
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),25000);
+  try{
+    let url=CONFIG.API_URL;const opt={redirect:'follow',signal:ctl.signal};
+    if(method==='GET')url+='?'+new URLSearchParams({...params,token:CONFIG.TOKEN});
+    else{opt.method='POST';opt.headers={'Content-Type':'text/plain;charset=utf-8'};opt.body=JSON.stringify({...body,token:CONFIG.TOKEN});}
+    let r;try{r=await fetch(url,opt);}catch(e){throw apiErr(e.name==='AbortError'?'TIMEOUT':'SIN_RED');}
+    const txt=await r.text();let j;try{j=JSON.parse(txt);}catch(e){throw apiErr('RESPUESTA_NO_JSON');}
+    if(!j.ok)throw apiErr((j.error||'ERROR_SERVIDOR').split(':')[0]==='HOJA_NO_ENCONTRADA'?'Falta la hoja: '+j.error.split(':')[1]:(j.error||'ERROR_SERVIDOR'));
+    return j.data;
+  }finally{clearTimeout(t);}
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  $('t-mov').addEventListener('click', () => Ui.tab('mov'));
-  $('t-aus').addEventListener('click', () => Ui.tab('aus'));
-  $('t-dat').addEventListener('click', () => Ui.tab('dat'));
-  $('btn-actualizar').addEventListener('click', () => Sync.refrescar(true));
-  $('btn-diag').addEventListener('click', () => Sync.diagnostico());
-  $('lnk-prueba').href = Api._url() + '&ping=1';
-  Forms.init();
-  registrarSW();
-  try { await Sync.cargarCache(); await Ui.envios(); } catch (e) { console.error('[Init] Error', e); }
-  if (navigator.onLine) Sync.refrescar(false);
-  else Ui.status('bad', 'Sin conexión (modo offline)' + (Store.vacio() ? '' : ' - ' + Store.resumen()));
-  window.addEventListener('online', () => Sync.refrescar(false));
-  window.addEventListener('offline', () => Ui.status('bad', 'Sin conexión (modo offline)' + (Store.vacio() ? '' : ' - ' + Store.resumen())));
-  setInterval(async () => {
-    try {
-      if (!navigator.onLine) return;
-      if ($('status').className === 'bad') await Sync.refrescar(false);
-      if ((await Sync.pendientes()).length) Sync.run();
-    } catch (e) { console.error('[Timer] Error', e); }
-  }, 60000);
-});
-</script>
-</body>
-</html>
+/* ============ SYNC ============ */
+let syncing=false;
+async function actualizarCatalogos(manual){
+  try{
+    const d=await api('GET',{action:'bootstrap'});
+    await DB.replace('maestros',d.maestros);await DB.replace('personal',d.personal);
+    await DB.put('meta',{k:'ultima',v:Date.now()});ultimoError='';
+    await cargarListas();if(manual)toast('Listas actualizadas: '+d.maestros.length+' placas, '+d.personal.length+' personas');
+  }catch(e){ultimoError=e.message;if(manual||!Object.keys(M).length)toast(e.message,true);}
+}
+async function enviarPendientes(manual){
+  if(syncing){return;}
+  if(!navigator.onLine){if(manual)toast('Sin conexión. Se enviará al volver el internet.',true);return;}
+  syncing=true;
+  try{
+    const q=(await DB.all('cola')).filter(x=>x.estado==='Pendiente');
+    if(!q.length){if(manual)toast('No hay pendientes.');return;}
+    let res;
+    try{res=await api('POST',{},{items:q.map(x=>({action:x.tipo,id:x.id,data:x.datos}))});}
+    catch(e){ultimoError=e.message;for(const x of q){x.intentos++;x.error=e.message;await DB.put('cola',x);}if(manual)toast(e.message,true);return;}
+    let bien=0;
+    for(const r of res){const x=q.find(i=>i.id===r.id);if(!x)continue;
+      x.estado=r.ok?'Sincronizado':'Error';x.error=r.ok?'':r.error;x.enviado=Date.now();if(r.ok)bien++;await DB.put('cola',x);}
+    ultimoError='';toast(bien+' de '+q.length+' registro(s) enviado(s)',bien<q.length);
+  }finally{syncing=false;await pintarCola();}
+}
+
+/* ============ UI ============ */
+let tt;function toast(m,mal){const t=$('toast');t.textContent=m;t.style.background=mal?'#8f1a0e':'#2b2f2a';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',4200);}
+function showErr(id,m){const e=$(id);e.textContent=m;e.style.display=m?'block':'none';if(m)e.scrollIntoView({block:'center',behavior:'smooth'});}
+function setNet(){const on=navigator.onLine;$('net').textContent=on?'En línea':'Sin conexión';$('net').className='pill'+(on?'':' off');}
+function tab(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.t===id));window.scrollTo(0,0);if(id==='p3')pintarCola();}
+async function cargarListas(){
+  M={};(await DB.all('maestros')).forEach(m=>M[m.placa]=m);
+  P={};(await DB.all('personal')).forEach(p=>P[p.dni]=p.nombre);
+  $('dl_placas').innerHTML=Object.keys(M).sort().map(p=>'<option value="'+esc(p)+'">').join('');
+  if(!Object.keys(M).length)showErr('r_err','Aún no hay placas. Conéctate a internet una vez para descargar las placas y el personal.');
+  else if($('r_err').textContent.startsWith('Aún'))showErr('r_err','');
+  autoPlaca('r');autoPlaca('a');
+}
+function autoPlaca(k){const v=$(k+'_placa').value.trim().toUpperCase(),m=M[v];
+  if(k==='r'){['conductor','tipo','ruta','cultivo'].forEach(f=>$('r_'+f).value=m?m[f]:'');$('r_cap').value=m?m.capacidad:'';libres();}
+  else $('a_ruta').value=m?m.ruta:'';}
+function libres(){const c=+$('r_cap').value,p=$('r_pas').value;$('r_libres').value=(p===''||!c)?'':c-(+p);}
+function buscarDni(){const d=$('a_dni').value=$('a_dni').value.replace(/\D/g,'').slice(0,8);const m=$('a_dnimsg');
+  if(d.length<8){$('a_nombre').value='';m.textContent=d?d.length+' de 8 dígitos':'';m.className='hint';return;}
+  const n=P[d];$('a_nombre').value=n||'';m.textContent=n?'Personal encontrado':'DNI no encontrado en la lista de personal';m.className=n?'hint ok':'hint mal';}
+function reqObs(){const m=$('a_motivo').value;$('a_obsreq').textContent=m.includes('Especificar')?'(obligatorio para este motivo)':'';}
+function cambiaRegresa(){const si=$('a_regresa').value==='SI';$('b_ret').style.display=si?'block':'none';cambiaRet();}
+function cambiaRet(){$('a_retf').style.display=($('a_regresa').value==='SI'&&$('a_ret').value==='Ingrese la fecha')?'block':'none';}
+
+async function encolar(tipo,datos){
+  await DB.put('cola',{id:uid(),tipo,datos,estado:'Pendiente',intentos:0,creado:Date.now(),error:''});
+  await pintarCola();enviarPendientes(false);
+}
+async function guardarRegistro(){
+  const b=$('r_save');showErr('r_err','');
+  const placa=$('r_placa').value.trim().toUpperCase(),m=M[placa],pas=$('r_pas').value,f=$('r_fecha').value;
+  let e='';
+  if(!f)e='Elige la fecha.';else if(!m)e='Elige una placa de la lista.';
+  else if(pas===''||!/^\d+$/.test(pas))e='Escribe el número de pasajeros (entero, mínimo 0).';
+  else if(+pas>m.capacidad)e='Los pasajeros no pueden superar la capacidad de '+m.capacidad+'.';
+  if(e)return showErr('r_err',e);
+  const dup=(await DB.all('cola')).some(x=>x.tipo==='registro'&&x.estado!=='Error'&&x.datos.placa===placa&&x.datos.fecha===f);
+  if(dup&&!confirm('Ya registraste esta placa hoy. ¿Guardar otro registro?'))return;
+  b.disabled=true;
+  try{await encolar('registro',{fecha:f,placa,conductor:m.conductor,tipo:m.tipo,ruta:m.ruta,cultivo:m.cultivo,capacidad:m.capacidad,pasajeros:+pas,libres:m.capacidad-(+pas),observaciones:$('r_obs').value.trim()});
+    $('r_placa').value='';$('r_pas').value='';$('r_obs').value='';autoPlaca('r');toast('Guardado. Se enviará al tener conexión.');}
+  catch(x){showErr('r_err','No se pudo guardar en el teléfono: '+x.message);}finally{b.disabled=false;}
+}
+async function guardarAusentismo(){
+  const b=$('a_save');showErr('a_err','');
+  const placa=$('a_placa').value.trim().toUpperCase(),m=M[placa],dni=$('a_dni').value,nombre=P[dni],falta=$('a_falta').value,
+   motivo=$('a_motivo').value,reg=$('a_regresa').value,obs=$('a_obs').value.trim();
+  let ret='',e='';
+  if(!m)e='Elige una placa de la lista.';
+  else if(!/^\d{8}$/.test(dni))e='El DNI debe tener 8 dígitos.';
+  else if(!nombre)e='DNI no encontrado en la lista de personal.';
+  else if(!falta)e='Elige la fecha de falta.';
+  else if(falta>hoy())e='La fecha de falta no puede ser futura.';
+  else if(!motivo)e='Elige el motivo de ausencia.';
+  else if(motivo.includes('Especificar')&&!obs)e='Este motivo requiere detalle en observaciones.';
+  else if(!reg)e='Indica si va a regresar.';
+  if(!e&&reg==='SI'){ret=$('a_ret').value;
+    if(ret==='Ingrese la fecha'){ret=$('a_retf').value;if(!ret)e='Elige la fecha de retorno.';else if(ret<falta)e='La fecha de retorno no puede ser anterior a la fecha de falta.';}}
+  if(e)return showErr('a_err',e);
+  b.disabled=true;
+  try{await encolar('ausentismo',{placa,ruta:m.ruta,dni,nombre,fechaFalta:falta,motivo,regresa:reg,retorno:ret,observaciones:obs});
+    ['a_dni','a_obs','a_placa'].forEach(i=>$(i).value='');$('a_motivo').value='';$('a_regresa').value='';buscarDni();autoPlaca('a');reqObs();cambiaRegresa();toast('Guardado. Se enviará al tener conexión.');}
+  catch(x){showErr('a_err','No se pudo guardar en el teléfono: '+x.message);}finally{b.disabled=false;}
+}
+async function pintarCola(){
+  const q=(await DB.all('cola')).sort((a,b)=>b.creado-a.creado),n=q.filter(x=>x.estado!=='Sincronizado').length;
+  ['nPend','nPend2'].forEach(i=>{$(i).textContent=n;$(i).style.display=n?'inline-block':'none';});
+  $('cola').innerHTML=q.length?q.map(x=>{const d=x.datos,t=x.tipo==='registro'?'Movilidad · '+esc(d.placa)+' · '+d.pasajeros+' pasajeros':'Ausentismo · '+esc(d.nombre);
+    return '<div class="item '+x.estado+'"><b>'+esc(t)+'</b><small>'+new Date(x.creado).toLocaleString('es-PE')+' · '+x.estado+'</small>'+
+     (x.error?'<small class="mal">'+esc(x.error)+'</small>':'')+
+     (x.estado==='Error'?'<button class="peq" data-a="re" data-id="'+x.id+'">Reintentar</button><button class="peq rojo" data-a="del" data-id="'+x.id+'">Eliminar</button>':'')+'</div>';}).join('')
+   :'<p class="hint">No hay registros guardados todavía.</p>';
+}
+async function diagnostico(){
+  const m=await DB.get('meta','ultima'),q=await DB.all('cola'),d=$('diag');
+  d.style.display='block';
+  d.textContent='URL: '+(CONFIG.API_URL.includes('PEGA_AQUI')?'SIN CONFIGURAR':CONFIG.API_URL.slice(0,60)+'…')+'\nToken: '+(CONFIG.TOKEN.includes('PEGA_AQUI')?'SIN CONFIGURAR':'configurado')+
+   '\nConexión: '+(navigator.onLine?'sí':'no')+'\nPlacas en el teléfono: '+Object.keys(M).length+'\nPersonal en el teléfono: '+Object.keys(P).length+
+   '\nÚltima descarga: '+(m?new Date(m.v).toLocaleString('es-PE'):'nunca')+'\nPendientes: '+q.filter(x=>x.estado==='Pendiente').length+' · Con error: '+q.filter(x=>x.estado==='Error').length+'\nÚltimo error: '+(ultimoError||'ninguno')+'\nPrueba de conexión: ';
+  try{await api('GET',{action:'ping'});d.textContent+='OK';}catch(e){d.textContent+=e.message;}
+}
+
+/* ============ INICIO ============ */
+async function init(){
+  $('r_fecha').value=hoy();$('a_falta').max=hoy();$('a_falta').value=hoy();
+  $('a_motivo').innerHTML='<option value="">Elige el motivo…</option>'+CONFIG.MOTIVOS.map(m=>'<option>'+esc(m)+'</option>').join('');
+  document.querySelectorAll('nav a').forEach(a=>a.onclick=e=>{e.preventDefault();tab(a.dataset.t);});
+  $('r_placa').oninput=()=>autoPlaca('r');$('a_placa').oninput=()=>autoPlaca('a');$('r_pas').oninput=libres;
+  $('a_dni').oninput=buscarDni;$('a_motivo').onchange=reqObs;$('a_regresa').onchange=cambiaRegresa;$('a_ret').onchange=cambiaRet;
+  $('r_save').onclick=guardarRegistro;$('a_save').onclick=guardarAusentismo;
+  $('btnSync').onclick=()=>enviarPendientes(true);$('btnCat').onclick=()=>actualizarCatalogos(true);$('btnDiag').onclick=diagnostico;
+  $('cola').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const x=await DB.get('cola',b.dataset.id);if(!x)return;
+    if(b.dataset.a==='del'){if(confirm('¿Eliminar este registro con error?'))await DB.del('cola',x.id);}
+    else{x.estado='Pendiente';x.error='';await DB.put('cola',x);enviarPendientes(true);}pintarCola();};
+  addEventListener('online',()=>{setNet();enviarPendientes(false);actualizarCatalogos(false);});addEventListener('offline',setNet);setNet();
+  try{await DB.open();}catch(e){toast('Este navegador no permite guardar datos. Usa Chrome.',true);return;}
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+  for(const x of await DB.all('cola'))if(x.estado==='Sincronizado'&&Date.now()-x.enviado>7*864e5)await DB.del('cola',x.id);
+  await cargarListas();await pintarCola();
+  if(navigator.onLine){await actualizarCatalogos(false);await enviarPendientes(false);}
+  setInterval(()=>{if(navigator.onLine)enviarPendientes(false);},60000);
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').then(r=>{
+    r.onupdatefound=()=>{const w=r.installing;w&&(w.onstatechange=()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Nueva versión lista. Cierra y abre la app para actualizar.');});};}).catch(()=>{});
+}
+init();
+</script></body></html>
