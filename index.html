@@ -41,7 +41,7 @@
   </script>
 
   <style>
-    /* Custom CSS animations and smooth styling */
+    /* Custom CSS animations and touch-friendly styling */
     body {
       background-color: #F4F7F4;
       font-family: 'Inter', sans-serif;
@@ -72,7 +72,7 @@
       
       <!-- LOGO & TITLE -->
       <div class="flex items-center gap-3">
-        <!-- SVG Logo: Agrícola Huarmey stylized globe leaf -->
+        <!-- Agrícola Huarmey Globe & Leaf SVG Logo -->
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-huarmey-greenLight to-white p-1 flex items-center justify-center border border-huarmey-green/20 shadow-xs flex-shrink-0">
           <svg viewBox="0 0 100 100" class="w-full h-full">
             <path d="M 50,10 C 65,10 80,20 85,35 C 70,35 55,45 45,60 C 40,50 30,40 15,40 C 20,25 35,10 50,10 Z" fill="#2E7D32"/>
@@ -87,14 +87,13 @@
         </div>
       </div>
 
-      <!-- RIGHT CONTROLS: AUSENTISMO & ONLINE STATUS -->
+      <!-- RIGHT CONTROLS: AUSENTISMO PERSONAL BUTTON -->
       <div class="flex items-center gap-2">
-        <!-- AUSENTISMO PERSONAL BUTTON -->
         <a href="https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/" 
            target="_blank" 
            rel="noopener noreferrer"
            title="Registrar Ausentismo Personal"
-           class="flex items-center gap-1.5 bg-huarmey-red hover:bg-huarmey-redHover text-white text-xs font-semibold px-2.5 py-2 rounded-lg shadow-sm transition active:scale-95 text-center">
+           class="flex items-center gap-1.5 bg-huarmey-red hover:bg-huarmey-redHover text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition active:scale-95 text-center">
           <i class="fa-solid fa-user-xmark text-sm"></i>
           <span class="hidden sm:inline">AUSENTISMO PERSONAL</span>
           <span class="sm:hidden text-[10px] leading-none uppercase">Ausentismo</span>
@@ -127,7 +126,7 @@
   <!-- MAIN CONTAINER -->
   <main class="max-w-4xl mx-auto w-full px-3 py-4 flex-grow">
 
-    <!-- NAVIGATION TABS -->
+    <!-- NAVIGATION TABS (CONFIGURACIÓN REMOVED AS REQUESTED) -->
     <div class="flex bg-white p-1 rounded-xl shadow-xs border border-slate-200 mb-4 gap-1 overflow-x-auto custom-scrollbar">
       <button onclick="app.switchTab('form')" id="tab-btn-form" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition bg-huarmey-green text-white shadow-xs">
         <i class="fa-solid fa-bus text-sm"></i>
@@ -142,13 +141,9 @@
         <i class="fa-solid fa-database text-sm"></i>
         <span>Unidades</span>
       </button>
-      <button onclick="app.switchTab('settings')" id="tab-btn-settings" class="tab-btn flex-1 min-w-[100px] py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
-        <i class="fa-solid fa-sliders text-sm"></i>
-        <span>Configuración</span>
-      </button>
     </div>
 
-    <!-- TAB 1: FORMULARIO DE REGISTRO -->
+    <!-- TAB 1: FORMULARIO DE REGISTRO DE MOVILIDAD -->
     <section id="tab-form" class="tab-content space-y-4">
       <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6">
         
@@ -312,7 +307,7 @@
           </div>
           <select id="filterSyncStatus" onchange="app.renderHistory()" class="bg-slate-50 border border-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium text-slate-700">
             <option value="ALL">Todos los Estados</option>
-            <option value="PENDIENTE">PENDIETES</option>
+            <option value="PENDIENTE">PENDIENTES</option>
             <option value="SINCRONIZADO">SINCRONIZADOS</option>
             <option value="ERROR">CON ERROR</option>
           </select>
@@ -332,11 +327,11 @@
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h2 class="text-base font-bold text-slate-800">Flota de Movilidades Maestras</h2>
-            <p class="text-xs text-slate-500">Cargadas desde la hoja 'maestros' de Google Sheets</p>
+            <p class="text-xs text-slate-500">Sincronizado desde Google Sheets BDXX_HUARMEY</p>
           </div>
-          <button onclick="app.fetchMasterData(true)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+          <button onclick="app.fetchMasterData(true)" class="bg-huarmey-greenLight hover:bg-emerald-100 text-huarmey-greenDark text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
             <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Actualizar</span>
+            <span>Actualizar de Sheets</span>
           </button>
         </div>
 
@@ -361,168 +356,6 @@
       </div>
     </section>
 
-    <!-- TAB 4: CONFIGURACIÓN & BACKEND APPS SCRIPT -->
-    <section id="tab-settings" class="tab-content space-y-4 hidden">
-      <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-6 space-y-6">
-        
-        <div>
-          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-link text-huarmey-green"></i> Conexión con Google Sheets
-          </h2>
-          <p class="text-xs text-slate-500">Configure la URL de la API desplegada en Google Apps Script para sincronizar con la base de datos BDXX_HUARMEY.</p>
-        </div>
-
-        <!-- API URL FORM -->
-        <div class="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <label for="apiUrlInput" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-            URL de Google Apps Script Web App
-          </label>
-          <input type="url" id="apiUrlInput" placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
-                 class="w-full bg-white border border-slate-300 text-slate-800 text-xs rounded-lg p-2.5 focus:ring-2 focus:ring-huarmey-green">
-          <div class="flex items-center justify-between pt-1">
-            <span class="text-[11px] text-slate-500">Guarde la URL obtenida al desplegar el Web App.</span>
-            <button onclick="app.saveApiUrl()" class="bg-huarmey-green hover:bg-huarmey-greenDark text-white text-xs font-bold px-4 py-2 rounded-lg shadow-2xs transition">
-              Guardar URL
-            </button>
-          </div>
-        </div>
-
-        <!-- PWA INSTALL PROMPT CARD -->
-        <div id="pwaInstallCard" class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between hidden">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-lg">
-              <i class="fa-solid fa-download"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-emerald-900">Instalar Aplicación PWA</h3>
-              <p class="text-[11px] text-emerald-700">Instale en su pantalla de inicio para trabajar offline sin navegador.</p>
-            </div>
-          </div>
-          <button onclick="app.promptPwaInstall()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-xs">
-            Instalar
-          </button>
-        </div>
-
-        <!-- APPS SCRIPT CODE & SETUP GUIDE -->
-        <div class="border-t border-slate-200 pt-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-code text-slate-600"></i> Código Google Apps Script (codigo.gs)
-            </h3>
-            <button onclick="app.copyGasCode()" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 transition">
-              <i class="fa-solid fa-copy"></i> Copiar Código
-            </button>
-          </div>
-
-          <pre id="gasCodeDisplay" class="bg-slate-900 text-emerald-400 p-3.5 rounded-xl text-[11px] font-mono overflow-x-auto max-h-60 custom-scrollbar border border-slate-800 selection:bg-emerald-900">
-// CÓDIGO PRODUCCIÓN GOOGLE APPS SCRIPT PARA BDXX_HUARMEY
-// Pegar este código en Extensiones > Apps Script de su Google Sheet BDXX_HUARMEY
-
-function doGet(e) {
-  var action = e ? e.parameter.action : '';
-  if (action === 'getMaestros') {
-    return getMaestros();
-  }
-  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'API Movilidades Huarmey Activa' }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    if (data.action === 'syncRegistros') {
-      return syncRegistros(data.records);
-    }
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Acción no reconocida' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function getMaestros() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('maestros');
-  if (!sheet) {
-    return responseJSON({ status: 'error', message: 'No se encontró la hoja maestros' });
-  }
-  var data = sheet.getDataRange().getValues();
-  if (data.length <= 1) {
-    return responseJSON({ status: 'success', data: [] });
-  }
-  
-  var headers = data[0].map(function(h){ return String(h).trim().toLowerCase(); });
-  var rows = [];
-  
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var item = {};
-    for (var j = 0; j < headers.length; j++) {
-      item[headers[j]] = row[j];
-    }
-    rows.push(item);
-  }
-  
-  return responseJSON({ status: 'success', data: rows });
-}
-
-function syncRegistros(records) {
-  if (!records || !records.length) {
-    return responseJSON({ status: 'success', syncedIds: [] });
-  }
-  
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('registros');
-  if (!sheet) {
-    return responseJSON({ status: 'error', message: 'No se encontró la hoja registros' });
-  }
-  
-  var syncedIds = [];
-  
-  for (var k = 0; k < records.length; k++) {
-    var r = records[k];
-    sheet.appendRow([
-      r.fecha || new Date(),
-      r.placa || '',
-      r.conductor || '',
-      r.tipo || '',
-      r.ruta || '',
-      r.cultivo || '',
-      r.capacidad || 0,
-      r.pasajeros || 0,
-      r.libres || 0,
-      r.observaciones || ''
-    ]);
-    syncedIds.push(r.id);
-  }
-  
-  return responseJSON({ status: 'success', syncedIds: syncedIds });
-}
-
-function responseJSON(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-          </pre>
-
-          <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-800 space-y-1">
-            <p class="font-bold"><i class="fa-solid fa-list-check"></i> Instrucciones de Despliegue en Google Sheets:</p>
-            <ol class="list-decimal list-inside space-y-0.5 text-[11px] text-amber-900">
-              <li>Cree el archivo Google Sheet con nombre <strong>BDXX_HUARMEY</strong>.</li>
-              <li>Cree las pestañas <strong>maestros</strong> y <strong>registros</strong>.</li>
-              <li>En <code>maestros</code> agregue encabezados: <code>placa, conductor, tipo, capacidad, ruta, cultivo, CELULAR, ESTADO</code>.</li>
-              <li>En <code>registros</code> agregue encabezados: <code>fecha, placa, conductor, tipo, ruta, cultivo, capacidad, pasajeros, libres, observaciones</code>.</li>
-              <li>Vaya a <em>Extensiones &gt; Apps Script</em>, pegue el código anterior y haga clic en <strong>Implementar &gt; Nueva implementación</strong>.</li>
-              <li>Seleccione tipo: <strong>Aplicación Web</strong>, Acceso: <strong>Cualquier persona (Anyone)</strong>.</li>
-              <li>Copie la URL generada y péguela arriba en esta pantalla.</li>
-            </ol>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
   </main>
 
   <!-- TOAST NOTIFICATIONS CONTAINER -->
@@ -532,12 +365,15 @@ function responseJSON(obj) {
   <footer class="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">
       <span>Agrícola Huarmey S.A. © 2026 — Sistema de Transporte y Movilidades</span>
-      <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">Versión 1.0.0 (Offline-First)</span>
+      <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">Versión 2.0.0 (Conexión Directa Apps Script)</span>
     </div>
   </footer>
 
   <script>
-    // DEFAULT MASTER DATA FALLBACK FOR FIELD WORK IF NETWORK IS ABSENT ON FIRST BOOT
+    // DIRECT GOOGLE APPS SCRIPT EXEC ENDPOINT (BDXX_HUARMEY)
+    const PRODUCTION_API_URL = "https://script.google.com/macros/s/AKfycbzV4ZmHVdEWQYjnQ4BTeRKsMYbP9pd00D_AcvGnZqYRbwhTBZEQfhQGE7_v0SX-DcIc/exec";
+
+    // Initial Local Fallback data in case of complete offline startup before first sync
     const INITIAL_FALLBACK_MAESTROS = [
       { placa: "ABC-123", conductor: "Juan Perez", tipo: "BUS", capacidad: 40, ruta: "Huarmey - Fundo 1", cultivo: "Palto", CELULAR: "987654321", ESTADO: "ACTIVO" },
       { placa: "XYZ-789", conductor: "Carlos Gomez", tipo: "COUSTER", capacidad: 20, ruta: "Huarmey - Fundo 2", cultivo: "Arándano", CELULAR: "912345678", ESTADO: "ACTIVO" },
@@ -545,15 +381,12 @@ function responseJSON(obj) {
       { placa: "DEF-321", conductor: "Pedro Morales", tipo: "BUS", capacidad: 45, ruta: "Huarmey - Fundo 3", cultivo: "Palto", CELULAR: "944332211", ESTADO: "ACTIVO" }
     ];
 
-    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbx_HUARMEY_DEMO_URL/exec";
-
     class HuarmeyApp {
       constructor() {
         this.db = null;
         this.maestros = [];
         this.selectedPlacaData = null;
-        this.deferredPwaPrompt = null;
-        this.apiUrl = localStorage.getItem("huarmey_api_url") || DEFAULT_API_URL;
+        this.apiUrl = PRODUCTION_API_URL;
 
         this.init();
       }
@@ -564,17 +397,13 @@ function responseJSON(obj) {
         this.setupNetworkListeners();
         this.setupPwa();
         
-        // Load settings inputs
-        const apiInput = document.getElementById("apiUrlInput");
-        if (apiInput) apiInput.value = this.apiUrl;
-
-        // Load masters & history
+        // Load local cached masters first to display immediately
         await this.loadLocalMasters();
         await this.renderHistory();
 
-        // Attempt online sync & master refresh
+        // Always attempt online sync & live master data refresh from Google Sheets
         if (navigator.onLine) {
-          this.fetchMasterData();
+          await this.fetchMasterData();
           this.syncPending();
         }
       }
@@ -582,7 +411,7 @@ function responseJSON(obj) {
       // IndexedDB Storage Initialization
       initIndexedDB() {
         return new Promise((resolve, reject) => {
-          const request = indexedDB.open("HuarmeyMovilidadesDB", 1);
+          const request = indexedDB.open("HuarmeyMovilidadesDB", 2);
 
           request.onupgradeneeded = (e) => {
             const db = e.target.result;
@@ -640,6 +469,7 @@ function responseJSON(obj) {
             statusText.textContent = "En línea";
             statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 badge-pulse";
             statusStrip.className = "bg-slate-800 text-white text-xs px-4 py-1.5 flex justify-between items-center transition-colors duration-300";
+            this.fetchMasterData();
             this.syncPending();
           } else {
             statusText.textContent = "Modo Offline (Sin Internet)";
@@ -654,18 +484,12 @@ function responseJSON(obj) {
       }
 
       setupPwa() {
-        /* Inline Service Worker Blob Registration */
         if ('serviceWorker' in navigator) {
           const swCode = `
-            const CACHE_NAME = 'huarmey-pwa-v1';
-            self.addEventListener('install', e => {
-              self.skipWaiting();
-            });
-            self.addEventListener('activate', e => {
-              e.waitUntil(clients.claim());
-            });
+            const CACHE_NAME = 'huarmey-pwa-v2';
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
             self.addEventListener('fetch', e => {
-              // Network first with offline fallback logic
               e.respondWith(
                 fetch(e.request).catch(() => caches.match(e.request))
               );
@@ -674,46 +498,6 @@ function responseJSON(obj) {
           const blob = new Blob([swCode], { type: 'application/javascript' });
           const swUrl = URL.createObjectURL(blob);
           navigator.serviceWorker.register(swUrl).catch(err => console.log('SW error:', err));
-        }
-
-        /* Dynamic PWA Manifest Injection */
-        const manifestObj = {
-          name: "Control de Movilidades — Agrícola Huarmey",
-          short_name: "Huarmey Movilidades",
-          start_url: "./",
-          display: "standalone",
-          background_color: "#F4F7F4",
-          theme_color: "#2E7D32",
-          icons: [
-            {
-              src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232E7D32'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>AH</text></svg>",
-              sizes: "192x192 512x512",
-              type: "image/svg+xml"
-            }
-          ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestUrl;
-        document.head.appendChild(link);
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-          e.preventDefault();
-          this.deferredPwaPrompt = e;
-          const installCard = document.getElementById('pwaInstallCard');
-          if (installCard) installCard.classList.remove('hidden');
-        });
-      }
-
-      promptPwaInstall() {
-        if (this.deferredPwaPrompt) {
-          this.deferredPwaPrompt.prompt();
-          this.deferredPwaPrompt.userChoice.then(() => {
-            this.deferredPwaPrompt = null;
-            document.getElementById('pwaInstallCard').classList.add('hidden');
-          });
         }
       }
 
@@ -726,7 +510,6 @@ function responseJSON(obj) {
           request.onsuccess = async () => {
             let data = request.result;
             if (!data || data.length === 0) {
-              // Save fallbacks into IndexedDB
               await this.saveMastersToDb(INITIAL_FALLBACK_MAESTROS);
               data = INITIAL_FALLBACK_MAESTROS;
             }
@@ -744,7 +527,7 @@ function responseJSON(obj) {
           const store = tx.objectStore("maestros");
           store.clear();
           mastersArray.forEach(m => {
-            store.put(m);
+            if (m.placa) store.put(m);
           });
           tx.oncomplete = () => resolve();
           tx.onerror = (e) => reject(e);
@@ -753,7 +536,7 @@ function responseJSON(obj) {
 
       async fetchMasterData(forceAlert = false) {
         const syncTag = document.getElementById("masterDataSyncTag");
-        if (syncTag) syncTag.textContent = "Sincronizando maestros...";
+        if (syncTag) syncTag.textContent = "Obteniendo placas de Google Sheets...";
 
         if (!navigator.onLine) {
           if (syncTag) syncTag.textContent = "Datos locales (Offline)";
@@ -762,38 +545,71 @@ function responseJSON(obj) {
         }
 
         try {
-          const url = `${this.apiUrl}?action=getMaestros`;
-          const response = await fetch(url);
+          // Query Google Apps Script for live 'maestros' sheet rows
+          const url = `${this.apiUrl}?action=getMaestros&_t=${Date.now()}`;
+          const response = await fetch(url, { redirect: "follow" });
           const json = await response.json();
 
           if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
-            // Normalize field names
-            const normalized = json.data.map(item => ({
-              placa: String(item.placa || item.PLACA || "").trim().toUpperCase(),
-              conductor: String(item.conductor || item.CONDUCTOR || "").trim(),
-              tipo: String(item.tipo || item.TIPO || "").trim(),
-              capacidad: parseInt(item.capacidad || item.CAPACIDAD || 0, 10),
-              ruta: String(item.ruta || item.RUTA || "").trim(),
-              cultivo: String(item.cultivo || item.CULTIVO || "").trim(),
-              CELULAR: String(item.celular || item.CELULAR || "").trim(),
-              ESTADO: String(item.estado || item.ESTADO || "ACTIVO").trim().toUpperCase()
-            }));
+            
+            // Helper function to dynamically match property keys regardless of casing/spaces
+            const extractProp = (item, keys) => {
+              for (let k of keys) {
+                if (item[k] !== undefined && item[k] !== null) return String(item[k]).trim();
+              }
+              // Case-insensitive match fallback
+              const itemKeys = Object.keys(item);
+              for (let k of keys) {
+                const found = itemKeys.find(ik => ik.toLowerCase() === k.toLowerCase());
+                if (found && item[found] !== undefined && item[found] !== null) {
+                  return String(item[found]).trim();
+                }
+              }
+              return "";
+            };
 
-            await this.saveMastersToDb(normalized);
-            this.maestros = normalized;
-            this.renderPlacaDropdown();
-            this.renderMastersTable();
+            const normalized = json.data.map(item => {
+              const placa = extractProp(item, ["placa", "PLACA", "Placa"]);
+              const conductor = extractProp(item, ["conductor", "CONDUCTOR", "Conductor"]);
+              const tipo = extractProp(item, ["tipo", "TIPO", "Tipo"]);
+              const capRaw = extractProp(item, ["capacidad", "CAPACIDAD", "Capacidad"]);
+              const capacidad = parseInt(capRaw || "0", 10);
+              const ruta = extractProp(item, ["ruta", "RUTA", "Ruta"]);
+              const cultivo = extractProp(item, ["cultivo", "CULTIVO", "Cultivo"]);
+              const celular = extractProp(item, ["celular", "CELULAR", "Celular"]);
+              const estado = extractProp(item, ["estado", "ESTADO", "Estado"]) || "ACTIVO";
 
-            if (syncTag) syncTag.textContent = "Actualizado con Google Sheets";
-            if (forceAlert) this.showToast("Información maestra actualizada correctamente", "success");
+              return {
+                placa: placa.toUpperCase(),
+                conductor: conductor,
+                tipo: tipo,
+                capacidad: capacidad,
+                ruta: ruta,
+                cultivo: cultivo,
+                CELULAR: celular,
+                ESTADO: estado.toUpperCase()
+              };
+            }).filter(m => m.placa.length > 0);
+
+            if (normalized.length > 0) {
+              await this.saveMastersToDb(normalized);
+              this.maestros = normalized;
+              this.renderPlacaDropdown();
+              this.renderMastersTable();
+
+              if (syncTag) syncTag.textContent = `${normalized.length} unidades de Google Sheets`;
+              if (forceAlert) this.showToast(`¡${normalized.length} unidades actualizadas de Google Sheets!`, "success");
+            } else {
+              if (syncTag) syncTag.textContent = "Datos locales (Sin filas en Sheets)";
+            }
           } else {
             if (syncTag) syncTag.textContent = "Datos locales";
-            if (forceAlert) this.showToast("No se obtuvieron registros maestros nuevos", "info");
+            if (forceAlert) this.showToast("No se encontraron registros en la hoja maestros", "info");
           }
         } catch (err) {
-          console.warn("No se pudo actualizar maestros desde la API:", err);
-          if (syncTag) syncTag.textContent = "Datos locales";
-          if (forceAlert) this.showToast("Error al conectar con la API de Google Sheets", "error");
+          console.warn("No se pudo conectar con la API de Google Sheets:", err);
+          if (syncTag) syncTag.textContent = "Datos locales (Error de red)";
+          if (forceAlert) this.showToast("Error al conectar con Google Sheets", "error");
         }
       }
 
@@ -801,9 +617,10 @@ function responseJSON(obj) {
         const select = document.getElementById("selectPlaca");
         if (!select) return;
 
+        const currentValue = select.value;
         select.innerHTML = '<option value="">-- Seleccionar Placa --</option>';
 
-        // Filter by ESTADO == 'ACTIVO' if applicable
+        // Filter active status or default to active
         const disponibles = this.maestros.filter(m => !m.ESTADO || m.ESTADO === "ACTIVO");
 
         disponibles.forEach(m => {
@@ -812,6 +629,11 @@ function responseJSON(obj) {
           opt.textContent = `${m.placa} — ${m.conductor} (${m.ruta || 'Sin Ruta'})`;
           select.appendChild(opt);
         });
+
+        // Retain selection if available
+        if (currentValue && disponibles.some(m => m.placa === currentValue)) {
+          select.value = currentValue;
+        }
       }
 
       renderMastersTable() {
@@ -830,11 +652,11 @@ function responseJSON(obj) {
           tr.className = "hover:bg-slate-50 border-b border-slate-100";
           tr.innerHTML = `
             <td class="p-2.5 font-extrabold text-slate-900">${m.placa}</td>
-            <td class="p-2.5">${m.conductor}</td>
-            <td class="p-2.5"><span class="bg-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">${m.tipo}</span></td>
-            <td class="p-2.5 text-center font-bold text-huarmey-green">${m.capacidad}</td>
-            <td class="p-2.5">${m.ruta}</td>
-            <td class="p-2.5">${m.cultivo}</td>
+            <td class="p-2.5">${m.conductor || '--'}</td>
+            <td class="p-2.5"><span class="bg-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">${m.tipo || '--'}</span></td>
+            <td class="p-2.5 text-center font-bold text-huarmey-green">${m.capacidad || 0}</td>
+            <td class="p-2.5">${m.ruta || '--'}</td>
+            <td class="p-2.5">${m.cultivo || '--'}</td>
             <td class="p-2.5 text-center">
               <span class="${m.ESTADO === 'ACTIVO' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} px-2 py-0.5 rounded-full text-[10px] font-bold">
                 ${m.ESTADO || 'ACTIVO'}
@@ -962,14 +784,14 @@ function responseJSON(obj) {
         }
 
         if (pasajeros > capacidad) {
-          this.showToast("El número de pasajeros excede la capacidad", "error");
+          this.showToast("El número de pasajeros excede la capacidad de la movilidad", "error");
           return;
         }
 
         const libres = capacidad - pasajeros;
         const observaciones = document.getElementById("inputObservaciones").value.trim();
 
-        // Format Peru local timestamp string (UTC-05:00)
+        // Peru local timestamp string (UTC-05:00)
         const now = new Date();
         const peruFormattedDate = new Intl.DateTimeFormat("sv-SE", {
           timeZone: "America/Lima",
@@ -1045,13 +867,15 @@ function responseJSON(obj) {
         if (syncBtn) syncBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando...`;
 
         try {
+          // POST to Google Apps Script
           const response = await fetch(this.apiUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               action: "syncRegistros",
               records: pendingRecords
-            })
+            }),
+            redirect: "follow"
           });
 
           const resJson = await response.json();
@@ -1066,15 +890,14 @@ function responseJSON(obj) {
                 await this.saveRecordToLocal(r);
               }
             }
-            this.showToast(`¡${syncedSet.size} registro(s) sincronizados con Google Sheets!`, "success");
+            this.showToast(`¡${syncedSet.size} registro(s) sincronizados en Google Sheets BDXX_HUARMEY!`, "success");
           } else {
-            // Mark errored
             for (let r of pendingRecords) {
               r.syncStatus = "ERROR";
-              r.errorMessage = resJson.message || "Error devuelto por el servidor";
+              r.errorMessage = resJson.message || "Error devuelto por Apps Script";
               await this.saveRecordToLocal(r);
             }
-            this.showToast("Error durante la sincronización. Se reintentará luego.", "error");
+            this.showToast("Error durante la sincronización. Se reintentará automáticamente.", "error");
           }
         } catch (err) {
           console.error("Sync fetch error:", err);
@@ -1083,7 +906,7 @@ function responseJSON(obj) {
             r.errorMessage = "Error de red o CORS";
             await this.saveRecordToLocal(r);
           }
-          this.showToast("Fallo de conexión al enviar a Google Sheets", "error");
+          this.showToast("Fallo de red al sincronizar con Google Sheets", "error");
         } finally {
           if (syncBtn) syncBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Sincronizar`;
           await this.renderHistory();
@@ -1262,34 +1085,6 @@ function responseJSON(obj) {
         } else {
           badge.classList.add("hidden");
         }
-      }
-
-      saveApiUrl() {
-        const input = document.getElementById("apiUrlInput");
-        const val = input.value.trim();
-        if (!val) {
-          this.showToast("Ingrese una URL válida para la API", "error");
-          return;
-        }
-        this.apiUrl = val;
-        localStorage.setItem("huarmey_api_url", val);
-        this.showToast("URL de API guardada correctamente", "success");
-      }
-
-      copyGasCode() {
-        const codeText = document.getElementById("gasCodeDisplay").textContent;
-        // iFrame fallback copying method using document.execCommand
-        const textArea = document.createElement("textarea");
-        textArea.value = codeText;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          this.showToast("¡Código Google Apps Script copiado al portapapeles!", "success");
-        } catch (err) {
-          this.showToast("No se pudo copiar automáticamente", "error");
-        }
-        document.body.removeChild(textArea);
       }
 
       switchTab(tabName) {
