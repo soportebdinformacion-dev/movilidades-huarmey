@@ -1,65 +1,32 @@
-const CACHE_NAME = 'huarmey-pwa-v1';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
-];
+const CACHE = 'huarmey-v1';
+const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/logo.png'];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Precaching App Shell');
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  self.skipWaiting();
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[ServiceWorker] Removing old cache', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
-self.addEventListener('fetch', (event) => {
-  // Ignore non-GET requests or Google Apps Script Web App endpoints
-  if (event.request.method !== 'GET' || event.request.url.includes('script.google.com')) {
+self.addEventListener('fetch', e => {
+  const req = e.request, url = new URL(req.url);
+  if (req.method !== 'GET') return;
+  // Apps Script y otros orígenes: la app maneja su propio caché (IndexedDB)
+  if (url.origin !== location.origin) {
+    if (url.hostname === 'cdn.tailwindcss.com') {
+      e.respondWith(caches.match(req).then(r => r || fetch(req).then(res => { const cp = res.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return res; })));
+    }
     return;
   }
-
-  event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return fetch(event.request)
-        .then((response) => {
-          // If response is valid, update the cache
-          if (response.status === 200) {
-            cache.put(event.request.url, response.clone());
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache when network fails
-          return cache.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            if (event.request.headers.get('accept').includes('text/html')) {
-              return cache.match('./index.html');
-            }
-          });
-        });
-    })
-  );
+  // Network First para el HTML, Cache First para el resto
+  if (req.mode === 'navigate') {
+    e.respondWith(fetch(req).then(res => { const cp = res.clone(); caches.open(CACHE).then(c => c.put('./index.html', cp)); return res; }).catch(() => caches.match('./index.html')));
+  } else {
+    e.respondWith(caches.match(req).then(r => r || fetch(req).then(res => { const cp = res.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return res; })));
+  }
+});
+// Sincronización en segundo plano
+self.addEventListener('sync', e => {
+  if (e.tag === 'sync-registros') {
+    e.waitUntil(self.clients.matchAll().then(cs => cs.forEach(c => c.postMessage({ type: 'SYNC' }))));
+  }
 });
