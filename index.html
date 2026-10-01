@@ -1,786 +1,248 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Agrícola Huarmey - Control de Transporte</title>
-    
-    <!-- PWA Primary Color & Manifest -->
-    <meta name="theme-color" content="#2E7D32">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'><path fill='%232E7D32' d='M250,30 C300,10 330,40 280,100 C270,112 250,130 250,130 C250,130 230,112 220,100 C170,40 200,10 250,30 Z'/><path fill='%23D32F2F' d='M190,160 C240,140 310,140 360,180 C320,200 250,210 190,160 Z'/><path fill='%23D32F2F' d='M160,230 C220,200 340,190 390,260 C330,280 230,280 160,230 Z'/><path fill='%23D32F2F' d='M190,320 C240,290 340,280 380,360 C320,410 220,380 190,320 Z'/><path fill='none' stroke='%232E7D32' stroke-width='18' stroke-linecap='round' d='M100,220 C80,300 150,440 250,450 C350,460 420,380 430,300'/><path fill='none' stroke='%232E7D32' stroke-width='14' stroke-linecap='round' d='M110,130 C70,180 80,260 140,330'/></svg>">
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        agri: {
-                            green: '#2E7D32',
-                            greenHover: '#1B5E20',
-                            greenLight: '#E8F5E9',
-                            greenBorder: '#A5D6A7',
-                            red: '#D32F2F',
-                            redHover: '#B71C1C',
-                            redLight: '#FFEBEE',
-                            redBorder: '#EF9A9A',
-                            bg: '#F4F6F8',
-                            darkText: '#1F2937'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #F4F6F8;
-            color: #1F2937;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .touch-btn {
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E7D32">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Agrícola Huarmey - Control de Transporte</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{background:#F4F6F8;color:#1F2937;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .ctl{min-height:52px;font-size:18px}
+  .ro{background:#E8F5E9;color:#1F2937;font-weight:600}
+</style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-agri-greenLight">
+<body class="pb-28">
 
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-            <!-- Brand Logo & Title -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-agri-greenLight rounded-lg p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" class="w-full h-full">
-                        <path fill="#2E7D32" d="M250,30 C300,10 330,40 280,100 C270,112 250,130 250,130 C250,130 230,112 220,100 C170,40 200,10 250,30 Z"/>
-                        <path fill="#D32F2F" d="M190,160 C240,140 310,140 360,180 C320,200 250,210 190,160 Z"/>
-                        <path fill="#D32F2F" d="M160,230 C220,200 340,190 390,260 C330,280 230,280 160,230 Z"/>
-                        <path fill="#D32F2F" d="M190,320 C240,290 340,280 380,360 C320,410 220,380 190,320 Z"/>
-                        <path fill="none" stroke="#2E7D32" stroke-width="18" stroke-linecap="round" d="M100,220 C80,300 150,440 250,450 C350,460 420,380 430,300"/>
-                        <path fill="none" stroke="#2E7D32" stroke-width="14" stroke-linecap="round" d="M110,130 C70,180 80,260 140,330"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="font-bold text-gray-900 text-sm sm:text-base leading-tight">Agrícola Huarmey</h1>
-                    <p class="text-xs text-agri-green font-semibold">Control de Transporte</p>
-                </div>
-            </div>
+<header class="sticky top-0 z-20 bg-white shadow" style="padding-top:env(safe-area-inset-top)">
+  <div class="flex items-center gap-3 px-3 py-2 max-w-xl mx-auto">
+    <img src="icons/logo.png" alt="Logo" class="w-12 h-12 shrink-0">
+    <h1 class="flex-1 text-base font-bold leading-tight text-[#2E7D32]">Agrícola Huarmey<br><span class="text-gray-600 font-semibold">Control de Transporte</span></h1>
+    <a href="https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/" target="_blank" rel="noopener"
+       class="flex flex-col items-center justify-center text-[10px] font-bold text-white bg-[#D32F2F] rounded-lg px-2 py-1 min-w-[84px] min-h-[48px] text-center leading-tight">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+      AUSENTISMO PERSONAL
+    </a>
+  </div>
+</header>
 
-            <!-- Botón Ausentismo -->
-            <div class="flex items-center gap-1.5">
-                <button onclick="openAusentismoAndClose()" class="touch-btn bg-agri-red hover:bg-agri-redHover text-white font-bold px-3 py-1.5 rounded-xl border border-red-700 shadow-sm transition-all text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-clipboard-user text-sm"></i>
-                    <span>Ausentismo</span>
-                </button>
-            </div>
-        </div>
-    </header>
+<main class="max-w-xl mx-auto p-3 space-y-4">
+  <section class="bg-white rounded-2xl shadow p-4 space-y-3">
+    <h2 class="font-bold text-lg text-[#2E7D32]">Registro de movilidad</h2>
 
-    <!-- Toast Notification Banner -->
-    <div id="toastNotification" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md bg-gray-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-gray-700 text-xs sm:text-sm flex items-center justify-between gap-3 transition-all">
-        <span id="toastMessage">Notificación</span>
-        <button onclick="closeToast()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    <label class="block"><span class="text-sm font-semibold">Placa de unidad</span>
+      <select id="placa" class="ctl w-full mt-1 border-2 border-[#A5D6A7] rounded-xl px-3 bg-white"><option value="">Cargando…</option></select>
+    </label>
+    <p id="maestrosInfo" class="text-xs text-gray-500"></p>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block col-span-2"><span class="text-sm font-semibold">Conductor</span><input id="conductor" disabled class="ctl ro w-full mt-1 rounded-xl px-3 border"></label>
+      <label class="block"><span class="text-sm font-semibold">Tipo</span><input id="tipo" disabled class="ctl ro w-full mt-1 rounded-xl px-3 border"></label>
+      <label class="block"><span class="text-sm font-semibold">Capacidad</span><input id="capacidad" disabled class="ctl ro w-full mt-1 rounded-xl px-3 border"></label>
+      <label class="block"><span class="text-sm font-semibold">Ruta</span><input id="ruta" disabled class="ctl ro w-full mt-1 rounded-xl px-3 border"></label>
+      <label class="block"><span class="text-sm font-semibold">Cultivo</span><input id="cultivo" disabled class="ctl ro w-full mt-1 rounded-xl px-3 border"></label>
     </div>
 
-    <main class="max-w-3xl w-full mx-auto px-4 py-4 flex-1 flex flex-col gap-4">
-        
-        <div class="flex items-center justify-between bg-white rounded-2xl p-3 border border-gray-200 shadow-sm text-xs sm:text-sm">
-            <div id="networkBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
-                <span id="networkDot" class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                <span id="networkText">Conectado</span>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button id="syncNowBtn" onclick="syncPendingRecords()" class="touch-btn bg-emerald-50 hover:bg-emerald-100 text-agri-green font-semibold px-3 py-1.5 rounded-xl border border-agri-greenBorder transition-all text-xs flex items-center gap-1.5">
-                    <i id="syncIcon" class="fa-solid fa-rotate"></i>
-                    <span>Sincronizar</span>
-                    <span id="pendingBadge" class="bg-agri-red text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="flex bg-gray-200 p-1 rounded-2xl gap-1">
-            <button id="tabRegister" onclick="switchTab('register')" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-agri-green bg-white shadow transition-all flex items-center justify-center gap-2">
-                <i class="fa-solid fa-bus"></i> Registrar Movilidad
-            </button>
-            <button id="tabHistory" onclick="switchTab('history')" class="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-all flex items-center justify-center gap-2">
-                <i class="fa-solid fa-list-check"></i> Historial (<span id="historyCount">0</span>)
-            </button>
-        </div>
-
-        <div id="viewRegister" class="bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm flex flex-col gap-4">
-            
-            <div class="flex items-center justify-between border-b pb-3 border-gray-100">
-                <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clipboard-list text-agri-green"></i>
-                    Registro de Pasajeros
-                </h2>
-                <button onclick="reloadMasterData(true)" title="Recargar Maestros desde Google Sheets" class="text-xs text-agri-green hover:underline flex items-center gap-1 font-semibold">
-                    <i id="reloadMasterIcon" class="fa-solid fa-arrows-rotate"></i> Actualizar Placas
-                </button>
-            </div>
-
-            <form id="transportForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                
-                <!-- Placa Selection -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label for="placaSelect" class="block text-xs sm:text-sm font-bold text-gray-700">
-                            Placa de Unidad <span class="text-agri-red">*</span>
-                        </label>
-                        <span id="sourceBadge" class="text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                            Cargando...
-                        </span>
-                    </div>
-                    <div class="relative">
-                        <select id="placaSelect" required onchange="onPlacaChange()" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-3 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-agri-green focus:border-agri-green transition-all appearance-none">
-                            <option value="">-- Cargando Placas de Google Sheets... --</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </div>
-
-                <!-- Autocompleted Fields Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-agri-bg p-3.5 rounded-xl border border-gray-200 text-xs sm:text-sm">
-                    <div>
-                        <span class="text-gray-500 font-medium block">Conductor:</span>
-                        <input type="text" id="conductor" readonly placeholder="Auto-completado" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 font-semibold text-gray-800 mt-0.5">
-                    </div>
-                    <div>
-                        <span class="text-gray-500 font-medium block">Tipo Vehículo:</span>
-                        <input type="text" id="tipo" readonly placeholder="Auto-completado" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 font-semibold text-gray-800 mt-0.5">
-                    </div>
-                    <div>
-                        <span class="text-gray-500 font-medium block">Capacidad:</span>
-                        <input type="number" id="capacidad" readonly placeholder="0" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 font-bold text-agri-green mt-0.5">
-                    </div>
-                    <div>
-                        <span class="text-gray-500 font-medium block">Ruta:</span>
-                        <input type="text" id="ruta" readonly placeholder="Auto-completado" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 font-semibold text-gray-800 mt-0.5">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <span class="text-gray-500 font-medium block">Cultivo / Finca:</span>
-                        <input type="text" id="cultivo" readonly placeholder="Auto-completado" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 font-semibold text-gray-800 mt-0.5">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- N° Pasajeros Input -->
-                    <div>
-                        <label for="pasajerosInput" class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">
-                            N° Pasajeros Actuales <span class="text-agri-red">*</span>
-                        </label>
-                        <div class="relative">
-                            <input type="number" id="pasajerosInput" required min="0" placeholder="Ej. 15" oninput="calculateLibres()" class="w-full bg-white border-2 border-gray-300 rounded-xl px-3 py-3 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-agri-green focus:border-agri-green transition-all">
-                            <i class="fa-solid fa-users absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        </div>
-                    </div>
-
-                    <!-- Asientos Libres (Calculated) -->
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">
-                            Asientos Libres (Calculado)
-                        </label>
-                        <div id="libresBox" class="w-full h-[52px] bg-agri-greenLight border-2 border-agri-greenBorder rounded-xl px-4 flex items-center justify-between text-agri-green font-black text-lg transition-all">
-                            <span class="text-xs font-semibold text-gray-600 uppercase">Disponibles:</span>
-                            <span id="libresValue" class="text-2xl font-black">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Alert Warning Banner if Exceeded -->
-                <div id="exceedAlert" class="hidden bg-agri-redLight border border-agri-redBorder text-agri-red rounded-xl p-3 text-xs sm:text-sm font-semibold flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation text-base flex-shrink-0"></i>
-                    <span>¡Atención! La cantidad de pasajeros ingresada supera la capacidad máxima declarada de la unidad.</span>
-                </div>
-
-                <!-- Observaciones -->
-                <div>
-                    <label for="observaciones" class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">
-                        Observaciones (Opcional)
-                    </label>
-                    <textarea id="observaciones" rows="2" placeholder="Incidencias en ruta, parada adicional, etc..." class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-agri-green focus:border-agri-green transition-all"></textarea>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" id="saveBtn" class="touch-btn w-full bg-agri-green hover:bg-agri-greenHover text-white text-base font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 py-3 mt-2">
-                    <i class="fa-solid fa-floppy-disk text-lg"></i>
-                    <span>Guardar y Enviar Registro</span>
-                </button>
-            </form>
-        </div>
-
-        <div id="viewHistory" class="hidden bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm flex flex-col gap-4">
-            <div class="flex items-center justify-between border-b pb-3 border-gray-100">
-                <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-agri-green"></i>
-                    Registros Almacenados
-                </h2>
-                <button onclick="clearSyncedHistory()" class="text-xs text-agri-red hover:underline font-semibold">
-                    Limpiar Sincronizados
-                </button>
-            </div>
-
-            <div id="historyList" class="flex flex-col gap-3 min-h-[200px]">
-                <!-- Dynamic cards inserted here -->
-            </div>
-        </div>
-    </main>
-
-    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-6">
-        <p>© 2026 Agrícola Huarmey - Sistema de Control de Transporte v1.5</p>
-    </footer>
-
-    <script>
-        const DEFAULT_AUTO_SYNC_URL = https://script.google.com/macros/s/AKfycbx8I1d6a5FvwHvD63csY9UesquSb-Pc4FGwPbgysyarPo_5keD0vSne37vAKbxUQiC5/exec";
-
-        const MOCK_MAESTROS = [
-            { placa: "ABC-123", conductor: "Juan Pérez", tipo: "Bus", capacidad: 30, ruta: "Ruta A - Huarmey Centro", cultivo: "Arándanos", celular: "987654321", estado: "ACTIVO" },
-            { placa: "DEF-456", conductor: "Carlos Gómez", tipo: "Cúster", capacidad: 18, ruta: "Ruta B - Valle Norte", cultivo: "Paltos", celular: "987123456", estado: "ACTIVO" },
-            { placa: "GHI-789", conductor: "María Rojas", tipo: "Minivan", capacidad: 12, ruta: "Ruta C - Finca 2", cultivo: "Uvas", celular: "912345678", estado: "ACTIVO" }
-        ];
-
-        let db = null;
-        let masterVehicles = [];
-        let currentApiUrl = DEFAULT_AUTO_SYNC_URL;
-
-        function showToast(msg, bg = 'gray') {
-            const toast = document.getElementById('toastNotification');
-            const toastMsg = document.getElementById('toastMessage');
-            if (!toast || !toastMsg) return;
-
-            toastMsg.innerText = msg;
-            toast.className = `fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md text-white px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm flex items-center justify-between gap-3 transition-all ${
-                bg === 'amber' ? 'bg-amber-900 border-amber-700' : bg === 'emerald' ? 'bg-emerald-900 border-emerald-700' : 'bg-gray-900 border-gray-700'
-            }`;
-            toast.classList.remove('hidden');
-
-            setTimeout(() => {
-                closeToast();
-            }, 4500);
-        }
-
-        function closeToast() {
-            const toast = document.getElementById('toastNotification');
-            if (toast) toast.classList.add('hidden');
-        }
-
-        function openAusentismoAndClose() {
-            const url = "https://soportebdinformacion-dev.github.io/AUSENTISMO-PLACAS/";
-            const newWin = window.open(url, '_blank');
-            try {
-                if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-                    window.location.href = url;
-                } else {
-                    setTimeout(() => {
-                        window.close();
-                    }, 300);
-                }
-            } catch (e) {
-                window.location.href = url;
-            }
-        }
-
-        function initIndexedDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('HuarmeyTransporteDB', 1);
-
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('maestros')) {
-                        database.createObjectStore('maestros', { keyPath: 'placa' });
-                    }
-                    if (!database.objectStoreNames.contains('registros')) {
-                        database.createObjectStore('registros', { keyPath: 'id' });
-                    }
-                };
-
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve(db);
-                };
-
-                request.onerror = (e) => {
-                    console.error("IndexedDB error:", e.target.error);
-                    reject(e.target.error);
-                };
-            });
-        }
-
-        async function loadMasterVehicles() {
-            try {
-                const tx = db.transaction('maestros', 'readonly');
-                const store = tx.objectStore('maestros');
-                const request = store.getAll();
-
-                request.onsuccess = async () => {
-                    let records = request.result || [];
-                    
-                    // Si ya hay datos en IndexedDB local, los mostramos primero para inmediatez
-                    if (records.length > 0) {
-                        masterVehicles = records;
-                        populatePlacaDropdown(masterVehicles, "Local Cache");
-                    }
-
-                    // Intentar actualizar desde Google Sheets si hay conexión
-                    let fetchedSuccessfully = false;
-                    if (navigator.onLine && currentApiUrl) {
-                        fetchedSuccessfully = await fetchMasterDataFromApi();
-                    }
-
-                    // Si la API falló y tampoco había datos locales previos, usamos Mock Data
-                    if (!fetchedSuccessfully && masterVehicles.length === 0) {
-                        console.log("Activando datos de respaldo iniciales (Mock Data)...");
-                        await saveMaestrosToDB(MOCK_MAESTROS);
-                        masterVehicles = MOCK_MAESTROS;
-                        populatePlacaDropdown(masterVehicles, "Datos Respaldados");
-                    }
-                };
-
-                request.onerror = async () => {
-                    console.warn("Error leyendo IndexedDB, activando modo respaldo.");
-                    masterVehicles = MOCK_MAESTROS;
-                    populatePlacaDropdown(masterVehicles, "Modo Respaldo");
-                };
-            } catch (err) {
-                console.error("Error en loadMasterVehicles:", err);
-                masterVehicles = MOCK_MAESTROS;
-                populatePlacaDropdown(masterVehicles, "Modo Respaldo");
-            }
-        }
-
-        async function saveMaestrosToDB(items) {
-            if (!db) return;
-            const tx = db.transaction('maestros', 'readwrite');
-            const store = tx.objectStore('maestros');
-            items.forEach(item => store.put(item));
-        }
-
-        async function fetchMasterDataFromApi() {
-            if (!currentApiUrl) return false;
-            const reloadIcon = document.getElementById('reloadMasterIcon');
-            if (reloadIcon) reloadIcon.classList.add('fa-spin');
-
-            try {
-                // Timeout controller to prevent infinite pending state
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-                const res = await fetch(currentApiUrl, { 
-                    method: 'GET',
-                    redirect: 'follow',
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-
-                const text = await res.text();
-                let json;
-                try {
-                    json = JSON.parse(text);
-                } catch (parseErr) {
-                    console.warn("La respuesta no fue JSON válido:", text.substring(0, 100));
-                    showToast("⚠️ Revisa permisos de Google Script ('Cualquiera'). Usando placas locales.", "amber");
-                    return false;
-                }
-
-                if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
-                    // Normalización robusta de llaves (placa, conductor, etc.)
-                    const normalizedList = json.data.map(v => ({
-                        placa: String(v.placa || v.Placa || v.PLACA || '').trim(),
-                        conductor: String(v.conductor || v.Conductor || v.CONDUCTOR || '').trim(),
-                        tipo: String(v.tipo || v.Tipo || v.TIPO || '').trim(),
-                        capacidad: Number(v.capacidad || v.Capacidad || v.CAPACIDAD) || 0,
-                        ruta: String(v.ruta || v.Ruta || v.RUTA || '').trim(),
-                        cultivo: String(v.cultivo || v.Cultivo || v.CULTIVO || '').trim(),
-                        celular: String(v.celular || v.Celular || v.CELULAR || '').trim(),
-                        estado: String(v.estado || v.Estado || v.ESTADO || 'ACTIVO').trim()
-                    })).filter(v => v.placa !== '');
-
-                    const activeList = normalizedList.filter(v => {
-                        if (!v.estado) return true;
-                        const st = String(v.estado).toUpperCase().trim();
-                        return st === 'ACTIVO' || st === 'ACTIVA' || st === '' || st === '1' || st === 'TRUE';
-                    });
-
-                    if (activeList.length > 0) {
-                        await saveMaestrosToDB(activeList);
-                        masterVehicles = activeList;
-                        populatePlacaDropdown(masterVehicles, "Google Sheets");
-                        return true;
-                    }
-                }
-                return false;
-            } catch (e) {
-                console.warn("No se lograron cargar placas de Google Sheets:", e);
-                return false;
-            } finally {
-                if (reloadIcon) reloadIcon.classList.remove('fa-spin');
-            }
-        }
-
-        async function reloadMasterData(manualClick = false) {
-            if (navigator.onLine) {
-                const success = await fetchMasterDataFromApi();
-                if (success && manualClick) {
-                    showToast("✅ Placas de unidades actualizadas correctamente.", "emerald");
-                } else if (!success && manualClick) {
-                    showToast("ℹ️ Usando placas locales previamente guardadas.", "gray");
-                }
-            } else {
-                showToast("📶 Sin conexión. Se mantienen las placas guardadas localmente.", "amber");
-            }
-        }
-
-        function populatePlacaDropdown(vehicles, sourceName = "") {
-            const select = document.getElementById('placaSelect');
-            const sourceBadge = document.getElementById('sourceBadge');
-
-            if (!select) return;
-            select.innerHTML = '';
-
-            if (sourceBadge && sourceName) {
-                sourceBadge.innerText = sourceName;
-                sourceBadge.className = sourceName === "Google Sheets" 
-                    ? "text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full"
-                    : "text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full";
-            }
-
-            if (!vehicles || vehicles.length === 0) {
-                select.innerHTML = '<option value="">-- Sin Placas Disponibles --</option>';
-                return;
-            }
-
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = "";
-            defaultOpt.textContent = `-- Seleccionar Placa (${vehicles.length} disponibles) --`;
-            select.appendChild(defaultOpt);
-
-            vehicles.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.placa;
-                opt.textContent = `${v.placa} - ${v.conductor || 'Sin Conductor'} (${v.tipo || 'Vehículo'})`;
-                select.appendChild(opt);
-            });
-        }
-
-        function onPlacaChange() {
-            const selectedPlaca = document.getElementById('placaSelect').value;
-            const vehicle = masterVehicles.find(v => v.placa === selectedPlaca);
-
-            if (vehicle) {
-                document.getElementById('conductor').value = vehicle.conductor || '';
-                document.getElementById('tipo').value = vehicle.tipo || '';
-                document.getElementById('capacidad').value = vehicle.capacidad || 0;
-                document.getElementById('ruta').value = vehicle.ruta || '';
-                document.getElementById('cultivo').value = vehicle.cultivo || '';
-            } else {
-                document.getElementById('conductor').value = '';
-                document.getElementById('tipo').value = '';
-                document.getElementById('capacidad').value = '';
-                document.getElementById('ruta').value = '';
-                document.getElementById('cultivo').value = '';
-            }
-            calculateLibres();
-        }
-
-        function calculateLibres() {
-            const capacidad = parseInt(document.getElementById('capacidad').value) || 0;
-            const pasajeros = parseInt(document.getElementById('pasajerosInput').value) || 0;
-            const libres = capacidad - pasajeros;
-
-            const libresValue = document.getElementById('libresValue');
-            const libresBox = document.getElementById('libresBox');
-            const exceedAlert = document.getElementById('exceedAlert');
-
-            libresValue.innerText = libres;
-
-            if (libres < 0) {
-                libresBox.className = "w-full h-[52px] bg-agri-redLight border-2 border-agri-redBorder rounded-xl px-4 flex items-center justify-between text-agri-red font-black text-lg transition-all animate-bounce";
-                exceedAlert.classList.remove('hidden');
-            } else if (libres === 0) {
-                libresBox.className = "w-full h-[52px] bg-amber-50 border-2 border-amber-300 rounded-xl px-4 flex items-center justify-between text-amber-700 font-black text-lg transition-all";
-                exceedAlert.classList.add('hidden');
-            } else {
-                libresBox.className = "w-full h-[52px] bg-agri-greenLight border-2 border-agri-greenBorder rounded-xl px-4 flex items-center justify-between text-agri-green font-black text-lg transition-all";
-                exceedAlert.classList.add('hidden');
-            }
-        }
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const placa = document.getElementById('placaSelect').value;
-            const conductor = document.getElementById('conductor').value;
-            const tipo = document.getElementById('tipo').value;
-            const capacidad = parseInt(document.getElementById('capacidad').value) || 0;
-            const ruta = document.getElementById('ruta').value;
-            const cultivo = document.getElementById('cultivo').value;
-            const pasajeros = parseInt(document.getElementById('pasajerosInput').value) || 0;
-            const libres = capacidad - pasajeros;
-            const observaciones = document.getElementById('observaciones').value;
-
-            if (!placa) {
-                alert("Por favor seleccione una placa de unidad.");
-                return;
-            }
-
-            const record = {
-                id: 'REG-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-                fecha: new Date().toLocaleString('es-PE'),
-                placa,
-                conductor,
-                tipo,
-                ruta,
-                cultivo,
-                capacidad,
-                pasajeros,
-                libres,
-                observaciones,
-                syncStatus: 'PENDIENTE',
-                createdAt: Date.now()
-            };
-
-            await saveRecordToDB(record);
-
-            if (navigator.onLine) {
-                await sendRecordToBackend(record);
-            }
-
-            document.getElementById('transportForm').reset();
-            calculateLibres();
-            updatePendingBadge();
-            
-            showToast(navigator.onLine ? "✅ Registro guardado y enviado." : "📥 Guardado localmente (Modo Offline).", "emerald");
-        }
-
-        function saveRecordToDB(record) {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('registros', 'readwrite');
-                const store = tx.objectStore('registros');
-                const req = store.put(record);
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        async function sendRecordToBackend(record) {
-            if (!currentApiUrl) return false;
-
-            try {
-                await fetch(currentApiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(record)
-                });
-
-                record.syncStatus = 'SINCRONIZADO';
-                await saveRecordToDB(record);
-                return true;
-            } catch (err) {
-                console.error("Sync error:", err);
-                record.syncStatus = 'ERROR';
-                await saveRecordToDB(record);
-                return false;
-            }
-        }
-
-        async function syncPendingRecords() {
-            if (!db) return;
-
-            const syncIcon = document.getElementById('syncIcon');
-            if (syncIcon) syncIcon.classList.add('fa-spin');
-
-            const tx = db.transaction('registros', 'readonly');
-            const store = tx.objectStore('registros');
-            const req = store.getAll();
-
-            req.onsuccess = async () => {
-                const records = req.result || [];
-                const pending = records.filter(r => r.syncStatus === 'PENDIENTE' || r.syncStatus === 'ERROR');
-
-                if (pending.length === 0) {
-                    setTimeout(() => {
-                        syncIcon.classList.remove('fa-spin');
-                    }, 500);
-                    updatePendingBadge();
-                    return;
-                }
-
-                for (let record of pending) {
-                    await sendRecordToBackend(record);
-                }
-
-                syncIcon.classList.remove('fa-spin');
-                updatePendingBadge();
-                if (!document.getElementById('viewHistory').classList.contains('hidden')) {
-                    renderHistory();
-                }
-            };
-        }
-
-        async function updatePendingBadge() {
-            if (!db) return;
-            const tx = db.transaction('registros', 'readonly');
-            const store = tx.objectStore('registros');
-            const req = store.getAll();
-
-            req.onsuccess = () => {
-                const records = req.result || [];
-                const pendingCount = records.filter(r => r.syncStatus === 'PENDIENTE').length;
-                
-                document.getElementById('historyCount').innerText = records.length;
-                const badge = document.getElementById('pendingBadge');
-                if (pendingCount > 0) {
-                    badge.innerText = pendingCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            };
-        }
-
-        function switchTab(tab) {
-            const viewRegister = document.getElementById('viewRegister');
-            const viewHistory = document.getElementById('viewHistory');
-            const tabRegister = document.getElementById('tabRegister');
-            const tabHistory = document.getElementById('tabHistory');
-
-            if (tab === 'register') {
-                viewRegister.classList.remove('hidden');
-                viewHistory.classList.add('hidden');
-                tabRegister.className = "flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-agri-green bg-white shadow transition-all flex items-center justify-center gap-2";
-                tabHistory.className = "flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-all flex items-center justify-center gap-2";
-            } else {
-                viewRegister.classList.add('hidden');
-                viewHistory.classList.remove('hidden');
-                tabHistory.className = "flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-agri-green bg-white shadow transition-all flex items-center justify-center gap-2";
-                tabRegister.className = "flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-all flex items-center justify-center gap-2";
-                renderHistory();
-            }
-        }
-
-        function renderHistory() {
-            const container = document.getElementById('historyList');
-            container.innerHTML = '';
-
-            const tx = db.transaction('registros', 'readonly');
-            const store = tx.objectStore('registros');
-            const req = store.getAll();
-
-            req.onsuccess = () => {
-                const records = (req.result || []).sort((a,b) => b.createdAt - a.createdAt);
-
-                if (records.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-8 text-gray-400 text-xs sm:text-sm">
-                            <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
-                            <p>No hay registros almacenados localmente.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                records.forEach(r => {
-                    const card = document.createElement('div');
-                    let badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
-                    let badgeIcon = "fa-clock";
-                    if (r.syncStatus === 'SINCRONIZADO') {
-                        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-                        badgeIcon = "fa-check-double";
-                    } else if (r.syncStatus === 'ERROR') {
-                        badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
-                        badgeIcon = "fa-triangle-exclamation";
-                    }
-
-                    card.className = "bg-gray-50 border border-gray-200 rounded-xl p-3.5 flex flex-col gap-2 text-xs sm:text-sm";
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between border-b pb-1.5 border-gray-200">
-                            <span class="font-bold text-gray-900">${r.placa} - <span class="text-agri-green">${r.tipo}</span></span>
-                            <span class="px-2 py-0.5 rounded-full border text-[11px] font-semibold flex items-center gap-1 ${badgeClass}">
-                                <i class="fa-solid ${badgeIcon}"></i> ${r.syncStatus}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-1 text-gray-600">
-                            <p><strong>Conductor:</strong> ${r.conductor}</p>
-                            <p><strong>Ruta:</strong> ${r.ruta}</p>
-                            <p><strong>Pasajeros:</strong> <span class="font-bold text-gray-900">${r.pasajeros}</span> / Cap. ${r.capacidad}</p>
-                            <p><strong>Libres:</strong> <span class="font-bold ${r.libres < 0 ? 'text-agri-red' : 'text-agri-green'}">${r.libres}</span></p>
-                        </div>
-                        <div class="text-[11px] text-gray-400 flex justify-between pt-1">
-                            <span>${r.fecha}</span>
-                            <span>${r.observaciones ? 'Obs: ' + r.observaciones : ''}</span>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            };
-        }
-
-        function clearSyncedHistory() {
-            if (!confirm("¿Desea limpiar de este dispositivo los registros ya sincronizados?")) return;
-
-            const tx = db.transaction('registros', 'readwrite');
-            const store = tx.objectStore('registros');
-            const req = store.getAll();
-
-            req.onsuccess = () => {
-                const records = req.result || [];
-                records.forEach(r => {
-                    if (r.syncStatus === 'SINCRONIZADO') {
-                        store.delete(r.id);
-                    }
-                });
-                renderHistory();
-                updatePendingBadge();
-            };
-        }
-
-        function updateNetworkStatus() {
-            const isOnline = navigator.onLine;
-            const networkBadge = document.getElementById('networkBadge');
-            const networkDot = document.getElementById('networkDot');
-            const networkText = document.getElementById('networkText');
-
-            if (isOnline) {
-                networkBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
-                networkDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse";
-                networkText.innerText = "Conectado";
-                syncPendingRecords();
-            } else {
-                networkBadge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 font-medium";
-                networkDot.className = "w-2.5 h-2.5 rounded-full bg-amber-600";
-                networkText.innerText = "Modo Offline";
-            }
-        }
-
-        window.addEventListener('online', updateNetworkStatus);
-        window.addEventListener('offline', updateNetworkStatus);
-
-        window.onload = async () => {
-            await initIndexedDB();
-            updateNetworkStatus();
-            await loadMasterVehicles();
-            updatePendingBadge();
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log("Service Worker Registrado Exitosamente"))
-                    .catch(err => console.log("Error registrando Service Worker:", err));
-            }
-        };
-    </script>
+    <label class="block"><span class="text-sm font-semibold">N° de pasajeros *</span>
+      <input id="pasajeros" type="number" inputmode="numeric" min="0" step="1" placeholder="0" class="ctl w-full mt-1 border-2 border-[#A5D6A7] rounded-xl px-3">
+    </label>
+    <p id="warn" class="hidden text-sm font-semibold text-[#D32F2F] bg-[#FFEBEE] rounded-lg p-2"></p>
+
+    <div id="libresBox" class="rounded-xl p-3 text-center bg-[#E8F5E9] border-2 border-[#A5D6A7]">
+      <div class="text-sm font-semibold">Asientos libres</div>
+      <div id="libres" class="text-4xl font-extrabold">—</div>
+      <div id="formula" class="text-xs text-gray-600">Capacidad − Pasajeros</div>
+    </div>
+
+    <label class="block"><span class="text-sm font-semibold">Observaciones (opcional)</span>
+      <textarea id="obs" rows="2" class="w-full mt-1 border-2 border-[#A5D6A7] rounded-xl px-3 py-2 text-lg"></textarea>
+    </label>
+
+    <button id="guardar" class="w-full min-h-[64px] rounded-2xl bg-[#2E7D32] active:bg-[#1B5E20] text-white text-xl font-bold flex items-center justify-center gap-2">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      Guardar / Enviar
+    </button>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow p-4">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="font-bold text-lg text-[#2E7D32]">Mis registros</h2>
+      <button id="sync" class="min-h-[48px] px-4 rounded-xl bg-[#D32F2F] text-white font-bold text-sm">Sincronizar ahora (<span id="pend">0</span>)</button>
+    </div>
+    <ul id="lista" class="divide-y text-sm"></ul>
+  </section>
+</main>
+
+<div id="net" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg" style="margin-bottom:env(safe-area-inset-bottom)"></div>
+<div id="toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-40 px-4 py-3 rounded-xl text-white font-semibold shadow-lg max-w-[90%] text-center"></div>
+
+<script>
+// ============ CONFIGURACIÓN ============
+// Pega aquí la URL de tu Web App de Apps Script (termina en /exec)
+const API_URL = 'PEGA_AQUI_LA_URL_DE_TU_WEB_APP/exec';
+
+// ============ IndexedDB ============
+let db;
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('huarmey-db', 1);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      d.createObjectStore('registros', { keyPath: 'uid' });
+      d.createObjectStore('maestros', { keyPath: 'placa' });
+    };
+    r.onsuccess = () => { db = r.result; res(); };
+    r.onerror = () => rej(r.error);
+  });
+}
+const tx = (s, m = 'readonly') => db.transaction(s, m).objectStore(s);
+const req = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const getAll = s => req(tx(s).getAll());
+const put = (s, v) => req(tx(s, 'readwrite').put(v));
+async function replaceMaestros(list) {
+  const st = tx('maestros', 'readwrite'); await req(st.clear());
+  for (const v of list) await req(tx('maestros', 'readwrite').put(v));
+}
+
+// ============ UI helpers ============
+const $ = id => document.getElementById(id);
+let maestros = [], syncing = false;
+function toast(msg, ok = true) {
+  const t = $('toast'); t.textContent = msg; t.style.background = ok ? '#2E7D32' : '#D32F2F';
+  t.classList.remove('hidden'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.add('hidden'), 3500);
+}
+function netBadge() {
+  const on = navigator.onLine, n = $('net');
+  n.textContent = on ? '● Conectado' : '● Modo Offline';
+  n.style.background = on ? '#2E7D32' : '#F57C00';
+}
+function fmtFecha(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+// ============ Maestros ============
+function pintarPlacas() {
+  const sel = $('placa'), cur = sel.value;
+  sel.innerHTML = '<option value="">Seleccione placa…</option>' +
+    maestros.sort((a, b) => a.placa.localeCompare(b.placa)).map(v => `<option value="${v.placa}">${v.placa}</option>`).join('');
+  if (maestros.some(v => v.placa === cur)) sel.value = cur;
+  $('maestrosInfo').textContent = maestros.length + ' unidades activas disponibles';
+}
+async function cargarMaestros() {
+  maestros = await getAll('maestros'); pintarPlacas();   // primero lo local
+  if (!navigator.onLine || API_URL.startsWith('PEGA_AQUI')) {
+    if (API_URL.startsWith('PEGA_AQUI')) toast('Configura API_URL en index.html', false);
+    return;
+  }
+  try {
+    const r = await fetch(API_URL + '?t=' + Date.now());
+    const j = await r.json();
+    if (j.status !== 'success') throw new Error(j.message || 'Respuesta inválida');
+    await replaceMaestros(j.vehiculos);
+    maestros = j.vehiculos; pintarPlacas();
+  } catch (e) {
+    if (!maestros.length) toast('No se pudo cargar placas: ' + e.message, false);
+  }
+}
+function actual() { return maestros.find(v => v.placa === $('placa').value); }
+function rellenar() {
+  const v = actual() || {};
+  ['conductor', 'tipo', 'capacidad', 'ruta', 'cultivo'].forEach(k => $(k).value = v[k] ?? '');
+  calc();
+}
+function calc() {
+  const v = actual(), p = $('pasajeros').value, w = $('warn'), box = $('libresBox'), L = $('libres');
+  w.classList.add('hidden');
+  if (!v || p === '') { L.textContent = '—'; $('formula').textContent = 'Capacidad − Pasajeros'; box.style.cssText = ''; box.className = 'rounded-xl p-3 text-center bg-[#E8F5E9] border-2 border-[#A5D6A7]'; return null; }
+  const libres = v.capacidad - Number(p);
+  L.textContent = libres;
+  $('formula').textContent = `${v.capacidad} − ${p} = ${libres}`;
+  const bad = libres < 0, zero = libres === 0;
+  box.className = 'rounded-xl p-3 text-center border-2 ' + (bad ? 'bg-[#FFEBEE] border-[#D32F2F] text-[#D32F2F]' : zero ? 'bg-orange-100 border-orange-500 text-orange-700' : 'bg-[#E8F5E9] border-[#A5D6A7]');
+  if (Number(p) < 0) { w.textContent = 'El número de pasajeros no puede ser negativo.'; w.classList.remove('hidden'); }
+  else if (bad) { w.textContent = `Advertencia: excede la capacidad (${v.capacidad}) en ${-libres} pasajero(s).`; w.classList.remove('hidden'); }
+  return libres;
+}
+
+// ============ Registros ============
+async function guardar() {
+  const v = actual(), p = $('pasajeros').value;
+  if (!v) return toast('Seleccione una placa', false);
+  if (p === '' || Number(p) < 0 || !Number.isInteger(Number(p))) return toast('Ingrese un N° de pasajeros válido (≥ 0)', false);
+  const libres = v.capacidad - Number(p);
+  if (libres < 0 && !confirm(`Los pasajeros (${p}) exceden la capacidad (${v.capacidad}). ¿Guardar de todos modos?`)) return;
+  const reg = {
+    uid: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2)),
+    fecha: fmtFecha(new Date()), placa: v.placa, conductor: v.conductor, tipo: v.tipo, ruta: v.ruta,
+    cultivo: v.cultivo, capacidad: v.capacidad, pasajeros: Number(p), libres, observaciones: $('obs').value.trim(),
+    estado: 'PENDIENTE', error: ''
+  };
+  await put('registros', reg);               // 1) siempre local primero
+  $('pasajeros').value = ''; $('obs').value = ''; calc();
+  toast('Guardado localmente');
+  await pintarLista();
+  sincronizar();                             // 2) intento de envío
+}
+async function enviar(reg) {
+  const body = JSON.stringify({ ...reg, estado: undefined, error: undefined });
+  const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+  const j = await r.json();
+  if (j.status !== 'success') throw new Error(j.message || 'Error del servidor');
+}
+async function sincronizar() {
+  if (syncing || !navigator.onLine) return;
+  if (API_URL.startsWith('PEGA_AQUI')) return toast('Configura API_URL en index.html', false);
+  syncing = true;
+  try {
+    const todos = await getAll('registros');
+    const pend = todos.filter(r => r.estado !== 'SINCRONIZADO').sort((a, b) => a.fecha.localeCompare(b.fecha));
+    let ok = 0, fail = 0;
+    for (const r of pend) {
+      try { await enviar(r); r.estado = 'SINCRONIZADO'; r.error = ''; ok++; }
+      catch (e) { r.estado = 'ERROR'; r.error = e.message; fail++; }
+      await put('registros', r);
+    }
+    if (ok) toast(`${ok} registro(s) sincronizado(s)`);
+    if (fail) toast(`${fail} registro(s) con error. Se reintentará.`, false);
+  } finally { syncing = false; await pintarLista(); }
+}
+async function pintarLista() {
+  const todos = (await getAll('registros')).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  $('pend').textContent = todos.filter(r => r.estado !== 'SINCRONIZADO').length;
+  const col = { PENDIENTE: 'bg-orange-500', SINCRONIZADO: 'bg-[#2E7D32]', ERROR: 'bg-[#D32F2F]' };
+  $('lista').innerHTML = todos.slice(0, 30).map(r => `
+    <li class="py-2 flex items-start justify-between gap-2">
+      <div><div class="font-bold">${r.placa} <span class="font-normal text-gray-500">· ${r.pasajeros}/${r.capacidad} pas. · ${r.libres} libres</span></div>
+      <div class="text-xs text-gray-500">${r.fecha}${r.error ? ' · ' + r.error : ''}</div></div>
+      <span class="text-white text-[11px] font-bold px-2 py-1 rounded-full ${col[r.estado]}">${r.estado}</span>
+    </li>`).join('') || '<li class="py-3 text-gray-500">Aún no hay registros.</li>';
+}
+
+// ============ Init ============
+window.addEventListener('online', () => { netBadge(); cargarMaestros(); sincronizar(); });
+window.addEventListener('offline', netBadge);
+$('placa').addEventListener('change', rellenar);
+$('pasajeros').addEventListener('input', calc);
+$('guardar').addEventListener('click', guardar);
+$('sync').addEventListener('click', () => navigator.onLine ? sincronizar() : toast('Sin conexión', false));
+
+(async () => {
+  netBadge();
+  await openDB();
+  await pintarLista();
+  await cargarMaestros();
+  sincronizar();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'SYNC') sincronizar(); });
+      if ('sync' in reg) window.addEventListener('offline', () => reg.sync.register('sync-registros').catch(() => {}));
+    }).catch(() => {});
+  }
+})();
+</script>
 </body>
 </html>
