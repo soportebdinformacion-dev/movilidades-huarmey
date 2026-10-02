@@ -82,7 +82,7 @@
 <script>
 // ============ CONFIGURACIÓN ============
 // Pega aquí la URL de tu Web App de Apps Script (termina en /exec)
-const API_URL = 'https://script.google.com/macros/s/AKfycbwAtYyPtdMtdjXrs_acLjd0Q5ytKNAL1yr0pqY5jYGtv4r1WRzXNtErQuR9NUr-GXpX/exec';
+const API_URL = 'PEGA_AQUI_LA_URL_DE_TU_WEB_APP/exec';
 
 // ============ IndexedDB ============
 let db;
@@ -134,18 +134,22 @@ function pintarPlacas() {
 }
 async function cargarMaestros() {
   maestros = await getAll('maestros'); pintarPlacas();   // primero lo local
-  if (!navigator.onLine || API_URL.startsWith('PEGA_AQUI')) {
-    if (API_URL.startsWith('PEGA_AQUI')) toast('Configura API_URL en index.html', false);
-    return;
-  }
+  if (API_URL.startsWith('PEGA_AQUI')) return toast('Falta configurar API_URL en index.html', false);
+  if (!navigator.onLine) return;
   try {
-    const r = await fetch(API_URL + '?t=' + Date.now());
-    const j = await r.json();
-    if (j.status !== 'success') throw new Error(j.message || 'Respuesta inválida');
+    const r = await fetch(API_URL + '?t=' + Date.now(), { redirect: 'follow' });
+    const txt = await r.text();
+    let j;
+    try { j = JSON.parse(txt); }
+    catch (_) { throw new Error('La URL no devolvió JSON. Revisa que la Web App esté implementada con acceso "Cualquier persona" y que la URL termine en /exec'); }
+    if (j.status !== 'success') throw new Error(j.message || ('El servidor respondió sin status=success: ' + txt.slice(0, 160)));
     await replaceMaestros(j.vehiculos);
     maestros = j.vehiculos; pintarPlacas();
+    if (!j.vehiculos.length) toast('La hoja maestros no tiene unidades con ESTADO = ACTIVO', false);
   } catch (e) {
-    if (!maestros.length) toast('No se pudo cargar placas: ' + e.message, false);
+    $('maestrosInfo').textContent = 'Error: ' + e.message;
+    $('maestrosInfo').style.color = '#D32F2F';
+    toast('No se pudo cargar placas', false);
   }
 }
 function actual() { return maestros.find(v => v.placa === $('placa').value); }
